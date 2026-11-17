@@ -8,7 +8,8 @@ export const config = {
   xp: { gemValue: 1, magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5 },
   run: { durationSec: 600 },
   pools: { bullets: 100, enemies: 150, gems: 300 },
-  ui: { margin: 16, hudFontSize: 24, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56 },
+  ui: { margin: 16, hudFontSize: 24, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
+    dimAlpha: 0.6, card: { count: 3, width: 240, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2 } },
   // Placeholder texture sizes in px.
   textures: {
     bartek: { height: 80 }, // on-screen height; width follows the image's aspect ratio

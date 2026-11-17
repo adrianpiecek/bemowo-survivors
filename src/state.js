@@ -10,6 +10,7 @@ export function newRun() {
     hp: config.player.maxHp,
     invulnUntilMs: 0,
     fireCooldownMs: 0,
+    pendingLevelUps: 0, // level-ups still waiting for a card pick
     // Weapon stats copied from config so upgrades can change them for this run only.
     stats: { ...config.pistol },
   };

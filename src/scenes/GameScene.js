@@ -49,6 +49,8 @@ export default class GameScene extends Phaser.Scene {
     this.hudText = this.add.text(config.ui.margin, config.ui.margin, '', { fontSize: `${config.ui.hudFontSize}px` })
       .setScrollFactor(0).setDepth(2);
     this.updateHud();
+    // Keys released while paused never reach this scene, so clear them or Bartek keeps walking.
+    this.events.on(Phaser.Scenes.Events.RESUME, () => this.input.keyboard.resetKeys());
   }
 
   onEnemyTouch() {
@@ -82,11 +84,17 @@ export default class GameScene extends Phaser.Scene {
     if (!gem.active) return;
     gem.disableBody(true, true);
     this.run.xp += gem.value;
+    const wasPending = this.run.pendingLevelUps > 0;
     for (let need = xpToNextLevel(this.run.level); this.run.xp >= need; need = xpToNextLevel(this.run.level)) {
       this.run.xp -= need;
       this.run.level++;
+      this.run.pendingLevelUps++;
     }
     this.updateHud();
+    if (!wasPending && this.run.pendingLevelUps > 0) {
+      this.scene.pause();
+      this.scene.launch('LevelUpScene', { run: this.run });
+    }
   }
 
   // Shoots bulletsPerShot bullets at the nearest zombies in range. Returns false when nothing is in range.
