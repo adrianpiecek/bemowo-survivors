@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { newRun, xpToNextLevel, formatTime } from '../state.js';
+import { newRun, xpToNextLevel } from '../state.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -38,21 +38,17 @@ export default class GameScene extends Phaser.Scene {
     this.gems = this.physics.add.group({ defaultKey: 'gem', maxSize: config.pools.gems });
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
 
-    // shortcut: temporary HP/level/XP readout, replace with the UIScene HUD in step 8.
-    this.hudText = this.add.text(config.ui.margin, config.ui.margin, '', { fontSize: `${config.ui.hudFontSize}px` })
-      .setScrollFactor(0).setDepth(2);
-    this.updateHud();
+    this.scene.launch('UIScene', { run: this.run });
+    // scene.start('GameOverScene') only stops this scene, so take the HUD down with it.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scene.stop('UIScene'));
 
     const b = config.ui.bubble;
     this.bubble = this.add.text(0, 0, 'Muchacho!', {
       fontSize: `${b.fontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: b.padding, y: b.padding },
     }).setOrigin(0.5, 1).setDepth(2).setVisible(false);
 
-    this.events.on(Phaser.Scenes.Events.RESUME, () => {
-      // Keys released while paused never reach this scene, so clear them or Bartek keeps walking.
-      this.input.keyboard.resetKeys();
-      this.updateHud(); // an upgrade may have changed HP
-    });
+    // Keys released while paused never reach this scene, so clear them or Bartek keeps walking.
+    this.events.on(Phaser.Scenes.Events.RESUME, () => this.input.keyboard.resetKeys());
   }
 
   onEnemyTouch(player, enemy) {
@@ -60,7 +56,6 @@ export default class GameScene extends Phaser.Scene {
     const pl = this.run.player;
     pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
-    this.updateHud();
     if (pl.hp === 0) this.scene.start('GameOverScene', { run: this.run, won: false });
   }
 
@@ -93,7 +88,6 @@ export default class GameScene extends Phaser.Scene {
       this.run.level++;
       this.run.pendingLevelUps++;
     }
-    this.updateHud();
     if (!wasPending && this.run.pendingLevelUps > 0) {
       this.run.bubbleMs = config.ui.bubble.durationMs;
       this.updateBubble();
@@ -124,12 +118,6 @@ export default class GameScene extends Phaser.Scene {
     return true;
   }
 
-  updateHud() {
-    const r = this.run, pl = r.player;
-    this.hudText.setText([`HP: ${pl.hp}/${pl.maxHp}`, `Poziom: ${r.level}`, `XP: ${r.xp}/${xpToNextLevel(r.level)}`,
-      `Czas: ${formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999)}`]); // +999: count down from 10:00, not 9:59
-  }
-
   updateBubble() {
     this.bubble.setVisible(this.run.bubbleMs > 0).setPosition(this.player.x, this.player.y - config.ui.bubble.offsetY);
   }
@@ -157,13 +145,11 @@ export default class GameScene extends Phaser.Scene {
 
   update(time, delta) {
     const run = this.run, total = config.run.durationSec * 1000;
-    const shownSec = Math.ceil((total - run.elapsedMs) / 1000);
     run.elapsedMs += delta;
     if (run.elapsedMs >= total) {
       this.scene.start('GameOverScene', { run, won: true });
       return;
     }
-    if (Math.ceil((total - run.elapsedMs) / 1000) !== shownSec) this.updateHud();
 
     // Spawn interval shrinks linearly from start to min over the whole run.
     const { startIntervalMs, minIntervalMs } = config.spawn;

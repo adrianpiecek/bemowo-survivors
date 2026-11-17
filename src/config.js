@@ -12,6 +12,8 @@ export const config = {
   ui: { margin: 16, hudFontSize: 24, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
     dimAlpha: 0.6, card: { count: 3, width: 260, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 22, textFontSize: 18 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
+    hud: { barWidth: 260, barHeight: 22, barGap: 8, barFontSize: 16, barBg: 0x333333, hpColor: 0xd03030, xpColor: 0x3a8dff },
+    welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
   },
   // Placeholder texture sizes in px.
   textures: {
