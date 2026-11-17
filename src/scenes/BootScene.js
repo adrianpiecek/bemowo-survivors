@@ -5,13 +5,14 @@ export default class BootScene extends Phaser.Scene {
 
   preload() {
     this.load.image('bartek', './assets/bartek.png');
+    this.load.image('zombie', './assets/zombie.png');
   }
 
   create() {
     const t = config.textures;
     const g = this.add.graphics();
 
-    for (const key of ['zombie', 'runner', 'bullet']) {
+    for (const key of ['runner', 'bullet']) {
       const { radius, color } = t[key];
       g.fillStyle(color).fillCircle(radius, radius, radius);
       g.generateTexture(key, radius * 2, radius * 2).clear();

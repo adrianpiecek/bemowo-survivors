@@ -4,7 +4,7 @@ export const config = {
   pistol: { fireRateMs: 800, range: 400, bulletSpeed: 500, bulletDamage: 5, bulletsPerShot: 1 },
   zombie: { speed: 60, hp: 10, contactDamage: 10 },
   runner: { speed: 120, hp: 4, contactDamage: 10, appearsAtSec: 120 },
-  spawn: { startIntervalMs: 1000, minIntervalMs: 200, ringMinRadius: 700, ringMaxRadius: 800, maxEnemies: 150 },
+  spawn: { startIntervalMs: 1000, minIntervalMs: 200, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 150 },
   xp: { gemValue: 1, magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5 },
   run: { durationSec: 600 },
   pools: { bullets: 100, enemies: 150, gems: 300 },
@@ -12,7 +12,7 @@ export const config = {
   textures: {
     bartek: { height: 80 }, // on-screen height; width follows the image's aspect ratio
     ground: { size: 64, color: 0x6e6e6e, lineColor: 0x555555, lineWidth: 2 },
-    zombie: { radius: 14, color: 0x2e8b2e },
+    zombie: { height: 56, bodyRadius: 22 }, // on-screen px; width follows the image
     runner: { radius: 11, color: 0x7cfc00 },
     bullet: { radius: 3, color: 0xffffff },
     gem: { size: 12, color: 0x3a8dff },

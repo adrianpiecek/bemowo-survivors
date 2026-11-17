@@ -20,7 +20,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 - Ruch WASD i strzałkami, 100 HP.
 - Po trafieniu 0,5 s nietykalności, bo bez tego horda zabija w ułamek sekundy.
-- Sprite: statyczny obrazek całego Bartka. Jedyna prawdziwa grafika w MVP.
+- Sprite: statyczny obrazek całego Bartka.
 
 ### Broń: pistolet
 
