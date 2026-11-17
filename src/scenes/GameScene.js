@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { newRun } from '../state.js';
+import { newRun, xpToNextLevel } from '../state.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -42,17 +42,20 @@ export default class GameScene extends Phaser.Scene {
     });
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHit, null, this);
 
-    // shortcut: temporary HP readout, replace with the UIScene HUD in step 8.
-    this.hpText = this.add.text(config.ui.margin, config.ui.margin, '', { fontSize: `${config.ui.hudFontSize}px` })
+    this.gems = this.physics.add.group({ defaultKey: 'gem', maxSize: config.pools.gems });
+    this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
+
+    // shortcut: temporary HP/level/XP readout, replace with the UIScene HUD in step 8.
+    this.hudText = this.add.text(config.ui.margin, config.ui.margin, '', { fontSize: `${config.ui.hudFontSize}px` })
       .setScrollFactor(0).setDepth(2);
-    this.updateHpText();
+    this.updateHud();
   }
 
   onEnemyTouch() {
     if (this.time.now < this.run.invulnUntilMs) return;
     this.run.hp = Math.max(0, this.run.hp - config.zombie.contactDamage);
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
-    this.updateHpText();
+    this.updateHud();
     if (this.run.hp === 0) this.scene.start('GameOverScene');
   }
 
@@ -63,7 +66,27 @@ export default class GameScene extends Phaser.Scene {
     if (enemy.hp <= 0) {
       enemy.disableBody(true, true);
       this.run.kills++;
+      this.dropGem(enemy.x, enemy.y);
     }
+  }
+
+  dropGem(x, y) {
+    const gem = this.gems.get(x, y);
+    if (!gem) return; // shortcut: pool full means the drop is lost, fine while gems stay well under the cap
+    gem.enableBody(true, x, y, true, true);
+    gem.value = config.xp.gemValue;
+    gem.magnet = false;
+  }
+
+  collectGem(player, gem) {
+    if (!gem.active) return;
+    gem.disableBody(true, true);
+    this.run.xp += gem.value;
+    for (let need = xpToNextLevel(this.run.level); this.run.xp >= need; need = xpToNextLevel(this.run.level)) {
+      this.run.xp -= need;
+      this.run.level++;
+    }
+    this.updateHud();
   }
 
   // Shoots bulletsPerShot bullets at the nearest zombies in range. Returns false when nothing is in range.
@@ -88,8 +111,11 @@ export default class GameScene extends Phaser.Scene {
     return true;
   }
 
-  updateHpText() {
-    this.hpText.setText(`HP: ${this.run.hp}`);
+  updateHud() {
+    const r = this.run;
+    this.hudText.setText(`HP: ${r.hp}
+Poziom: ${r.level}
+XP: ${r.xp}/${xpToNextLevel(r.level)}`);
   }
 
   spawnZombie() {
@@ -118,6 +144,14 @@ export default class GameScene extends Phaser.Scene {
 
     for (const z of this.enemies.getChildren()) {
       if (z.active) this.physics.moveToObject(z, this.player, config.zombie.speed);
+    }
+
+    // Once a gem is in magnet range it keeps flying to Bartek until picked up.
+    const { magnetRadius, gemSpeed } = config.xp;
+    for (const gem of this.gems.getChildren()) {
+      if (!gem.active) continue;
+      gem.magnet ||= Phaser.Math.Distance.Between(gem.x, gem.y, this.player.x, this.player.y) <= magnetRadius;
+      if (gem.magnet) this.physics.moveToObject(gem, this.player, gemSpeed);
     }
 
     // Cooldown is capped at 0 so a shot fires as soon as a target comes into range.

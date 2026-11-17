@@ -15,5 +15,10 @@ export function newRun() {
   };
 }
 
+// XP needed to go from `level` to the next one.
+export function xpToNextLevel(level) {
+  return config.xp.baseToLevel + config.xp.perLevel * (level - 1);
+}
+
 // Reserved for persistent progress (gym, unlocks). Do not write to it yet.
 export const save = {};
