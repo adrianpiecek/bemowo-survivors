@@ -7,12 +7,13 @@ export function newRun() {
     kills: 0,
     level: 1,
     xp: 0,
-    hp: config.player.maxHp,
     invulnUntilMs: 0,
     fireCooldownMs: 0,
     pendingLevelUps: 0, // level-ups still waiting for a card pick
-    // Weapon stats copied from config so upgrades can change them for this run only.
-    stats: { ...config.pistol },
+    bubbleMs: 0, // time left on the "Muchacho!" bubble
+    // Player and weapon stats copied from config; upgrades change them for this run only.
+    player: { hp: config.player.maxHp, maxHp: config.player.maxHp, speed: config.player.speed, ...config.pistol },
+    upgrades: {}, // upgrade id -> how many times taken
   };
 }
 

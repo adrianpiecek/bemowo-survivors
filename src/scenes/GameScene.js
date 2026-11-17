@@ -49,16 +49,26 @@ export default class GameScene extends Phaser.Scene {
     this.hudText = this.add.text(config.ui.margin, config.ui.margin, '', { fontSize: `${config.ui.hudFontSize}px` })
       .setScrollFactor(0).setDepth(2);
     this.updateHud();
-    // Keys released while paused never reach this scene, so clear them or Bartek keeps walking.
-    this.events.on(Phaser.Scenes.Events.RESUME, () => this.input.keyboard.resetKeys());
+
+    const b = config.ui.bubble;
+    this.bubble = this.add.text(0, 0, 'Muchacho!', {
+      fontSize: `${b.fontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: b.padding, y: b.padding },
+    }).setOrigin(0.5, 1).setDepth(2).setVisible(false);
+
+    this.events.on(Phaser.Scenes.Events.RESUME, () => {
+      // Keys released while paused never reach this scene, so clear them or Bartek keeps walking.
+      this.input.keyboard.resetKeys();
+      this.updateHud(); // an upgrade may have changed HP
+    });
   }
 
   onEnemyTouch() {
     if (this.time.now < this.run.invulnUntilMs) return;
-    this.run.hp = Math.max(0, this.run.hp - config.zombie.contactDamage);
+    const pl = this.run.player;
+    pl.hp = Math.max(0, pl.hp - config.zombie.contactDamage);
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
     this.updateHud();
-    if (this.run.hp === 0) this.scene.start('GameOverScene');
+    if (pl.hp === 0) this.scene.start('GameOverScene');
   }
 
   onBulletHit(bullet, enemy) {
@@ -92,6 +102,8 @@ export default class GameScene extends Phaser.Scene {
     }
     this.updateHud();
     if (!wasPending && this.run.pendingLevelUps > 0) {
+      this.run.bubbleMs = config.ui.bubble.durationMs;
+      this.updateBubble();
       this.scene.pause();
       this.scene.launch('LevelUpScene', { run: this.run });
     }
@@ -99,7 +111,7 @@ export default class GameScene extends Phaser.Scene {
 
   // Shoots bulletsPerShot bullets at the nearest zombies in range. Returns false when nothing is in range.
   fire() {
-    const s = this.run.stats, p = this.player;
+    const s = this.run.player, p = this.player;
     const rangeSq = s.range * s.range;
     const targets = [];
     for (const z of this.enemies.getChildren()) {
@@ -120,10 +132,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   updateHud() {
-    const r = this.run;
-    this.hudText.setText(`HP: ${r.hp}
-Poziom: ${r.level}
-XP: ${r.xp}/${xpToNextLevel(r.level)}`);
+    const r = this.run, pl = r.player;
+    this.hudText.setText([`HP: ${pl.hp}/${pl.maxHp}`, `Poziom: ${r.level}`, `XP: ${r.xp}/${xpToNextLevel(r.level)}`]);
+  }
+
+  updateBubble() {
+    this.bubble.setVisible(this.run.bubbleMs > 0).setPosition(this.player.x, this.player.y - config.ui.bubble.offsetY);
   }
 
   spawnZombie() {
@@ -143,12 +157,15 @@ XP: ${r.xp}/${xpToNextLevel(r.level)}`);
     const k = this.keys;
     const x = (k.D.isDown || k.RIGHT.isDown) - (k.A.isDown || k.LEFT.isDown);
     const y = (k.S.isDown || k.DOWN.isDown) - (k.W.isDown || k.UP.isDown);
-    this.moveDir.set(x, y).normalize().scale(config.player.speed);
+    this.moveDir.set(x, y).normalize().scale(this.run.player.speed);
     this.player.setVelocity(this.moveDir.x, this.moveDir.y);
 
     const { blinkMs, blinkAlpha } = config.player;
     const blinkOff = this.time.now < this.run.invulnUntilMs && Math.floor(this.time.now / blinkMs) % 2;
     this.player.setAlpha(blinkOff ? blinkAlpha : 1);
+
+    this.run.bubbleMs = Math.max(0, this.run.bubbleMs - delta);
+    this.updateBubble();
 
     for (const z of this.enemies.getChildren()) {
       if (z.active) this.physics.moveToObject(z, this.player, config.zombie.speed);
@@ -164,7 +181,7 @@ XP: ${r.xp}/${xpToNextLevel(r.level)}`);
 
     // Cooldown is capped at 0 so a shot fires as soon as a target comes into range.
     this.run.fireCooldownMs = Math.max(0, this.run.fireCooldownMs - delta);
-    if (this.run.fireCooldownMs === 0 && this.fire()) this.run.fireCooldownMs = this.run.stats.fireRateMs;
+    if (this.run.fireCooldownMs === 0 && this.fire()) this.run.fireCooldownMs = this.run.player.fireRateMs;
 
     // Past the spawn ring there is nothing left to hit.
     const maxDist = config.spawn.ringMaxRadius;
