@@ -21,6 +21,8 @@ export default class UIScene extends Phaser.Scene {
     this.timeText = this.add.text(width / 2, m, '', font).setOrigin(0.5, 0);
     this.killsText = this.add.text(width - m, m, '', font).setOrigin(1, 0);
 
+    this.createJoystick();
+
     const w = u.welcome;
     const welcome = this.add.text(width / 2, height / 2, 'Witamy na Bemowie', { fontSize: `${w.fontSize}px` }).setOrigin(0.5);
     this.tweens.add({ targets: welcome, alpha: 0, delay: w.holdMs, duration: w.fadeMs, onComplete: () => welcome.destroy() });
@@ -42,6 +44,39 @@ export default class UIScene extends Phaser.Scene {
     // +999 so the clock shows 10:00 at the start instead of 9:59.
     this.timeText.setText(formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999));
     this.killsText.setText(`Zabici: ${r.kills}`);
+  }
+
+  // Floating joystick for touch screens: it appears where the finger lands. Mouse clicks are ignored.
+  createJoystick() {
+    const j = config.ui.joystick, move = this.run.touchMove;
+    const base = this.add.circle(0, 0, j.radius, j.color, j.baseAlpha).setVisible(false);
+    const knob = this.add.circle(0, 0, j.knobRadius, j.color, j.knobAlpha).setVisible(false);
+    let active = null;
+
+    this.input.on('pointerdown', (p) => {
+      if (!p.wasTouch || active) return;
+      active = p;
+      base.setPosition(p.x, p.y).setVisible(true);
+      knob.setPosition(p.x, p.y).setVisible(true);
+    });
+    this.input.on('pointermove', (p) => {
+      if (p !== active) return;
+      const dx = p.x - base.x, dy = p.y - base.y;
+      const k = Math.min(1, j.radius / (Math.hypot(dx, dy) || 1)); // keep the knob inside the base
+      knob.setPosition(base.x + dx * k, base.y + dy * k);
+      move.x = (dx * k) / j.radius;
+      move.y = (dy * k) / j.radius;
+      if (Math.hypot(move.x, move.y) < j.deadZone) move.x = move.y = 0;
+    });
+    const release = (p) => {
+      if (p !== active) return;
+      active = null;
+      base.setVisible(false);
+      knob.setVisible(false);
+      move.x = move.y = 0;
+    };
+    this.input.on('pointerup', release);
+    this.input.on('pointerupoutside', release);
   }
 
   drawBar(y, color, fill) {

@@ -19,6 +19,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 ### Gracz
 
 - Ruch WASD i strzałkami, 100 HP.
+- Na telefonie wirtualny joystick: pojawia się tam, gdzie dotkniesz ekranu.
 - Po trafieniu 0,5 s nietykalności, bo bez tego horda zabija w ułamek sekundy.
 - Sprite: statyczny obrazek całego Bartka.
 
@@ -31,8 +32,8 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 | Typ | Prędkość | HP | Obrażenia przy dotyku | Pojawia się od |
 | --- | --- | --- | --- | --- |
-| Zombie | wolny (1x) | 10 | 10 | 0:00 |
-| Biegacz | 2x szybszy | 4 | 10 | 2:00 |
+| Zombie | wolny (1x) | 10 | 15 | 0:00 |
+| Biegacz | 2x szybszy | 4 | 15 | 1:00 |
 
 - Spawn poza ekranem, w pierścieniu wokół gracza. Częstotliwość rośnie z czasem.
 - Limit 150 wrogów na ekranie, żeby gra nie klatkowała.
@@ -70,7 +71,6 @@ Nie ruszasz niczego z tej listy, dopóki MVP nie spełni kryteriów z sekcji "Go
 - Memy z mechaniką (sekcja "Bank memów")
 - Pozostałe postacie Bartka (sekcja "Postacie")
 - Przeszkody na mapie
-- Sterowanie na telefonie
 
 ## Bank memów
 

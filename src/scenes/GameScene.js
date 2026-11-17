@@ -162,7 +162,9 @@ export default class GameScene extends Phaser.Scene {
     const k = this.keys;
     const x = (k.D.isDown || k.RIGHT.isDown) - (k.A.isDown || k.LEFT.isDown);
     const y = (k.S.isDown || k.DOWN.isDown) - (k.W.isDown || k.UP.isDown);
-    this.moveDir.set(x, y).normalize().scale(this.run.player.speed);
+    this.moveDir.set(x, y).normalize();
+    if (!x && !y) this.moveDir.set(this.run.touchMove.x, this.run.touchMove.y); // analog: a small push walks slower
+    this.moveDir.scale(this.run.player.speed);
     this.player.setVelocity(this.moveDir.x, this.moveDir.y);
 
     const { blinkMs, blinkAlpha } = config.player;

@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { formatTime } from '../state.js';
+import { formatTime, proteinForRun, save, writeSave } from '../state.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
@@ -7,6 +7,9 @@ export default class GameOverScene extends Phaser.Scene {
   init(data) {
     this.run = data.run;
     this.won = data.won;
+    this.earned = proteinForRun(this.run, this.won);
+    save.protein += this.earned;
+    writeSave(save);
   }
 
   create() {
@@ -19,6 +22,9 @@ export default class GameOverScene extends Phaser.Scene {
     this.add.text(cx, cy - u.lineGap * 2, title, { fontSize: `${u.titleFontSize}px` }).setOrigin(0.5);
     this.add.text(cx, cy - u.lineGap, subtitle, { fontSize: `${u.subtitleFontSize}px`, color: '#aaaaaa' }).setOrigin(0.5);
     this.add.text(cx, cy, `Czas: ${formatTime(r.elapsedMs)}   Zabici: ${r.kills}   Poziom: ${r.level}`, {
+      fontSize: `${u.hudFontSize}px`,
+    }).setOrigin(0.5);
+    this.add.text(cx, cy + u.lineGap, `Zdobyte białko: ${this.earned}   Razem: ${save.protein}`, {
       fontSize: `${u.hudFontSize}px`,
     }).setOrigin(0.5);
 
