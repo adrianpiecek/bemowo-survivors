@@ -23,9 +23,22 @@ export default class UIScene extends Phaser.Scene {
 
     this.createJoystick();
 
+    const bn = u.banner;
+    this.banner = this.add.text(width / 2, bn.y, '', {
+      fontSize: `${bn.fontSize}px`, fontStyle: 'bold', color: '#ffffff', stroke: '#000000', strokeThickness: bn.strokeThickness,
+    }).setOrigin(0.5).setDepth(1).setVisible(false);
+
     const w = u.welcome;
     const welcome = this.add.text(width / 2, height / 2, 'Witamy na Bemowie', { fontSize: `${w.fontSize}px` }).setOrigin(0.5);
     this.tweens.add({ targets: welcome, alpha: 0, delay: w.holdMs, duration: w.fadeMs, onComplete: () => welcome.destroy() });
+  }
+
+  // Shared pickup banner: big outlined text in the middle of the screen. Runs on this scene's clock,
+  // so it keeps counting while GameScene is paused.
+  showBanner(text) {
+    this.banner.setText(text).setVisible(true);
+    this.bannerTimer?.remove();
+    this.bannerTimer = this.time.delayedCall(config.ui.banner.durationMs, () => this.banner.setVisible(false));
   }
 
   update() {

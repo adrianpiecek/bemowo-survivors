@@ -35,6 +35,7 @@ export function newRun() {
     spawnCooldownMs: 0,
     wave: 0, // waves spawned so far
     pendingLevelUps: 0, // level-ups still waiting for a card pick
+    pickupDropMs: {}, // pickup id -> run time of its last drop, for the cooldown
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only

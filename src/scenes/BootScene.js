@@ -6,6 +6,8 @@ export default class BootScene extends Phaser.Scene {
   preload() {
     this.load.image('bartek', './assets/bartek.png');
     this.load.image('zombie', './assets/zombie.png');
+    // May be missing: the OLX card falls back to the generated 'pigeon' texture.
+    this.load.image('golab', config.pickups.olx.photo);
   }
 
   create() {
@@ -25,7 +27,20 @@ export default class BootScene extends Phaser.Scene {
     const gr = t.ground;
     g.fillStyle(gr.color).fillRect(0, 0, gr.size, gr.size);
     g.lineStyle(gr.lineWidth, gr.lineColor).strokeRect(0, 0, gr.size, gr.size);
-    g.generateTexture('ground', gr.size, gr.size);
+    g.generateTexture('ground', gr.size, gr.size).clear();
+
+    const pk = t.pickup;
+    g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);
+    g.lineStyle(pk.borderWidth, pk.borderColor).strokeRect(0, 0, pk.size, pk.size);
+    g.generateTexture('pickup', pk.size, pk.size).clear();
+
+    // Simple side-view pigeon facing right: body, darker wing, head, beak. Shape fractions are only proportions.
+    const pg = t.pigeon, w = pg.width, ph = pg.height;
+    g.fillStyle(pg.color).fillEllipse(w * 0.45, ph * 0.6, w * 0.7, ph * 0.6);
+    g.fillStyle(pg.darkColor).fillEllipse(w * 0.4, ph * 0.5, w * 0.45, ph * 0.35);
+    g.fillStyle(pg.color).fillCircle(w * 0.8, ph * 0.35, ph * 0.22);
+    g.fillStyle(pg.beakColor).fillTriangle(w * 0.92, ph * 0.3, w, ph * 0.38, w * 0.92, ph * 0.44);
+    g.generateTexture('pigeon', w, ph);
 
     g.destroy();
 

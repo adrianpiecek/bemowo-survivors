@@ -1,5 +1,6 @@
 import { config } from '../config.js';
 import { newRun, xpToNextLevel } from '../state.js';
+import { pickups } from '../data/pickups.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -38,6 +39,14 @@ export default class GameScene extends Phaser.Scene {
     this.gems = this.physics.add.group({ defaultKey: 'gem', maxSize: config.pools.gems });
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
 
+    this.pickups = this.physics.add.group({ defaultKey: 'pickup', maxSize: config.pools.pickups });
+    this.physics.add.overlap(this.player, this.pickups, this.collectPickup, null, this);
+    if (config.debug.pickupKey) {
+      this.input.keyboard.on('keydown-P', () => {
+        this.dropPickup(Phaser.Utils.Array.GetRandom(pickups), this.player.x + config.pickups.debugOffset, this.player.y);
+      });
+    }
+
     this.scene.launch('UIScene', { run: this.run });
     // scene.start('GameOverScene') only stops this scene, so take the HUD down with it.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scene.stop('UIScene'));
@@ -63,11 +72,51 @@ export default class GameScene extends Phaser.Scene {
     if (!bullet.active || !enemy.active) return; // several overlaps can fire in one step
     bullet.disableBody(true, true);
     enemy.hp -= bullet.damage;
-    if (enemy.hp <= 0) {
-      enemy.disableBody(true, true);
-      this.run.kills++;
-      this.dropGem(enemy.x, enemy.y);
+    if (enemy.hp <= 0) this.killEnemy(enemy);
+  }
+
+  killEnemy(enemy) {
+    enemy.disableBody(true, true);
+    this.run.kills++;
+    this.dropGem(enemy.x, enemy.y);
+    this.maybeDropPickup(enemy.x, enemy.y);
+  }
+
+  // Every enemy inside the camera view dies; the ones off screen live.
+  killVisibleEnemies() {
+    const view = this.cameras.main.worldView;
+    for (const z of this.enemies.getChildren()) {
+      if (z.active && view.contains(z.x, z.y)) this.killEnemy(z);
     }
+  }
+
+  // At most one pickup per kill; a pickup on cooldown is skipped.
+  maybeDropPickup(x, y) {
+    const run = this.run;
+    for (const def of pickups) {
+      const last = run.pickupDropMs[def.id];
+      if (last !== undefined && run.elapsedMs - last < def.cooldownSec * 1000) continue;
+      if (Math.random() < def.dropChance) {
+        this.dropPickup(def, x, y);
+        return;
+      }
+    }
+  }
+
+  dropPickup(def, x, y) {
+    const p = this.pickups.get(x, y);
+    if (!p) return; // pool full: rare drops at a 10-slot cap, losing one is harmless
+    p.enableBody(true, x, y, true, true);
+    p.def = def;
+    p.ageMs = 0;
+    this.run.pickupDropMs[def.id] = this.run.elapsedMs;
+  }
+
+  collectPickup(player, p) {
+    if (!p.active) return;
+    p.disableBody(true, true);
+    this.scene.get('UIScene').showBanner(p.def.bannerText);
+    p.def.apply(this);
   }
 
   dropGem(x, y) {
@@ -193,6 +242,15 @@ export default class GameScene extends Phaser.Scene {
       if (!gem.active) continue;
       gem.magnet ||= Phaser.Math.Distance.Between(gem.x, gem.y, this.player.x, this.player.y) <= magnetRadius;
       if (gem.magnet) this.physics.moveToObject(gem, this.player, gemSpeed);
+    }
+
+    // Pickups lie still (no magnet), blink, and vanish after their lifetime.
+    const pk = config.pickups;
+    for (const p of this.pickups.getChildren()) {
+      if (!p.active) continue;
+      p.ageMs += delta;
+      if (p.ageMs >= pk.lifetimeSec * 1000) p.disableBody(true, true);
+      else p.setAlpha(Math.floor(p.ageMs / pk.blinkMs) % 2 ? pk.blinkAlpha : 1);
     }
 
     // Cooldown is capped at 0 so a shot fires as soon as a target comes into range.
