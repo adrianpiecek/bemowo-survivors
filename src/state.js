@@ -10,6 +10,7 @@ export function newRun() {
     invulnUntilMs: 0,
     fireCooldownMs: 0,
     spawnCooldownMs: 0,
+    wave: 0, // waves spawned so far
     pendingLevelUps: 0, // level-ups still waiting for a card pick
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble

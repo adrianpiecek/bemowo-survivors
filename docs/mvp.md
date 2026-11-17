@@ -36,7 +36,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 | Biegacz | 2x szybszy | 4 | 15 | 1:00 |
 
 - Spawn poza ekranem, w pierścieniu wokół gracza. Częstotliwość rośnie z czasem.
-- Limit 150 wrogów na ekranie, żeby gra nie klatkowała.
+- Limit 250 wrogów na ekranie, żeby gra nie klatkowała.
 
 ### XP i level up
 
@@ -147,7 +147,7 @@ MVP jest skończone, kiedy spełnia wszystkie cztery warunki.
 
 - Ktoś, kto nie widział kodu, odpala link i bez tłumaczenia rozumie, co robić.
 - Rundę da się przegrać i da się wygrać.
-- Przy 150 wrogach gra nie spada wyraźnie poniżej 60 FPS.
+- Przy 250 wrogach gra nie spada wyraźnie poniżej 60 FPS.
 - Chcesz zagrać drugi raz. Jeśli nie chcesz, problem jest w balansie (spawn, krzywa XP), a nie w braku funkcji. Napraw go przed czymkolwiek z listy "Poza MVP".
 
 **Realny czas:** 2 do 4 wieczorów przy vibe codingu. Jeśli po 4 wieczorach nie masz kroku 5, coś zostało dorzucone poza zakres.

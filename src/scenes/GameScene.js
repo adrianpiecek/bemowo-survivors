@@ -159,6 +159,14 @@ export default class GameScene extends Phaser.Scene {
       run.spawnCooldownMs += Phaser.Math.Linear(startIntervalMs, minIntervalMs, run.elapsedMs / total);
     }
 
+    // Every wave.everySec a ring of enemies spawns at once; each wave is bigger. The enemy cap still applies.
+    const w = config.wave;
+    if (Math.floor(run.elapsedMs / (w.everySec * 1000)) > run.wave) {
+      const count = w.baseCount + w.perWave * run.wave;
+      run.wave++;
+      for (let i = 0; i < count; i++) this.spawnEnemy();
+    }
+
     const k = this.keys;
     const x = (k.D.isDown || k.RIGHT.isDown) - (k.A.isDown || k.LEFT.isDown);
     const y = (k.S.isDown || k.DOWN.isDown) - (k.W.isDown || k.UP.isDown);
