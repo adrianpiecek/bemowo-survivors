@@ -22,7 +22,8 @@ Gra działa pod `http://localhost:8000`. Nie otwieraj `index.html` bezpośrednio
 ```
 index.html
 lib/phaser.min.js
-assets/bartek-head.png
+assets/bartek.png
+assets/zombie.png
 src/main.js              konfiguracja Phaser.Game i lista scen
 src/config.js            WSZYSTKIE liczby balansu
 src/state.js             obiekt run (reset co rundę), obiekt save (trwały), loadSave, writeSave
@@ -52,7 +53,7 @@ Nowy plik tylko wtedy, gdy zadanie tego wymaga. Jedna scena na plik.
 4. **Pooling.** Pociski, wrogowie i kryształy XP to `Phaser.Physics.Arcade.Group` z `maxSize`. Używaj ponownie obiektów (`get`, `setActive`, `setVisible`), nie twórz i nie niszcz ich w każdej klatce.
 5. **Ruch zależny od czasu.** Wszystko, co się porusza lub odlicza, korzysta z `delta` albo z fizyki Arcade, nigdy z liczby klatek.
 6. **Tylko bieżący krok.** Robisz wyłącznie to, co jest w treści zadania. Funkcje z przyszłych kroków są zakazane, nawet jeśli wydają się łatwe.
-7. **Grafika zastępcza.** Do czasu, aż zadanie powie inaczej: Bartek to żółty prostokąt z `bartek-head.png` jako głową, zombie to zielone koła, biegacz to jasnozielone koło, pociski to małe białe kropki, kryształy XP to niebieskie romby. Rysuj przez `Graphics` i `generateTexture` w `BootScene`.
+7. **Grafika zastępcza.** Do czasu, aż zadanie powie inaczej: Bartek to statyczny obrazek całego Bartka z `bartek.png`, zombie to statyczny obrazek z `zombie.png` (oba ładowane w `BootScene`), biegacz to jasnozielone koło, pociski to małe białe kropki, kryształy XP to niebieskie romby. Wszystko poza Bartkiem i zombie rysuj przez `Graphics` i `generateTexture` w `BootScene`.
 8. **Teksty w grze po polsku.**
 9. **Treść jako dane.** Typy wrogów (`src/data/enemies.js`), znajdźki (`src/data/pickups.js`) i ulepszenia siłowni (`src/data/gym.js`) to tablice obiektów, tak jak ulepszenia. Wspólne mechaniki (np. orbita, efekty czasowe) trafiają do `src/systems/` i są używane ponownie, a nie kopiowane.
 10. **Debug.** Każdy krok, który dodaje rzadkie zdarzenie, dodaje też klawisz lub flagę w `config.debug`, żeby dało się je wywołać od razu. Wszystkie flagi debug są domyślnie wyłączone.
