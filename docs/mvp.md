@@ -20,7 +20,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 - Ruch WASD i strzałkami, 100 HP.
 - Po trafieniu 0,5 s nietykalności, bo bez tego horda zabija w ułamek sekundy.
-- Sprite: zdjęcie głowy Bartka na żółtym prostokącie. Jedyna prawdziwa grafika w MVP.
+- Sprite: statyczny obrazek całego Bartka. Jedyna prawdziwa grafika w MVP.
 
 ### Broń: pistolet
 
@@ -96,7 +96,7 @@ Nazwa i logo Gigantów Programowania oraz cudze postacie zostają tylko w wersji
 
 ## Postacie
 
-Postacie robisz w tej kolejności, ale w grze Kapitan odblokowuje się jako ostatni, jako "prawdziwa forma Bartka". Grafika: głowa z przeróbki zdjęcia na małym pikselowym ciele, inny kolor i jeden rekwizyt na postać.
+Postacie robisz w tej kolejności, ale w grze Kapitan odblokowuje się jako ostatni, jako "prawdziwa forma Bartka". Grafika: statyczny obrazek całego Bartka, inny kolor i jeden rekwizyt na postać.
 
 | # | Bartek | Broń / mechanika | Typ |
 | --- | --- | --- | --- |

@@ -10,7 +10,8 @@ export const config = {
   pools: { bullets: 100, enemies: 150, gems: 300 },
   // Placeholder texture sizes in px.
   textures: {
-    bartekBody: { width: 32, height: 40, color: 0xffd400 },
+    bartek: { height: 80 }, // on-screen height; width follows the image's aspect ratio
+    ground: { size: 64, color: 0x6e6e6e, lineColor: 0x555555, lineWidth: 2 },
     zombie: { radius: 14, color: 0x2e8b2e },
     runner: { radius: 11, color: 0x7cfc00 },
     bullet: { radius: 3, color: 0xffffff },
