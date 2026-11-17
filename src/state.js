@@ -1,4 +1,27 @@
 import { config } from './config.js';
+import { gymUpgrades } from './data/gym.js';
+
+// Run stats, always in this order: config, then gym, then in-run upgrades (applied later by LevelUpScene).
+function startingStats() {
+  const stats = {
+    maxHp: config.player.maxHp,
+    speed: config.player.speed,
+    magnetRadius: config.xp.magnetRadius,
+    ...config.pistol,
+    // Warm-up from the gym; these defaults mean no effect.
+    warmupMs: 0,
+    warmupSpeedMult: 1,
+    afterWarmupDamageMult: 1,
+  };
+  for (const up of gymUpgrades) {
+    const level = gymLevel(up);
+    if (level > 0) up.apply(stats, level);
+  }
+  stats.hp = stats.maxHp;
+  // In-run upgrades add a share of these post-gym values, so gym and run percentages multiply.
+  stats.base = { ...stats };
+  return stats;
+}
 
 // Reset every run.
 export function newRun() {
@@ -14,8 +37,7 @@ export function newRun() {
     pendingLevelUps: 0, // level-ups still waiting for a card pick
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
-    // Player and weapon stats copied from config; upgrades change them for this run only.
-    player: { hp: config.player.maxHp, maxHp: config.player.maxHp, speed: config.player.speed, ...config.pistol },
+    player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
     upgrades: {}, // upgrade id -> how many times taken
   };
 }
@@ -63,5 +85,11 @@ export function writeSave(s) {
   } catch { /* storage full or blocked */ }
 }
 
-export const save = config.debugResetSave ? freshSave() : loadSave();
-if (config.debugResetSave) writeSave(save);
+// Bought level of a gym upgrade, clamped so a hand-edited save cannot break the stats.
+export function gymLevel(up) {
+  const level = Math.floor(Number(save.gym[up.id]));
+  return Number.isFinite(level) ? Phaser.Math.Clamp(level, 0, up.maxLevel) : 0;
+}
+
+export const save = config.debug.resetSave ? freshSave() : loadSave();
+if (config.debug.resetSave) writeSave(save);

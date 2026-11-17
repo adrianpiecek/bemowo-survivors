@@ -112,7 +112,7 @@ export default class GameScene extends Phaser.Scene {
       const b = this.bullets.get(p.x, p.y);
       if (!b) break;
       b.enableBody(true, p.x, p.y, true, true);
-      b.damage = s.bulletDamage;
+      b.damage = s.bulletDamage * (this.run.elapsedMs >= s.warmupMs ? s.afterWarmupDamageMult : 1);
       this.physics.moveToObject(b, targets[i % targets.length].z, s.bulletSpeed);
     }
     return true;
@@ -172,7 +172,8 @@ export default class GameScene extends Phaser.Scene {
     const y = (k.S.isDown || k.DOWN.isDown) - (k.W.isDown || k.UP.isDown);
     this.moveDir.set(x, y).normalize();
     if (!x && !y) this.moveDir.set(this.run.touchMove.x, this.run.touchMove.y); // analog: a small push walks slower
-    this.moveDir.scale(this.run.player.speed);
+    const pl = this.run.player;
+    this.moveDir.scale(pl.speed * (run.elapsedMs < pl.warmupMs ? pl.warmupSpeedMult : 1));
     this.player.setVelocity(this.moveDir.x, this.moveDir.y);
 
     const { blinkMs, blinkAlpha } = config.player;
@@ -187,7 +188,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // Once a gem is in magnet range it keeps flying to Bartek until picked up.
-    const { magnetRadius, gemSpeed } = config.xp;
+    const { magnetRadius } = this.run.player, { gemSpeed } = config.xp;
     for (const gem of this.gems.getChildren()) {
       if (!gem.active) continue;
       gem.magnet ||= Phaser.Math.Distance.Between(gem.x, gem.y, this.player.x, this.player.y) <= magnetRadius;

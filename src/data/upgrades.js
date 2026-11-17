@@ -1,7 +1,8 @@
 import { config } from '../config.js';
 
 // `player` is run.player: HP and weapon stats for the current run.
-// Percentage upgrades add a share of the starting value, so every level gives the same boost.
+// Percentage upgrades add a share of the run's starting value (player.base, after the gym),
+// so every level gives the same boost and gym and run percentages multiply.
 // Fire rate is the exception: it divides the cooldown, which raises shots per second by the given share each level.
 const u = config.upgrade;
 const pct = (x) => `${Math.round(x * 100)}%`;
@@ -12,7 +13,7 @@ export const upgrades = [
     name: 'Obrażenia',
     description: `+${pct(u.damagePct)} obrażeń pocisku`,
     maxStack: u.maxStack,
-    apply(player) { player.bulletDamage += config.pistol.bulletDamage * u.damagePct; },
+    apply(player) { player.bulletDamage += player.base.bulletDamage * u.damagePct; },
   },
   {
     id: 'fireRate',
@@ -33,7 +34,7 @@ export const upgrades = [
     name: 'Szybkość ruchu',
     description: `+${pct(u.moveSpeedPct)} szybkości chodzenia`,
     maxStack: u.maxStack,
-    apply(player) { player.speed += config.player.speed * u.moveSpeedPct; },
+    apply(player) { player.speed += player.base.speed * u.moveSpeedPct; },
   },
   {
     id: 'maxHp',

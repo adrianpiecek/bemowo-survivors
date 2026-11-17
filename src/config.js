@@ -9,7 +9,25 @@ export const config = {
   xp: { gemValue: 1, magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5 },
   run: { durationSec: 600 },
   protein: { perKills: 10, perMinute: 2, winBonus: 20 }, // awarded at the end of a run
-  debugResetSave: false, // true wipes the save on page load, for testing
+  // Debug flags, all off by default.
+  debug: {
+    resetSave: false, // true wipes the save on page load
+    freeProtein: false, // true makes gym purchases free
+  },
+  // Permanent upgrades bought with protein. Percentages multiply with the in-run upgrades.
+  gym: {
+    chest: { damagePct: 0.1, maxLevel: 5, costs: [10, 25, 50, 100, 200] },
+    legs: { speedPct: 0.05, maxLevel: 5, costs: [10, 25, 50, 100, 200] },
+    back: { maxHp: 10, maxLevel: 5, costs: [10, 25, 50, 100, 200] },
+    glasses: { rangePct: 0.1, maxLevel: 3, costs: [20, 60, 150] },
+    warmup: { durationSec: 60, speedPct: -0.2, damagePct: 0.3, maxLevel: 1, costs: [80] },
+    quotes: [
+      'Za moich czasów zombie były grzeczniejsze.',
+      'Najpierw rozgrzewka. Piętnaście minut. Nie dyskutujemy.',
+      'Muchacho, nogi to też mięśnie.',
+      'Okulary? To do czytania etykiet odżywek.',
+    ],
+  },
   pools: { bullets: 100, enemies: 250, gems: 300 },
   upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, extraBullets: 1, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
   ui: { margin: 16, hudFontSize: 24, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
@@ -18,6 +36,9 @@ export const config = {
     hud: { barWidth: 260, barHeight: 22, barGap: 8, barFontSize: 16, barBg: 0x333333, hpColor: 0xd03030, xpColor: 0x3a8dff },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
+    buttonOffsetX: 160, // two buttons side by side sit this far left and right of center
+    gymScreen: { titleY: 50, proteinY: 110, top: 170, rowHeight: 80, nameX: 120, levelX: 820, costX: 930, buyX: 1090,
+      descFontSize: 16, quoteBottom: 110, disabledColor: '#777777', disabledBg: '#333333' },
   },
   // Placeholder texture sizes in px.
   textures: {

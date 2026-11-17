@@ -29,11 +29,14 @@ export default class GameOverScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // GameScene.create() calls newRun(), so restarting it gives a clean run.
-    this.add.text(cx, cy + u.lineGap * 2, 'Jeszcze raz', {
-      fontSize: `${u.buttonFontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: u.buttonPadding, y: u.buttonPadding },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.scene.start('GameScene'));
+    const buttons = [['Siłownia', 'GymScene', -u.buttonOffsetX], ['Jeszcze raz', 'GameScene', u.buttonOffsetX]];
+    for (const [label, scene, dx] of buttons) {
+      this.add.text(cx + dx, cy + u.lineGap * 2, label, {
+        fontSize: `${u.buttonFontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: u.buttonPadding, y: u.buttonPadding },
+      })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this.scene.start(scene));
+    }
   }
 }
