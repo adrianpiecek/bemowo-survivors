@@ -3,7 +3,7 @@ export const config = {
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
   pistol: { fireRateMs: 800, range: 400, bulletSpeed: 500, bulletDamage: 5, bulletsPerShot: 1 },
   zombie: { speed: 60, hp: 10, contactDamage: 10 },
-  runner: { speed: 120, hp: 4, contactDamage: 10, appearsAtSec: 120 },
+  runner: { speed: 120, hp: 4, contactDamage: 10, appearsAtSec: 120, spawnChance: 0.3 },
   spawn: { startIntervalMs: 1000, minIntervalMs: 200, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 150 },
   xp: { gemValue: 1, magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5 },
   run: { durationSec: 600 },

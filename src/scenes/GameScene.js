@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { newRun, xpToNextLevel } from '../state.js';
+import { newRun, xpToNextLevel, formatTime } from '../state.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -24,15 +24,8 @@ export default class GameScene extends Phaser.Scene {
     this.enemies = this.physics.add.group({
       defaultKey: 'zombie',
       maxSize: config.pools.enemies,
-      createCallback: (z) => {
-        const { height, bodyRadius } = config.textures.zombie;
-        z.setScale(height / z.height);
-        const r = bodyRadius / z.scale; // body sizes are in texture px, before scale
-        z.body.setCircle(r, z.width / 2 - r, z.height / 2 - r);
-      },
     });
     this.physics.add.collider(this.enemies, this.enemies);
-    this.time.addEvent({ delay: config.spawn.startIntervalMs, loop: true, callback: this.spawnZombie, callbackScope: this });
     this.physics.add.overlap(this.player, this.enemies, this.onEnemyTouch, null, this);
 
     this.bullets = this.physics.add.group({
@@ -62,13 +55,13 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  onEnemyTouch() {
+  onEnemyTouch(player, enemy) {
     if (this.time.now < this.run.invulnUntilMs) return;
     const pl = this.run.player;
-    pl.hp = Math.max(0, pl.hp - config.zombie.contactDamage);
+    pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
     this.updateHud();
-    if (pl.hp === 0) this.scene.start('GameOverScene');
+    if (pl.hp === 0) this.scene.start('GameOverScene', { run: this.run, won: false });
   }
 
   onBulletHit(bullet, enemy) {
@@ -133,15 +126,18 @@ export default class GameScene extends Phaser.Scene {
 
   updateHud() {
     const r = this.run, pl = r.player;
-    this.hudText.setText([`HP: ${pl.hp}/${pl.maxHp}`, `Poziom: ${r.level}`, `XP: ${r.xp}/${xpToNextLevel(r.level)}`]);
+    this.hudText.setText([`HP: ${pl.hp}/${pl.maxHp}`, `Poziom: ${r.level}`, `XP: ${r.xp}/${xpToNextLevel(r.level)}`,
+      `Czas: ${formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999)}`]); // +999: count down from 10:00, not 9:59
   }
 
   updateBubble() {
     this.bubble.setVisible(this.run.bubbleMs > 0).setPosition(this.player.x, this.player.y - config.ui.bubble.offsetY);
   }
 
-  spawnZombie() {
+  spawnEnemy() {
     if (this.enemies.countActive(true) >= config.spawn.maxEnemies) return;
+    const { runner } = config;
+    const type = this.run.elapsedMs >= runner.appearsAtSec * 1000 && Math.random() < runner.spawnChance ? 'runner' : 'zombie';
     const { ringMinRadius, ringMaxRadius } = config.spawn;
     const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
     const r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
@@ -149,11 +145,34 @@ export default class GameScene extends Phaser.Scene {
     const y = this.player.y + Math.sin(angle) * r;
     const z = this.enemies.get(x, y);
     if (!z) return;
+    // Pooled sprites can come back as either type, so set the look and body every spawn.
+    const t = config.textures[type];
+    z.setTexture(type).setScale(type === 'zombie' ? t.height / z.height : 1);
+    const br = (type === 'zombie' ? t.bodyRadius : t.radius) / z.scale; // body sizes are in texture px, before scale
+    z.body.setCircle(br, z.width / 2 - br, z.height / 2 - br);
     z.enableBody(true, x, y, true, true);
-    z.hp = config.zombie.hp;
+    z.stats = config[type];
+    z.hp = z.stats.hp;
   }
 
   update(time, delta) {
+    const run = this.run, total = config.run.durationSec * 1000;
+    const shownSec = Math.ceil((total - run.elapsedMs) / 1000);
+    run.elapsedMs += delta;
+    if (run.elapsedMs >= total) {
+      this.scene.start('GameOverScene', { run, won: true });
+      return;
+    }
+    if (Math.ceil((total - run.elapsedMs) / 1000) !== shownSec) this.updateHud();
+
+    // Spawn interval shrinks linearly from start to min over the whole run.
+    const { startIntervalMs, minIntervalMs } = config.spawn;
+    run.spawnCooldownMs -= delta;
+    if (run.spawnCooldownMs <= 0) {
+      this.spawnEnemy();
+      run.spawnCooldownMs += Phaser.Math.Linear(startIntervalMs, minIntervalMs, run.elapsedMs / total);
+    }
+
     const k = this.keys;
     const x = (k.D.isDown || k.RIGHT.isDown) - (k.A.isDown || k.LEFT.isDown);
     const y = (k.S.isDown || k.DOWN.isDown) - (k.W.isDown || k.UP.isDown);
@@ -168,7 +187,7 @@ export default class GameScene extends Phaser.Scene {
     this.updateBubble();
 
     for (const z of this.enemies.getChildren()) {
-      if (z.active) this.physics.moveToObject(z, this.player, config.zombie.speed);
+      if (z.active) this.physics.moveToObject(z, this.player, z.stats.speed);
     }
 
     // Once a gem is in magnet range it keeps flying to Bartek until picked up.
