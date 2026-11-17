@@ -1,0 +1,19 @@
+export const config = {
+  game: { width: 1280, height: 720, background: '#000000' },
+  player: { speed: 200, maxHp: 100, invulnMs: 500 },
+  pistol: { fireRateMs: 800, range: 400, bulletSpeed: 500, bulletDamage: 5, bulletsPerShot: 1 },
+  zombie: { speed: 60, hp: 10, contactDamage: 10 },
+  runner: { speed: 120, hp: 4, contactDamage: 10, appearsAtSec: 120 },
+  spawn: { startIntervalMs: 1000, minIntervalMs: 200, ringMinRadius: 700, ringMaxRadius: 800, maxEnemies: 150 },
+  xp: { gemValue: 1, magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5 },
+  run: { durationSec: 600 },
+  pools: { bullets: 100, enemies: 150, gems: 300 },
+  // Placeholder texture sizes in px.
+  textures: {
+    bartekBody: { width: 32, height: 40, color: 0xffd400 },
+    zombie: { radius: 14, color: 0x2e8b2e },
+    runner: { radius: 11, color: 0x7cfc00 },
+    bullet: { radius: 3, color: 0xffffff },
+    gem: { size: 12, color: 0x3a8dff },
+  },
+};
