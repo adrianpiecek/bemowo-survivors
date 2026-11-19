@@ -29,6 +29,11 @@ export default class BootScene extends Phaser.Scene {
     g.lineStyle(gr.lineWidth, gr.lineColor).strokeRect(0, 0, gr.size, gr.size);
     g.generateTexture('ground', gr.size, gr.size).clear();
 
+    const kl = t.klapa;
+    g.fillStyle(kl.color).fillRect(0, 0, kl.width, kl.height);
+    g.lineStyle(kl.borderWidth, kl.borderColor).strokeRect(0, 0, kl.width, kl.height);
+    g.generateTexture('klapa', kl.width, kl.height).clear();
+
     const pk = t.pickup;
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);
     g.lineStyle(pk.borderWidth, pk.borderColor).strokeRect(0, 0, pk.size, pk.size);

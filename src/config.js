@@ -2,8 +2,13 @@ export const config = {
   game: { width: 1280, height: 720, background: '#000000' },
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
   pistol: { fireRateMs: 800, range: 400, bulletSpeed: 500, bulletDamage: 5, bulletsPerShot: 1 },
-  zombie: { speed: 80, hp: 10, contactDamage: 15, isBoss: false },
-  runner: { speed: 160, hp: 4, contactDamage: 15, appearsAtSec: 60, spawnChance: 0.4, isBoss: false },
+  // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
+  enemies: {
+    zombie: { speed: 80, hp: 10, contactDamage: 15, appearsAtSec: 0, spawnWeight: 0.6 },
+    runner: { speed: 160, hp: 4, contactDamage: 15, appearsAtSec: 60, spawnWeight: 0.4 },
+    klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // 2.5x zombie speed
+  },
+  scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   spawn: { startIntervalMs: 450, minIntervalMs: 70, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
   wave: { everySec: 60, baseCount: 20, perWave: 8 }, // burst of extra enemies every minute, all around Bartek
   xp: { gemValue: 1, magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5 },
@@ -15,6 +20,7 @@ export const config = {
     freeProtein: false, // true makes gym purchases free
     pickupKey: true, // true: the P key drops a random pickup next to Bartek. shortcut: on for testing, set false before deploy
     tankKey: false, // true: the T key fills the tank bar at once
+    klapaKey: false, // true: the K key launches a klapa at Bartek
   },
   // Ultimate: charged by kills, Space (or a tap on its bar) turns Bartek into a tank.
   tank: { killsToCharge: 100, durationSec: 10, bossDamagePerSec: 50, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200 },
@@ -66,6 +72,7 @@ export const config = {
     ground: { size: 64, color: 0x6e6e6e, lineColor: 0x555555, lineWidth: 2 },
     zombie: { height: 56, bodyRadius: 22 }, // on-screen px; width follows the image
     runner: { radius: 11, color: 0x7cfc00 },
+    klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
     gem: { size: 12, color: 0x3a8dff },
     pickup: { size: 22, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },

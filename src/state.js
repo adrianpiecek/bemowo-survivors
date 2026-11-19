@@ -41,6 +41,7 @@ export function newRun() {
     flashMs: 0, // time left on Bartek's blink after an effect ends
     tankCharge: 0, // kills toward the tank, 0..config.tank.killsToCharge
     tankMs: 0, // time left as a tank, 0 = Bartek on foot
+    scarred: false, // hit by a klapa this run
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only

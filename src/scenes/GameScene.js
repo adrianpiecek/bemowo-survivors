@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { newRun, xpToNextLevel } from '../state.js';
 import { pickups } from '../data/pickups.js';
+import { enemies } from '../data/enemies.js';
 import { updateEffects } from '../systems/effects.js';
 
 export default class GameScene extends Phaser.Scene {
@@ -28,7 +29,8 @@ export default class GameScene extends Phaser.Scene {
       defaultKey: 'zombie',
       maxSize: config.pools.enemies,
     });
-    this.physics.add.collider(this.enemies, this.enemies);
+    // Only walkers push each other; a flying klapa keeps its line.
+    this.physics.add.collider(this.enemies, this.enemies, null, (a, b) => a.stats.behavior === 'chase' && b.stats.behavior === 'chase');
     this.physics.add.overlap(this.player, this.enemies, this.onEnemyTouch, null, this);
 
     this.bullets = this.physics.add.group({
@@ -51,6 +53,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.input.keyboard.addCapture('SPACE');
     this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
+    if (config.debug.klapaKey) this.input.keyboard.on('keydown-K', () => this.spawnEnemy(enemies.find((d) => d.id === 'klapa')));
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
 
     this.scene.launch('UIScene', { run: this.run });
@@ -61,6 +64,9 @@ export default class GameScene extends Phaser.Scene {
     this.bubble = this.add.text(0, 0, 'Muchacho!', {
       fontSize: `${b.fontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: b.padding, y: b.padding },
     }).setOrigin(0.5, 1).setDepth(2).setVisible(false);
+
+    const sc = config.scar;
+    this.scar = this.add.rectangle(0, 0, sc.width, sc.height, sc.color).setAngle(sc.angle).setDepth(1).setVisible(false);
 
     // Keys released while paused never reach this scene, so clear them or Bartek keeps walking.
     this.events.on(Phaser.Scenes.Events.RESUME, () => this.input.keyboard.resetKeys());
@@ -77,6 +83,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.time.now < this.run.invulnUntilMs) return;
     const pl = this.run.player;
     pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
+    if (enemy.stats.leavesScar) this.run.scarred = true;
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
     if (pl.hp === 0) this.scene.start('GameOverScene', { run: this.run, won: false });
   }
@@ -203,10 +210,15 @@ export default class GameScene extends Phaser.Scene {
     this.bubble.setVisible(this.run.bubbleMs > 0).setPosition(this.player.x, this.player.y - config.ui.bubble.offsetY);
   }
 
-  spawnEnemy() {
+  // Random type by spawnWeight among the ones whose appearsAtSec has passed.
+  pickEnemyType() {
+    const open = enemies.filter((d) => this.run.elapsedMs >= d.appearsAtSec * 1000);
+    let roll = Math.random() * open.reduce((sum, d) => sum + d.spawnWeight, 0);
+    return open.find((d) => (roll -= d.spawnWeight) < 0) ?? open[open.length - 1];
+  }
+
+  spawnEnemy(def = this.pickEnemyType()) {
     if (this.enemies.countActive(true) >= config.spawn.maxEnemies) return;
-    const { runner } = config;
-    const type = this.run.elapsedMs >= runner.appearsAtSec * 1000 && Math.random() < runner.spawnChance ? 'runner' : 'zombie';
     const { ringMinRadius, ringMaxRadius } = config.spawn;
     const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
     const r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
@@ -214,14 +226,20 @@ export default class GameScene extends Phaser.Scene {
     const y = this.player.y + Math.sin(angle) * r;
     const z = this.enemies.get(x, y);
     if (!z) return;
-    // Pooled sprites can come back as either type, so set the look and body every spawn.
-    const t = config.textures[type];
-    z.setTexture(type).setScale(type === 'zombie' ? t.height / z.height : 1);
-    const br = (type === 'zombie' ? t.bodyRadius : t.radius) / z.scale; // body sizes are in texture px, before scale
+    // Pooled sprites can come back as any type, so set the look and body every spawn.
+    const t = config.textures[def.texture];
+    z.setTexture(def.texture).setAngle(0);
+    z.setScale(t.height ? t.height / z.height : 1); // drawn textures already have their config height, so 1
+    const br = (t.bodyRadius ?? t.radius) / z.scale; // body sizes are in texture px, before scale
     z.body.setCircle(br, z.width / 2 - br, z.height / 2 - br);
     z.enableBody(true, x, y, true, true);
-    z.stats = config[type];
-    z.hp = z.stats.hp;
+    z.stats = def;
+    z.hp = def.hp;
+    if (def.behavior === 'line') {
+      z.startX = x;
+      z.startY = y;
+      this.physics.moveToObject(z, this.player, def.speed); // aimed once, at where Bartek is now
+    }
   }
 
   update(time, delta) {
@@ -276,9 +294,19 @@ export default class GameScene extends Phaser.Scene {
     this.run.bubbleMs = Math.max(0, this.run.bubbleMs - delta);
     this.updateBubble();
 
+    // A klapa leaves once it is as far past its start as the spawn ring is wide; it gives no kill.
+    const lineRange = config.spawn.ringMaxRadius * 2;
     for (const z of this.enemies.getChildren()) {
-      if (z.active) this.physics.moveToObject(z, this.player, z.stats.speed);
+      if (!z.active) continue;
+      if (z.stats.behavior === 'chase') this.physics.moveToObject(z, this.player, z.stats.speed);
+      else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
+      else z.angle += z.stats.spinDegPerSec * delta / 1000;
     }
+
+    // The scar follows Bartek's head and his size; the tank hides it.
+    const sc = config.scar;
+    this.scar.setVisible(run.scarred && run.tankMs <= 0).setScale(pl.scale).setAlpha(this.player.alpha)
+      .setPosition(this.player.x + sc.offsetX * pl.scale, this.player.y + sc.offsetY * pl.scale);
 
     // Once a gem is in magnet range it keeps flying to Bartek until picked up.
     const { magnetRadius } = this.run.player, { gemSpeed } = config.xp;
