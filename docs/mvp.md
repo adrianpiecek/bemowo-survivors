@@ -36,11 +36,12 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 | Biegacz | 2x szybszy | 4 | 15 | 1:00 |
 
 - Spawn poza ekranem, w pierścieniu wokół gracza. Częstotliwość rośnie z czasem.
+- **Zmiana planu (v2):** wrogowie to warianty Bartka. Zombie to zombie-Bartek, biegacz to Uncanny, a silniejsze zombie to kolejne warianty: Joker (od 3:00) i Homelander (od 5:00). Większy obrazek = silniejszy wróg. Nowi wrogowie w przyszłości to też warianty Bartka. Do tego klapa bagażnika (od 4:00) i boss Golf (8:00). Liczby w `config.enemies` i `config.boss`.
 - Limit 250 wrogów na ekranie, żeby gra nie klatkowała.
 
 ### XP i level up
 
-Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. Przy level upie gra się pauzuje i pokazuje 3 losowe karty z 5 ulepszeń.
+Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. W v2 kryształy to animowane gemy (CC0, `assets/Coin_Gems`) o różnej wartości: każdy typ wroga wypada innym kolorem. Zielony = 1 XP (zombie, biegacz, klapa), niebieski = 3 (Joker), żółty = 5 (Homelander), czerwony = 10 (Golf). Szary gem i monety (`Moneda*.png`) czekają na pomysł, np. białko jako znajdźka albo skarb z bossa. Przy level upie gra się pauzuje i pokazuje 3 losowe karty z 5 ulepszeń.
 
 | Ulepszenie | Efekt na poziom | Max poziomów |
 | --- | --- | --- |
@@ -69,7 +70,7 @@ Nie ruszasz niczego z tej listy, dopóki MVP nie spełni kryteriów z sekcji "Go
 - Intro z kuciem metalu i muzyka 8-bit metal
 - Siłownia i waluta białko (stałe ulepszenia)
 - Memy z mechaniką (sekcja "Bank memów")
-- Pozostałe postacie Bartka (sekcja "Postacie")
+- Nowe bronie Bartka (sekcja "Bronie")
 - Przeszkody na mapie
 
 ## Bank memów
@@ -94,11 +95,11 @@ Każdy mem jest podpięty pod istniejący system, żeby nie mnożyć kodu. Do MV
 
 Nazwa i logo Gigantów Programowania oraz cudze postacie zostają tylko w wersji dla znajomych z prywatnym linkiem.
 
-## Postacie
+## Bronie
 
-Postacie robisz w tej kolejności, ale w grze Kapitan odblokowuje się jako ostatni, jako "prawdziwa forma Bartka". Grafika: statyczny obrazek całego Bartka, inny kolor i jeden rekwizyt na postać.
+**Zmiana planu:** postacią grywalną jest zawsze zwykły Bartek (`bartek.png`). Zamiast postaci zmieniają się bronie, a warianty Bartka (Joker, Homelander, Uncanny i kolejne) są wrogami, nie postaciami. Lista poniżej to teraz lista broni; nazwa z kolumny "Inspiracja" zostaje jako nazwa broni albo opis karty. Bronie robisz w tej kolejności, ale Tarcza Kapitana odblokowuje się jako ostatnia.
 
-| # | Bartek | Broń / mechanika | Typ |
+| # | Inspiracja | Broń / mechanika | Typ |
 | --- | --- | --- | --- |
 | 0 | Bazowy | Pistolet z auto-celowaniem | pocisk |
 | 1 | Minion | Banany odbijające się od ziemi | pocisk łukiem |
@@ -115,7 +116,30 @@ Postacie robisz w tej kolejności, ale w grze Kapitan odblokowuje się jako osta
 | 12 | Lego | Klocki na ziemi: zombie stają i cierpią | pułapki |
 | 13 | Minecraft | TNT + stawianie bloków jako ścian | wybuch + bariery |
 
-Warunki odblokowania też są memami, np. Uncanny za przetrwanie 60 sekund bez ruszania się, Kratos za 1000 zabitych.
+Warunki odblokowania broni też są memami, np. aura Uncanny za przetrwanie 60 sekund bez ruszania się, ostrza Kratosa za 1000 zabitych.
+
+## Plan na później
+
+### Rzadkość ulepszeń
+
+Przy każdym level upie każda z 3 kart dostaje losową rzadkość: zwykła, rzadka, epicka albo legendarna. Rzadkość mnoży siłę efektu (np. 1x, 1,5x, 2x, 3x) i ma swój kolor ramki karty. Szansa na rzadsze karty rośnie z poziomem. Rzadkości, ich szanse i mnożniki są w `config.js`, a ulepszenia dalej są danymi: `apply(player, mult)` dostaje mnożnik rzadkości. Pasuje do pola `weight` z kroku 18 (Bartkowanie), ale to osobna rzecz: `weight` decyduje, która karta wypada, a rzadkość decyduje, jak mocna jest.
+
+### Efekty (CC0, `assets/effects`)
+
+Paczka ma ok. 1300 animowanych efektów w 18 kategoriach (48 MB). Każdy efekt ma `sprite-sheet.png` i `manifest.json` z klatkami, czasami i punktem zaczepienia. `src/systems/vfx.js` ładuje tylko efekty wpisane w `config.vfx` i tnie je według manifestu, więc gra nie pobiera całej paczki.
+
+W grze już są: `impacts/hit-spark` (trafienie pociskiem), `impacts/death-poof` (śmierć wroga), `explosions/big-explosion` (Golf zezłomowany).
+
+Pomysły na później:
+- `ui/level-up` przy level upie, `ui/gem-pickup` przy zbieraniu kryształu, `holy/holy-heal` przy leczeniu z karty Max HP.
+- `scifi/muzzle-flash` przy strzale pistoletu.
+- Czołg: `smoke/dash-dust` spod gąsienic, `holy/shield-bubble` w czasie nietykalności.
+- Golf: `status/target-mark` w punkcie, w który zaraz szarżuje, `smoke/dash-dust` przy szarży, `impacts/metal-clang` przy otwarciu klapy.
+- Klapa: `impacts/metal-clang` przy trafieniu Bartka.
+- Mały B: `arcane/polymorph-poof` przy zmniejszeniu i powrocie.
+- Bartkowanie: `status/stun-stars` przy "Zombie robią przysiady", `status/haste` przy "Moonwalk".
+- Bronie: `nature/poison-cloud` (gaz rozweselający), `scifi/laser-beam` (laser), `explosions/barrel-explosion` (TNT), `lightning/chain-lightning` i `fire/flamethrower` jako nowe bronie.
+- Ekran wygranej: `explosions/firework-burst`.
 
 ## Architektura
 

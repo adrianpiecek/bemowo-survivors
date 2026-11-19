@@ -22,8 +22,15 @@ Gra działa pod `http://localhost:8000`. Nie otwieraj `index.html` bezpośrednio
 ```
 index.html
 lib/phaser.min.js
-assets/bartek.png
-assets/zombie.png
+assets/bartek.png        grywalny Bartek (zawsze ten sam, zmieniają się bronie)
+assets/zombie.png        wrogowie: warianty Bartka
+assets/uncanny.png
+assets/joker.png
+assets/homelander.png
+assets/czołg.png         Bartek w czołgu (ultimate)
+assets/Pigeons/          animacja gołębia, 3 klatki
+assets/Coin_Gems/        animowane gemy XP i monety (CC0)
+assets/effects/          animowane efekty (CC0), sprite-sheet.png + manifest.json na efekt
 src/main.js              konfiguracja Phaser.Game i lista scen
 src/config.js            WSZYSTKIE liczby balansu
 src/state.js             obiekt run (reset co rundę), obiekt save (trwały), loadSave, writeSave
@@ -31,7 +38,7 @@ src/data/upgrades.js     tablica ulepszeń jako dane
 src/data/enemies.js      typy wrogów jako dane (od kroku 15)
 src/data/pickups.js      znajdźki jako dane (od kroku 12)
 src/data/gym.js          ulepszenia siłowni jako dane (od kroku 11)
-src/systems/             wspólne mechaniki: efekty czasowe, orbita itp.
+src/systems/             wspólne mechaniki: efekty czasowe, orbita, efekty wizualne (vfx.js) itp.
 src/scenes/BootScene.js
 src/scenes/GameScene.js
 src/scenes/UIScene.js
@@ -53,7 +60,7 @@ Nowy plik tylko wtedy, gdy zadanie tego wymaga. Jedna scena na plik.
 4. **Pooling.** Pociski, wrogowie i kryształy XP to `Phaser.Physics.Arcade.Group` z `maxSize`. Używaj ponownie obiektów (`get`, `setActive`, `setVisible`), nie twórz i nie niszcz ich w każdej klatce.
 5. **Ruch zależny od czasu.** Wszystko, co się porusza lub odlicza, korzysta z `delta` albo z fizyki Arcade, nigdy z liczby klatek.
 6. **Tylko bieżący krok.** Robisz wyłącznie to, co jest w treści zadania. Funkcje z przyszłych kroków są zakazane, nawet jeśli wydają się łatwe.
-7. **Grafika zastępcza.** Do czasu, aż zadanie powie inaczej: Bartek to statyczny obrazek całego Bartka z `bartek.png`, zombie to statyczny obrazek z `zombie.png` (oba ładowane w `BootScene`), biegacz to jasnozielone koło, pociski to małe białe kropki, kryształy XP to niebieskie romby. Wszystko poza Bartkiem i zombie rysuj przez `Graphics` i `generateTexture` w `BootScene`.
+7. **Grafika.** Wszystko ładowane w `BootScene`. Gracz to zawsze zwykły Bartek z `bartek.png`. Wrogowie idący do gracza to warianty Bartka (statyczne obrazki: `zombie.png`, `uncanny.png`, `joker.png`, `homelander.png`); nowy wróg tego typu to nowy wariant Bartka. Czołg to `czołg.png`, gołębie to animacja z `assets/Pigeons/`, kryształy XP to animowane gemy z `assets/Coin_Gems/`. Efekty wizualne bierz z `assets/effects/` przez `src/systems/vfx.js`: dopisz efekt do `config.vfx`, nie ładuj całej paczki. Grafiki pixel-art dostają filtr `NEAREST`. Wszystko, czego nie ma w assetach (pociski, klapa, Golf, znajdźki, tło), rysuj przez `Graphics` i `generateTexture` w `BootScene`, dopóki zadanie nie powie inaczej.
 8. **Teksty w grze po polsku.**
 9. **Treść jako dane.** Typy wrogów (`src/data/enemies.js`), znajdźki (`src/data/pickups.js`) i ulepszenia siłowni (`src/data/gym.js`) to tablice obiektów, tak jak ulepszenia. Wspólne mechaniki (np. orbita, efekty czasowe) trafiają do `src/systems/` i są używane ponownie, a nie kopiowane.
 10. **Debug.** Każdy krok, który dodaje rzadkie zdarzenie, dodaje też klawisz lub flagę w `config.debug`, żeby dało się je wywołać od razu. Wszystkie flagi debug są domyślnie wyłączone.

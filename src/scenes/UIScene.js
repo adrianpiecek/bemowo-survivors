@@ -24,6 +24,10 @@ export default class UIScene extends Phaser.Scene {
     this.timeText = this.add.text(width / 2, m, '', font).setOrigin(0.5, 0);
     this.killsText = this.add.text(width - m, m, '', font).setOrigin(1, 0);
 
+    const bb = u.bossBar;
+    this.bossText = this.add.text(width / 2, bb.y + bb.height / 2, 'GOLF', { fontSize: `${bb.fontSize}px`, fontStyle: 'bold' })
+      .setOrigin(0.5).setVisible(false);
+
     this.createJoystick();
 
     const bn = u.banner;
@@ -41,11 +45,11 @@ export default class UIScene extends Phaser.Scene {
 
   // Shared pickup banner: big outlined text in the middle of the screen. Runs on this scene's clock,
   // so it keeps counting while GameScene is paused.
-  showBanner(text, subtext = '') {
+  showBanner(text, subtext = '', durationMs = config.ui.banner.durationMs) {
     this.banner.setText(text).setVisible(true);
     this.bannerSub.setText(subtext).setVisible(true);
     this.bannerTimer?.remove();
-    this.bannerTimer = this.time.delayedCall(config.ui.banner.durationMs, () => {
+    this.bannerTimer = this.time.delayedCall(durationMs, () => {
       this.banner.setVisible(false);
       this.bannerSub.setVisible(false);
     });
@@ -71,6 +75,15 @@ export default class UIScene extends Phaser.Scene {
     // +999 so the clock shows 10:00 at the start instead of 9:59.
     this.timeText.setText(formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999));
     this.killsText.setText(`Zabici: ${r.kills}`);
+    // Boss HP bar, top center, only while the Golf is on the map.
+    const boss = this.scene.get('GameScene').boss, bb = config.ui.bossBar;
+    const bossOn = !!boss?.active && boss.stats.isBoss; // pooled: the same sprite may be a zombie later
+    this.bossText.setVisible(bossOn);
+    if (bossOn) {
+      const x = (this.scale.width - bb.width) / 2;
+      this.bars.fillStyle(h.barBg).fillRect(x, bb.y, bb.width, bb.height);
+      this.bars.fillStyle(bb.color).fillRect(x, bb.y, bb.width * Phaser.Math.Clamp(boss.hp / boss.stats.hp, 0, 1), bb.height);
+    }
     this.tankText.setText(r.tankMs > 0 ? `CZOŁG ${Math.ceil(r.tankMs / 1000)} s`
       : full ? 'CZOŁG GOTOWY!' : `Czołg ${r.tankCharge}/${t.killsToCharge}`);
   }

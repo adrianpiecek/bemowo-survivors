@@ -14,7 +14,7 @@ export function showOlxAd(scene, onDone) {
   const bg = ui.add.graphics().fillStyle(0xffffff).fillRoundedRect(-c.width / 2, top, c.width, c.height, c.padding / 2);
 
   const hasPhoto = ui.textures.exists('golab');
-  const photo = ui.add.image(0, top + c.padding, hasPhoto ? 'golab' : 'pigeon').setOrigin(0.5, 0);
+  const photo = ui.add.image(0, top + c.padding, hasPhoto ? 'golab' : 'pigeon1').setOrigin(0.5, 0);
   photo.setScale(c.photoSize / Math.max(photo.width, photo.height)); // fit the square, keep the aspect ratio
 
   let y = top + c.padding + c.photoSize + c.padding / 2;
@@ -50,7 +50,7 @@ export function pigeonStrike(scene) {
   for (let i = 0; i < count; i++) {
     const baseY = Phaser.Math.Between(tex.height, height - tex.height);
     const phase = Phaser.Math.FloatBetween(0, Math.PI * 2);
-    const bird = ui.add.image(-tex.width, baseY, 'pigeon').setDepth(2);
+    const bird = ui.add.sprite(-tex.width, baseY, 'pigeon1').setScale(tex.scale).setFlipX(tex.flipX).setDepth(2).play('pigeonFly');
     ui.tweens.addCounter({
       from: 0,
       to: 1,

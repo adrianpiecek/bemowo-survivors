@@ -3,6 +3,8 @@ import { newRun, xpToNextLevel } from '../state.js';
 import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
 import { updateEffects } from '../systems/effects.js';
+import { startGolf, updateGolf } from '../systems/golf.js';
+import { createVfxPool, playVfx } from '../systems/vfx.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -19,6 +21,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.player = this.physics.add.sprite(0, 0, 'bartek');
     this.baseScale = config.textures.bartek.height / this.player.height;
+    this.tankScale = config.textures.tank.height / this.textures.getFrame('tank').height;
     this.player.setScale(this.baseScale).setDepth(1);
     cam.startFollow(this.player);
 
@@ -40,7 +43,8 @@ export default class GameScene extends Phaser.Scene {
     });
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHit, null, this);
 
-    this.gems = this.physics.add.group({ defaultKey: 'gem', maxSize: config.pools.gems });
+    this.gems = this.physics.add.group({ defaultKey: 'gem_green', maxSize: config.pools.gems });
+    this.vfx = createVfxPool(this);
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
 
     this.pickups = this.physics.add.group({ defaultKey: 'pickup', maxSize: config.pools.pickups });
@@ -54,6 +58,12 @@ export default class GameScene extends Phaser.Scene {
     this.input.keyboard.addCapture('SPACE');
     this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
     if (config.debug.klapaKey) this.input.keyboard.on('keydown-K', () => this.spawnEnemy(enemies.find((d) => d.id === 'klapa')));
+    if (config.debug.bossKey) {
+      this.input.keyboard.on('keydown-B', () => {
+        this.run.bossAtMs = Math.min(this.run.bossAtMs, this.run.elapsedMs + config.boss.bannerSec * 1000);
+      });
+    }
+    this.boss = null; // the Golf's sprite once it spawns; UIScene reads it for the HP bar
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
 
     this.scene.launch('UIScene', { run: this.run });
@@ -91,6 +101,7 @@ export default class GameScene extends Phaser.Scene {
   onBulletHit(bullet, enemy) {
     if (!bullet.active || !enemy.active) return; // several overlaps can fire in one step
     bullet.disableBody(true, true);
+    playVfx(this, 'hitSpark', bullet.x, bullet.y);
     enemy.hp -= bullet.damage;
     if (enemy.hp <= 0) this.killEnemy(enemy);
   }
@@ -99,8 +110,21 @@ export default class GameScene extends Phaser.Scene {
     enemy.disableBody(true, true);
     this.run.kills++;
     if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, config.tank.killsToCharge);
-    this.dropGem(enemy.x, enemy.y);
+    this.dropGem(enemy.x, enemy.y, enemy.stats.gem);
+    playVfx(this, 'deathPoof', enemy.x, enemy.y);
     this.maybeDropPickup(enemy.x, enemy.y);
+    if (enemy.stats.isBoss) this.bossKilled(enemy);
+  }
+
+  bossKilled(boss) {
+    const b = config.boss, r = b.gemSpread;
+    boss.clearTint();
+    this.run.bossKilled = true;
+    for (let i = 0; i < b.gemCount; i++) {
+      this.dropGem(boss.x + Phaser.Math.FloatBetween(-r, r), boss.y + Phaser.Math.FloatBetween(-r, r), b.gemKind);
+    }
+    playVfx(this, 'golfBoom', boss.x, boss.y);
+    this.scene.get('UIScene').showBanner('Golf zezłomowany');
   }
 
   // Space or a tap on the HUD bar. Ignored while paused, already a tank, or not fully charged.
@@ -109,23 +133,25 @@ export default class GameScene extends Phaser.Scene {
     if (!this.scene.isActive() || run.tankMs > 0 || run.tankCharge < t.killsToCharge) return;
     run.tankCharge = 0;
     run.tankMs = t.durationSec * 1000;
-    const r = config.textures.tank.bodyRadius;
+    const r = config.textures.tank.bodyRadius / this.tankScale; // body sizes are in texture px, before scale
     this.player.setTexture('tank').body.setCircle(r, this.player.width / 2 - r, this.player.height / 2 - r);
     run.bubbleMs = config.ui.bubble.durationMs;
     this.cameras.main.shake(t.shakeMs, t.shakeIntensity);
   }
 
   endTank() {
-    this.player.setTexture('bartek').setRotation(0).body.setSize(); // no args: body back to the frame size
+    this.player.setTexture('bartek').setFlipX(false).body.setSize(); // no args: body back to the frame size
     // A short grace period, so the horde around the tank does not bite on the very first frame.
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
   }
 
-  // Every enemy inside the camera view dies; the ones off screen live.
+  // Every enemy inside the camera view dies; the ones off screen live. A boss only loses a share of its max HP.
   killVisibleEnemies() {
     const view = this.cameras.main.worldView;
     for (const z of this.enemies.getChildren()) {
-      if (z.active && view.contains(z.x, z.y)) this.killEnemy(z);
+      if (!z.active || !view.contains(z.x, z.y)) continue;
+      if (z.stats.isBoss) z.hp -= z.stats.hp * config.boss.olxDamagePct;
+      if (!z.stats.isBoss || z.hp <= 0) this.killEnemy(z);
     }
   }
 
@@ -158,11 +184,12 @@ export default class GameScene extends Phaser.Scene {
     p.def.apply(this);
   }
 
-  dropGem(x, y) {
+  dropGem(x, y, kind) {
     const gem = this.gems.get(x, y);
     if (!gem) return; // shortcut: pool full means the drop is lost, fine while gems stay well under the cap
     gem.enableBody(true, x, y, true, true);
-    gem.value = config.xp.gemValue;
+    gem.value = config.xp.gems[kind].value;
+    gem.setScale(config.xp.gemScale).play(`gem_${kind}`);
     gem.magnet = false;
   }
 
@@ -212,23 +239,27 @@ export default class GameScene extends Phaser.Scene {
 
   // Random type by spawnWeight among the ones whose appearsAtSec has passed.
   pickEnemyType() {
-    const open = enemies.filter((d) => this.run.elapsedMs >= d.appearsAtSec * 1000);
+    const open = enemies.filter((d) => !d.isBoss && this.run.elapsedMs >= d.appearsAtSec * 1000);
     let roll = Math.random() * open.reduce((sum, d) => sum + d.spawnWeight, 0);
     return open.find((d) => (roll -= d.spawnWeight) < 0) ?? open[open.length - 1];
   }
 
-  spawnEnemy(def = this.pickEnemyType()) {
-    if (this.enemies.countActive(true) >= config.spawn.maxEnemies) return;
-    const { ringMinRadius, ringMaxRadius } = config.spawn;
-    const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
-    const r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
-    const x = this.player.x + Math.cos(angle) * r;
-    const y = this.player.y + Math.sin(angle) * r;
+  // Without x, y: on the spawn ring, only under spawn.maxEnemies (the boss too, so it always fits).
+  // With x, y (the boss's klapas): right there, using the pool's spare room. Returns the sprite or undefined.
+  spawnEnemy(def = this.pickEnemyType(), x, y) {
+    if (x === undefined) {
+      if (!def.isBoss && this.enemies.countActive(true) >= config.spawn.maxEnemies) return;
+      const { ringMinRadius, ringMaxRadius } = config.spawn;
+      const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      const r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
+      x = this.player.x + Math.cos(angle) * r;
+      y = this.player.y + Math.sin(angle) * r;
+    }
     const z = this.enemies.get(x, y);
     if (!z) return;
     // Pooled sprites can come back as any type, so set the look and body every spawn.
     const t = config.textures[def.texture];
-    z.setTexture(def.texture).setAngle(0);
+    z.setTexture(def.texture).setAngle(0).clearTint();
     z.setScale(t.height ? t.height / z.height : 1); // drawn textures already have their config height, so 1
     const br = (t.bodyRadius ?? t.radius) / z.scale; // body sizes are in texture px, before scale
     z.body.setCircle(br, z.width / 2 - br, z.height / 2 - br);
@@ -239,7 +270,10 @@ export default class GameScene extends Phaser.Scene {
       z.startX = x;
       z.startY = y;
       this.physics.moveToObject(z, this.player, def.speed); // aimed once, at where Bartek is now
+    } else if (def.behavior === 'boss') {
+      startGolf(z);
     }
+    return z;
   }
 
   update(time, delta) {
@@ -256,6 +290,17 @@ export default class GameScene extends Phaser.Scene {
     if (run.spawnCooldownMs <= 0) {
       this.spawnEnemy();
       run.spawnCooldownMs += Phaser.Math.Linear(startIntervalMs, minIntervalMs, run.elapsedMs / total);
+    }
+
+    // The Golf: banner first, then it drives in from the spawn ring, once per run.
+    const b = config.boss;
+    if (!run.bossAnnounced && run.elapsedMs >= run.bossAtMs - b.bannerSec * 1000) {
+      run.bossAnnounced = true;
+      this.scene.get('UIScene').showBanner('UWAGA: GOLF NA BEMOWIE', '', b.bannerSec * 1000);
+    }
+    if (!run.bossSpawned && run.elapsedMs >= run.bossAtMs) {
+      run.bossSpawned = true;
+      this.boss = this.spawnEnemy(enemies.find((d) => d.id === 'golf'));
     }
 
     // Every wave.everySec a ring of enemies spawns at once; each wave is bigger. The enemy cap still applies.
@@ -277,15 +322,15 @@ export default class GameScene extends Phaser.Scene {
 
     if (run.tankMs > 0) {
       run.tankMs = Math.max(0, run.tankMs - delta);
-      if (this.moveDir.lengthSq() > 0) this.player.setRotation(this.moveDir.angle());
+      if (this.moveDir.x) this.player.setFlipX(this.moveDir.x > 0); // the image's barrel points left
       if (run.tankMs === 0) this.endTank();
     }
 
     const { blinkMs, blinkAlpha } = config.player;
     if (updateEffects(run, delta).length) run.flashMs = config.effects.endFlashMs;
     run.flashMs = Math.max(0, run.flashMs - delta);
-    // The tank texture is drawn at on-screen size; the Arcade body follows the sprite's scale.
-    const scale = (run.tankMs > 0 ? 1 : this.baseScale) * pl.scale;
+    // The Arcade body follows the sprite's scale.
+    const scale = (run.tankMs > 0 ? this.tankScale : this.baseScale) * pl.scale;
     if (this.player.scaleX !== scale) this.player.setScale(scale);
 
     const blinking = this.time.now < run.invulnUntilMs || run.flashMs > 0;
@@ -299,6 +344,7 @@ export default class GameScene extends Phaser.Scene {
     for (const z of this.enemies.getChildren()) {
       if (!z.active) continue;
       if (z.stats.behavior === 'chase') this.physics.moveToObject(z, this.player, z.stats.speed);
+      else if (z.stats.behavior === 'boss') updateGolf(this, z, delta);
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
       else z.angle += z.stats.spinDegPerSec * delta / 1000;
     }

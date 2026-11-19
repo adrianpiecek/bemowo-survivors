@@ -1,28 +1,45 @@
 import { config } from '../config.js';
+import { preloadVfx, createVfxAnims } from '../systems/vfx.js';
 
 export default class BootScene extends Phaser.Scene {
   constructor() { super('BootScene'); }
 
   preload() {
-    this.load.image('bartek', './assets/bartek.png');
-    this.load.image('zombie', './assets/zombie.png');
-    // May be missing: the OLX card falls back to the generated 'pigeon' texture.
+    // Bartek and the Bartek variants that are the enemies.
+    for (const key of ['bartek', 'zombie', 'uncanny', 'joker', 'homelander']) this.load.image(key, `./assets/${key}.png`);
+    this.load.image('tank', './assets/czołg.png');
+    // May be missing: the OLX card falls back to the first pigeon frame.
     this.load.image('golab', config.pickups.olx.photo);
+    for (let i = 1; i <= config.textures.pigeon.frames; i++) this.load.image(`pigeon${i}`, `./assets/Pigeons/pigeon${i}.png`);
+    const x = config.xp;
+    for (const [kind, gem] of Object.entries(x.gems)) {
+      this.load.spritesheet(`gem_${kind}`, gem.file, { frameWidth: x.gemFrameSize, frameHeight: x.gemFrameSize });
+    }
+    preloadVfx(this);
   }
 
   create() {
-    const t = config.textures;
+    const t = config.textures, x = config.xp;
+    const pixel = (key) => this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+
+    for (const kind of Object.keys(x.gems)) {
+      const key = `gem_${kind}`;
+      pixel(key);
+      this.anims.create({ key, frames: this.anims.generateFrameNumbers(key), frameRate: x.gemFps, repeat: -1 });
+    }
+    const pigeonFrames = [];
+    for (let i = 1; i <= t.pigeon.frames; i++) {
+      pixel(`pigeon${i}`);
+      pigeonFrames.push({ key: `pigeon${i}` });
+    }
+    this.anims.create({ key: 'pigeonFly', frames: pigeonFrames, frameRate: t.pigeon.fps, repeat: -1, yoyo: true });
+    createVfxAnims(this);
+
     const g = this.add.graphics();
 
-    for (const key of ['runner', 'bullet']) {
-      const { radius, color } = t[key];
-      g.fillStyle(color).fillCircle(radius, radius, radius);
-      g.generateTexture(key, radius * 2, radius * 2).clear();
-    }
-
-    const s = t.gem.size, h = s / 2;
-    g.fillStyle(t.gem.color).fillPoints([{ x: h, y: 0 }, { x: s, y: h }, { x: h, y: s }, { x: 0, y: h }], true);
-    g.generateTexture('gem', s, s).clear();
+    const b = t.bullet;
+    g.fillStyle(b.color).fillCircle(b.radius, b.radius, b.radius);
+    g.generateTexture('bullet', b.radius * 2, b.radius * 2).clear();
 
     const gr = t.ground;
     g.fillStyle(gr.color).fillRect(0, 0, gr.size, gr.size);
@@ -34,25 +51,28 @@ export default class BootScene extends Phaser.Scene {
     g.lineStyle(kl.borderWidth, kl.borderColor).strokeRect(0, 0, kl.width, kl.height);
     g.generateTexture('klapa', kl.width, kl.height).clear();
 
+    // Golf, closed and with the trunk open. Car body from x = lidLength, front on the right; fractions are only proportions.
+    const gf = t.golf, gw = gf.carLength + gf.lidLength * 2, gh = gf.carWidth + gf.wheelWidth, x0 = gf.lidLength;
+    for (const open of [false, true]) {
+      g.fillStyle(gf.wheelColor);
+      for (const wx of [x0 + gf.carLength * 0.12, x0 + gf.carLength * 0.7]) {
+        g.fillRect(wx, 0, gf.wheelLength, gf.wheelWidth).fillRect(wx, gh - gf.wheelWidth, gf.wheelLength, gf.wheelWidth);
+      }
+      g.fillStyle(gf.color).fillRect(x0, gf.wheelWidth / 2, gf.carLength, gf.carWidth);
+      g.fillStyle(gf.glassColor).fillRect(x0 + gf.carLength * 0.6, gf.wheelWidth, gf.carLength * 0.12, gf.carWidth - gf.wheelWidth);
+      if (open) {
+        g.fillStyle(gf.trunkColor).fillRect(x0, gf.wheelWidth, gf.lidLength, gf.carWidth - gf.wheelWidth);
+        g.fillStyle(gf.lidColor).fillRect(0, gf.wheelWidth / 2, gf.lidLength, gf.carWidth); // lid swung out the back
+      } else {
+        g.fillStyle(gf.lidColor).fillRect(x0, gf.wheelWidth / 2, gf.lidLength, gf.carWidth);
+      }
+      g.generateTexture(open ? 'golfOpen' : 'golf', gw, gh).clear();
+    }
+
     const pk = t.pickup;
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);
     g.lineStyle(pk.borderWidth, pk.borderColor).strokeRect(0, 0, pk.size, pk.size);
-    g.generateTexture('pickup', pk.size, pk.size).clear();
-
-    // Simple side-view pigeon facing right: body, darker wing, head, beak. Shape fractions are only proportions.
-    const pg = t.pigeon, w = pg.width, ph = pg.height;
-    g.fillStyle(pg.color).fillEllipse(w * 0.45, ph * 0.6, w * 0.7, ph * 0.6);
-    g.fillStyle(pg.darkColor).fillEllipse(w * 0.4, ph * 0.5, w * 0.45, ph * 0.35);
-    g.fillStyle(pg.color).fillCircle(w * 0.8, ph * 0.35, ph * 0.22);
-    g.fillStyle(pg.beakColor).fillTriangle(w * 0.92, ph * 0.3, w, ph * 0.38, w * 0.92, ph * 0.44);
-    g.generateTexture('pigeon', w, ph).clear();
-
-    // Top-down tank facing right: hull, barrel to the right edge, turret on top.
-    const tk = t.tank, tw = tk.hullWidth + tk.barrelOut * 2, th = tk.hullHeight;
-    g.fillStyle(tk.color).fillRect(tk.barrelOut, 0, tk.hullWidth, th);
-    g.fillStyle(tk.darkColor).fillRect(tw / 2, (th - tk.barrelWidth) / 2, tw / 2, tk.barrelWidth);
-    g.fillCircle(tw / 2, th / 2, tk.turretRadius);
-    g.generateTexture('tank', tw, th);
+    g.generateTexture('pickup', pk.size, pk.size);
 
     g.destroy();
 
