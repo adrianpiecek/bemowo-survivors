@@ -27,6 +27,9 @@ export default class UIScene extends Phaser.Scene {
     this.banner = this.add.text(width / 2, bn.y, '', {
       fontSize: `${bn.fontSize}px`, fontStyle: 'bold', color: '#ffffff', stroke: '#000000', strokeThickness: bn.strokeThickness,
     }).setOrigin(0.5).setDepth(1).setVisible(false);
+    this.bannerSub = this.add.text(width / 2, bn.y + bn.fontSize / 2, '', {
+      fontSize: `${bn.subFontSize}px`, color: '#ffffff', stroke: '#000000', strokeThickness: bn.subStrokeThickness,
+    }).setOrigin(0.5, 0).setDepth(1).setVisible(false);
 
     const w = u.welcome;
     const welcome = this.add.text(width / 2, height / 2, 'Witamy na Bemowie', { fontSize: `${w.fontSize}px` }).setOrigin(0.5);
@@ -35,10 +38,14 @@ export default class UIScene extends Phaser.Scene {
 
   // Shared pickup banner: big outlined text in the middle of the screen. Runs on this scene's clock,
   // so it keeps counting while GameScene is paused.
-  showBanner(text) {
+  showBanner(text, subtext = '') {
     this.banner.setText(text).setVisible(true);
+    this.bannerSub.setText(subtext).setVisible(true);
     this.bannerTimer?.remove();
-    this.bannerTimer = this.time.delayedCall(config.ui.banner.durationMs, () => this.banner.setVisible(false));
+    this.bannerTimer = this.time.delayedCall(config.ui.banner.durationMs, () => {
+      this.banner.setVisible(false);
+      this.bannerSub.setVisible(false);
+    });
   }
 
   update() {

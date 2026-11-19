@@ -7,6 +7,7 @@ function startingStats() {
     maxHp: config.player.maxHp,
     speed: config.player.speed,
     magnetRadius: config.xp.magnetRadius,
+    scale: 1, // Bartek's size and hitbox, 1 = normal
     ...config.pistol,
     // Warm-up from the gym; these defaults mean no effect.
     warmupMs: 0,
@@ -36,6 +37,8 @@ export function newRun() {
     wave: 0, // waves spawned so far
     pendingLevelUps: 0, // level-ups still waiting for a card pick
     pickupDropMs: {}, // pickup id -> run time of its last drop, for the cooldown
+    effects: {}, // timed effects, see systems/effects.js
+    flashMs: 0, // time left on Bartek's blink after an effect ends
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only

@@ -25,6 +25,7 @@ export const config = {
       photo: './assets/golab.png', // a grey placeholder bird is drawn when the file is missing
       cardMs: 2000, flockMin: 10, flockMax: 15, flyMs: 1800, flockSpreadMs: 400, waveAmp: 18, waveCycles: 3,
     },
+    photoshop: { dropChance: 0.004, cooldownSec: 60, durationSec: 15, scale: 0.5, speedPct: 0.3, damagePct: -0.3 },
   },
   // Permanent upgrades bought with protein. Percentages multiply with the in-run upgrades.
   gym: {
@@ -40,6 +41,7 @@ export const config = {
       'Okulary? To do czytania etykiet odżywek.',
     ],
   },
+  effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   pools: { bullets: 100, enemies: 250, gems: 300, pickups: 10 },
   upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, extraBullets: 1, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
   ui: { margin: 16, hudFontSize: 24, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
@@ -48,7 +50,7 @@ export const config = {
     hud: { barWidth: 260, barHeight: 22, barGap: 8, barFontSize: 16, barBg: 0x333333, hpColor: 0xd03030, xpColor: 0x3a8dff },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
-    banner: { y: 84, fontSize: 64, strokeThickness: 8, durationMs: 1500 },
+    banner: { y: 84, fontSize: 64, strokeThickness: 8, durationMs: 1500, subFontSize: 24, subStrokeThickness: 5 },
     olxCard: { width: 420, height: 440, padding: 24, photoSize: 200, titleFontSize: 34, textFontSize: 20, bigFontSize: 38 },
     buttonOffsetX: 160, // two buttons side by side sit this far left and right of center
     gymScreen: { titleY: 50, proteinY: 110, top: 170, rowHeight: 80, nameX: 120, levelX: 820, costX: 930, buyX: 1090,

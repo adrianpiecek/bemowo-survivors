@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { newRun, xpToNextLevel } from '../state.js';
 import { pickups } from '../data/pickups.js';
+import { updateEffects } from '../systems/effects.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -16,7 +17,8 @@ export default class GameScene extends Phaser.Scene {
     cam.on(Phaser.Cameras.Scene2D.Events.FOLLOW_UPDATE, (c) => ground.setTilePosition(c.scrollX, c.scrollY));
 
     this.player = this.physics.add.sprite(0, 0, 'bartek');
-    this.player.setScale(config.textures.bartek.height / this.player.height).setDepth(1);
+    this.baseScale = config.textures.bartek.height / this.player.height;
+    this.player.setScale(this.baseScale).setDepth(1);
     cam.startFollow(this.player);
 
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,LEFT,DOWN,RIGHT');
@@ -115,7 +117,7 @@ export default class GameScene extends Phaser.Scene {
   collectPickup(player, p) {
     if (!p.active) return;
     p.disableBody(true, true);
-    this.scene.get('UIScene').showBanner(p.def.bannerText);
+    this.scene.get('UIScene').showBanner(p.def.bannerText, p.def.bannerSubtext);
     p.def.apply(this);
   }
 
@@ -226,8 +228,13 @@ export default class GameScene extends Phaser.Scene {
     this.player.setVelocity(this.moveDir.x, this.moveDir.y);
 
     const { blinkMs, blinkAlpha } = config.player;
-    const blinkOff = this.time.now < this.run.invulnUntilMs && Math.floor(this.time.now / blinkMs) % 2;
-    this.player.setAlpha(blinkOff ? blinkAlpha : 1);
+    if (updateEffects(run, delta).length) run.flashMs = config.effects.endFlashMs;
+    run.flashMs = Math.max(0, run.flashMs - delta);
+    const scale = this.baseScale * pl.scale; // the Arcade body follows the sprite's scale
+    if (this.player.scaleX !== scale) this.player.setScale(scale);
+
+    const blinking = this.time.now < run.invulnUntilMs || run.flashMs > 0;
+    this.player.setAlpha(blinking && Math.floor(this.time.now / blinkMs) % 2 ? blinkAlpha : 1);
 
     this.run.bubbleMs = Math.max(0, this.run.bubbleMs - delta);
     this.updateBubble();
