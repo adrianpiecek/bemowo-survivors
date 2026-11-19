@@ -2,8 +2,8 @@ export const config = {
   game: { width: 1280, height: 720, background: '#000000' },
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
   pistol: { fireRateMs: 800, range: 400, bulletSpeed: 500, bulletDamage: 5, bulletsPerShot: 1 },
-  zombie: { speed: 80, hp: 10, contactDamage: 15 },
-  runner: { speed: 160, hp: 4, contactDamage: 15, appearsAtSec: 60, spawnChance: 0.4 },
+  zombie: { speed: 80, hp: 10, contactDamage: 15, isBoss: false },
+  runner: { speed: 160, hp: 4, contactDamage: 15, appearsAtSec: 60, spawnChance: 0.4, isBoss: false },
   spawn: { startIntervalMs: 450, minIntervalMs: 70, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
   wave: { everySec: 60, baseCount: 20, perWave: 8 }, // burst of extra enemies every minute, all around Bartek
   xp: { gemValue: 1, magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5 },
@@ -14,7 +14,10 @@ export const config = {
     resetSave: false, // true wipes the save on page load
     freeProtein: false, // true makes gym purchases free
     pickupKey: true, // true: the P key drops a random pickup next to Bartek. shortcut: on for testing, set false before deploy
+    tankKey: false, // true: the T key fills the tank bar at once
   },
+  // Ultimate: charged by kills, Space (or a tap on its bar) turns Bartek into a tank.
+  tank: { killsToCharge: 100, durationSec: 10, bossDamagePerSec: 50, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200 },
   // Rare drops from killed enemies. Each pickup's own numbers sit under its id.
   pickups: {
     lifetimeSec: 20,
@@ -47,7 +50,8 @@ export const config = {
   ui: { margin: 16, hudFontSize: 24, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
     dimAlpha: 0.6, card: { count: 3, width: 260, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 22, textFontSize: 18 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
-    hud: { barWidth: 260, barHeight: 22, barGap: 8, barFontSize: 16, barBg: 0x333333, hpColor: 0xd03030, xpColor: 0x3a8dff },
+    hud: { barWidth: 260, barHeight: 22, barGap: 8, barFontSize: 16, barBg: 0x333333, hpColor: 0xd03030, xpColor: 0x3a8dff,
+      tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
     banner: { y: 84, fontSize: 64, strokeThickness: 8, durationMs: 1500, subFontSize: 24, subStrokeThickness: 5 },
@@ -65,6 +69,9 @@ export const config = {
     bullet: { radius: 3, color: 0xffffff },
     gem: { size: 12, color: 0x3a8dff },
     pickup: { size: 22, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },
+    // Hull centered in the texture, barrel from the center to the right edge (rotation 0 faces right).
+    tank: { hullWidth: 72, hullHeight: 48, barrelOut: 26, barrelWidth: 10, turretRadius: 14, bodyRadius: 30,
+      color: 0x2e4d1e, darkColor: 0x1b2e12 },
     pigeon: { width: 44, height: 30, color: 0x8a8a8a, darkColor: 0x5a5a5a, beakColor: 0xd9a400 },
   },
 };

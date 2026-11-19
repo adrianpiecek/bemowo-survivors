@@ -40,7 +40,14 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(pg.darkColor).fillEllipse(w * 0.4, ph * 0.5, w * 0.45, ph * 0.35);
     g.fillStyle(pg.color).fillCircle(w * 0.8, ph * 0.35, ph * 0.22);
     g.fillStyle(pg.beakColor).fillTriangle(w * 0.92, ph * 0.3, w, ph * 0.38, w * 0.92, ph * 0.44);
-    g.generateTexture('pigeon', w, ph);
+    g.generateTexture('pigeon', w, ph).clear();
+
+    // Top-down tank facing right: hull, barrel to the right edge, turret on top.
+    const tk = t.tank, tw = tk.hullWidth + tk.barrelOut * 2, th = tk.hullHeight;
+    g.fillStyle(tk.color).fillRect(tk.barrelOut, 0, tk.hullWidth, th);
+    g.fillStyle(tk.darkColor).fillRect(tw / 2, (th - tk.barrelWidth) / 2, tw / 2, tk.barrelWidth);
+    g.fillCircle(tw / 2, th / 2, tk.turretRadius);
+    g.generateTexture('tank', tw, th);
 
     g.destroy();
 

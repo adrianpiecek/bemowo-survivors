@@ -18,6 +18,9 @@ export default class UIScene extends Phaser.Scene {
     const xpY = m + h.barHeight + h.barGap;
     this.xpText = this.add.text(m + h.barWidth / 2, xpY + h.barHeight / 2, '', barFont).setOrigin(0.5);
     this.levelText = this.add.text(m, xpY + h.barHeight + h.barGap, '', font);
+    const tankY = this.levelText.y + u.hudFontSize + h.barGap;
+    this.tankBar = new Phaser.Geom.Rectangle(m, tankY, h.barWidth, h.barHeight);
+    this.tankText = this.add.text(m + h.barWidth / 2, tankY + h.barHeight / 2, '', barFont).setOrigin(0.5);
     this.timeText = this.add.text(width / 2, m, '', font).setOrigin(0.5, 0);
     this.killsText = this.add.text(width - m, m, '', font).setOrigin(1, 0);
 
@@ -56,6 +59,10 @@ export default class UIScene extends Phaser.Scene {
     this.bars.clear();
     this.drawBar(m, h.hpColor, pl.hp / pl.maxHp);
     this.drawBar(xpY, h.xpColor, r.xp / xpNeed);
+    const t = config.tank, full = r.tankCharge >= t.killsToCharge;
+    const blink = full && Math.floor(this.time.now / t.barBlinkMs) % 2;
+    this.drawBar(this.tankBar.y, blink ? h.tankBlinkColor : h.tankColor,
+      r.tankMs > 0 ? r.tankMs / (t.durationSec * 1000) : r.tankCharge / t.killsToCharge);
 
     // setText skips the redraw when the string is unchanged, so calling it every frame is cheap.
     this.hpText.setText(`HP ${pl.hp}/${pl.maxHp}`);
@@ -64,6 +71,8 @@ export default class UIScene extends Phaser.Scene {
     // +999 so the clock shows 10:00 at the start instead of 9:59.
     this.timeText.setText(formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999));
     this.killsText.setText(`Zabici: ${r.kills}`);
+    this.tankText.setText(r.tankMs > 0 ? `CZOŁG ${Math.ceil(r.tankMs / 1000)} s`
+      : full ? 'CZOŁG GOTOWY!' : `Czołg ${r.tankCharge}/${t.killsToCharge}`);
   }
 
   // Floating joystick for touch screens: it appears where the finger lands. Mouse clicks are ignored.
@@ -75,6 +84,11 @@ export default class UIScene extends Phaser.Scene {
 
     this.input.on('pointerdown', (p) => {
       if (!p.wasTouch || active) return;
+      // On a phone there is no Space: a tap on the tank bar starts the tank instead of the joystick.
+      if (this.tankBar.contains(p.x, p.y)) {
+        this.scene.get('GameScene').activateTank();
+        return;
+      }
       active = p;
       base.setPosition(p.x, p.y).setVisible(true);
       knob.setPosition(p.x, p.y).setVisible(true);

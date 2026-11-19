@@ -49,6 +49,10 @@ export default class GameScene extends Phaser.Scene {
       });
     }
 
+    this.input.keyboard.addCapture('SPACE');
+    this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
+    if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
+
     this.scene.launch('UIScene', { run: this.run });
     // scene.start('GameOverScene') only stops this scene, so take the HUD down with it.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scene.stop('UIScene'));
@@ -63,6 +67,13 @@ export default class GameScene extends Phaser.Scene {
   }
 
   onEnemyTouch(player, enemy) {
+    if (this.run.tankMs > 0) {
+      if (!enemy.active) return;
+      // A boss only takes damage over time; overlaps fire once per fixed physics step.
+      if (enemy.stats.isBoss) enemy.hp -= config.tank.bossDamagePerSec / this.physics.world.fps;
+      if (!enemy.stats.isBoss || enemy.hp <= 0) this.killEnemy(enemy);
+      return;
+    }
     if (this.time.now < this.run.invulnUntilMs) return;
     const pl = this.run.player;
     pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
@@ -80,8 +91,27 @@ export default class GameScene extends Phaser.Scene {
   killEnemy(enemy) {
     enemy.disableBody(true, true);
     this.run.kills++;
+    if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, config.tank.killsToCharge);
     this.dropGem(enemy.x, enemy.y);
     this.maybeDropPickup(enemy.x, enemy.y);
+  }
+
+  // Space or a tap on the HUD bar. Ignored while paused, already a tank, or not fully charged.
+  activateTank() {
+    const run = this.run, t = config.tank;
+    if (!this.scene.isActive() || run.tankMs > 0 || run.tankCharge < t.killsToCharge) return;
+    run.tankCharge = 0;
+    run.tankMs = t.durationSec * 1000;
+    const r = config.textures.tank.bodyRadius;
+    this.player.setTexture('tank').body.setCircle(r, this.player.width / 2 - r, this.player.height / 2 - r);
+    run.bubbleMs = config.ui.bubble.durationMs;
+    this.cameras.main.shake(t.shakeMs, t.shakeIntensity);
+  }
+
+  endTank() {
+    this.player.setTexture('bartek').setRotation(0).body.setSize(); // no args: body back to the frame size
+    // A short grace period, so the horde around the tank does not bite on the very first frame.
+    this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
   }
 
   // Every enemy inside the camera view dies; the ones off screen live.
@@ -227,10 +257,17 @@ export default class GameScene extends Phaser.Scene {
     this.moveDir.scale(pl.speed * (run.elapsedMs < pl.warmupMs ? pl.warmupSpeedMult : 1));
     this.player.setVelocity(this.moveDir.x, this.moveDir.y);
 
+    if (run.tankMs > 0) {
+      run.tankMs = Math.max(0, run.tankMs - delta);
+      if (this.moveDir.lengthSq() > 0) this.player.setRotation(this.moveDir.angle());
+      if (run.tankMs === 0) this.endTank();
+    }
+
     const { blinkMs, blinkAlpha } = config.player;
     if (updateEffects(run, delta).length) run.flashMs = config.effects.endFlashMs;
     run.flashMs = Math.max(0, run.flashMs - delta);
-    const scale = this.baseScale * pl.scale; // the Arcade body follows the sprite's scale
+    // The tank texture is drawn at on-screen size; the Arcade body follows the sprite's scale.
+    const scale = (run.tankMs > 0 ? 1 : this.baseScale) * pl.scale;
     if (this.player.scaleX !== scale) this.player.setScale(scale);
 
     const blinking = this.time.now < run.invulnUntilMs || run.flashMs > 0;
