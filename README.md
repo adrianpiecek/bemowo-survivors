@@ -24,7 +24,7 @@ Pliki na licencji CC-BY wymagają podania autora i linku. Wpisz je tutaj przy do
 
 | Plik | Autor | Link | Licencja |
 | --- | --- | --- | --- |
-| `assets/audio/clang.mp3` | (uzupełnij) | (uzupełnij) | (uzupełnij) |
+| `assets/sounds/*.wav` | (uzupełnij) | (uzupełnij) | (uzupełnij) |
 | `assets/audio/music.mp3` | (uzupełnij) | (uzupełnij) | (uzupełnij) |
 
 Pozostałe assety z licencją CC0 (podanie autora nie jest wymagane):

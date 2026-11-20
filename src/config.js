@@ -87,13 +87,19 @@ export const config = {
     ],
   },
   // Sounds. A missing file is skipped, the game runs on without it. events: game event -> file key.
+  // minGapMs: a sound that fires in bursts (hits, gems) plays at most once per this many ms.
   audio: {
     files: {
-      clang: { file: './assets/audio/clang.mp3', volume: 0.8 },
+      clang: { file: './assets/sounds/title_hit.wav', volume: 0.8 },
       music: { file: './assets/audio/music.mp3', volume: 0.4 },
       muchacho: { file: './assets/audio/muchacho.mp3', volume: 1 }, // optional
+      levelUp: { file: './assets/sounds/level_up.wav', volume: 0.7 },
+      pick: { file: './assets/sounds/pick.wav', volume: 0.4, minGapMs: 50 },
+      playerDamage: { file: './assets/sounds/player_damage.wav', volume: 0.6 },
+      powerUp: { file: './assets/sounds/power_up.wav', volume: 0.7 },
+      shotHit: { file: './assets/sounds/shot_hit.wav', volume: 0.3, minGapMs: 50 },
     },
-    events: { tank: 'clang', boss: 'clang' },
+    events: { tank: 'powerUp', pickup: 'powerUp', boss: 'clang' },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for the boss and its klapas

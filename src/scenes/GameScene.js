@@ -109,6 +109,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.time.now < this.run.invulnUntilMs) return;
     const pl = this.run.player;
     pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
+    playSfx(this, 'playerDamage');
     if (enemy.stats.leavesScar) this.run.scarred = true;
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
     if (pl.hp === 0) this.scene.start('GameOverScene', { run: this.run, won: false });
@@ -117,6 +118,7 @@ export default class GameScene extends Phaser.Scene {
   onBulletHit(bullet, enemy) {
     if (!bullet.active || !enemy.active) return; // several overlaps can fire in one step
     bullet.disableBody(true, true);
+    playSfx(this, 'shotHit');
     this.hurtEnemy(enemy, bullet.damage, bullet.x, bullet.y);
   }
 
@@ -209,6 +211,7 @@ export default class GameScene extends Phaser.Scene {
   collectPickup(player, p) {
     if (!p.active) return;
     p.disableBody(true, true);
+    playSfx(this, 'pickup');
     this.scene.get('UIScene').showBanner(p.def.bannerText, p.def.bannerSubtext);
     p.def.apply(this);
   }
@@ -225,6 +228,7 @@ export default class GameScene extends Phaser.Scene {
   collectGem(player, gem) {
     if (!gem.active) return;
     gem.disableBody(true, true);
+    playSfx(this, 'pick');
     this.run.xp += gem.value;
     const wasPending = this.run.pendingLevelUps > 0;
     for (let need = xpToNextLevel(this.run.level); this.run.xp >= need; need = xpToNextLevel(this.run.level)) {
@@ -234,6 +238,7 @@ export default class GameScene extends Phaser.Scene {
     }
     if (!wasPending && this.run.pendingLevelUps > 0) {
       this.run.bubbleMs = config.ui.bubble.durationMs;
+      playSfx(this, 'levelUp');
       playSfx(this, 'muchacho');
       this.updateBubble();
       this.scene.pause();

@@ -8,10 +8,16 @@ export function preloadAudio(scene) {
   for (const [key, a] of Object.entries(config.audio.files)) scene.load.audio(key, a.file);
 }
 
+const lastPlayedMs = new Map();
+
 // One-shot sound for a game event; config.audio.events maps the event to a file key.
 export function playSfx(scene, event) {
-  const key = config.audio.events[event] ?? event;
-  if (scene.cache.audio.exists(key)) scene.sound.play(key, { volume: config.audio.files[key].volume });
+  const key = config.audio.events[event] ?? event, a = config.audio.files[key];
+  if (!scene.cache.audio.exists(key)) return;
+  const now = performance.now(); // real time: the gap is about what the ear hears
+  if (a.minGapMs && now - (lastPlayedMs.get(key) ?? -Infinity) < a.minGapMs) return;
+  lastPlayedMs.set(key, now);
+  scene.sound.play(key, { volume: a.volume });
 }
 
 // Looping music; started once, it keeps playing across scenes.
