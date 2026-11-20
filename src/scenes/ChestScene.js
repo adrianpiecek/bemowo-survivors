@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { upgrades, fallbackUpgrade } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
-import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter } from '../systems/cards.js';
+import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter, evolutionCard, addCardHint } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
 
@@ -25,7 +25,9 @@ export default class ChestScene extends Phaser.Scene {
       fontFamily: config.ui.font, fontSize: `${ch.titleFontSize}px`, fontStyle: 'bold', color: ch.titleColor, stroke: '#000000', strokeThickness: ch.strokeThickness,
     }).setOrigin(0.5);
 
-    const prizes = drawUpgrades(this.run, this.count);
+    // An evolution ready (weapon at max level + its passive) takes the first card; one per chest, the rest as usual.
+    const evo = evolutionCard(this.run);
+    const prizes = evo ? [evo, ...drawUpgrades(this.run, this.count - 1)] : drawUpgrades(this.run, this.count);
     while (prizes.length < this.count) prizes.push(fallbackUpgrade); // everything maxed: the heal fills in
     // The spin shows every card name there is: upgrades, weapons, passives.
     const names = [...upgrades, ...weapons, ...passives].map((d) => d.name), n = prizes.length, gs = this.scene.get('GameScene');
@@ -43,12 +45,16 @@ export default class ChestScene extends Phaser.Scene {
         const rarity = rollRarity(up, this.run);
         applyUpgrade(this.run, gs, up, rarity);
         name.setText(up.name);
-        this.add.text(x, y, describe(up, rarity), { fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, ...wrap }).setOrigin(0.5);
-        card.setStrokeStyle(rarity ? c.rarityBorderWidth : c.borderWidth, rarity?.color ?? c.borderColor);
-        if (rarity) {
-          this.add.text(x, top - u.margin / 2, rarity.name.toUpperCase(), { fontFamily: config.ui.font, fontSize: `${c.rarityFontSize}px`, fontStyle: 'bold', color: rarityHex(rarity) })
+        const desc = this.add.text(x, y, describe(up, rarity), { fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, ...wrap }).setOrigin(0.5);
+        addCardHint(this, up, x, name, desc, top + c.height - u.margin);
+        // An evolution gets a gold frame and its own label in place of a rarity.
+        const frame = up.evolution ? { color: c.evolutionColor, name: up.levelText } : rarity;
+        card.setStrokeStyle(frame ? c.rarityBorderWidth : c.borderWidth, frame?.color ?? c.borderColor);
+        if (frame) {
+          this.add.text(x, top - u.margin / 2, frame.name.toUpperCase(), { fontFamily: config.ui.font, fontSize: `${c.rarityFontSize}px`, fontStyle: 'bold', color: rarityHex(frame) })
             .setOrigin(0.5, 1);
         }
+        if (up.evolution) playVfx(this, 'starBurst', x, top);
         if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, top);
         this.tweens.add({ targets: card, scale: ch.popScale, duration: ch.popMs, yoyo: true });
         playSfx(this, 'pickup');

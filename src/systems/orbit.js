@@ -2,8 +2,9 @@
 // One orbit = one pooled physics group. Each enemy is hurt by an orbit at most once per hitCooldownMs.
 
 // opts: { texture, maxSize, damage (a number or a function returning it), hitCooldownMs,
-//         vfx? (hit effect id), hitScale?/hitMs? (the sprite swells on a hit), faceTravel? (turned along the orbit) }.
-// scene must have `enemies` and `hurtEnemy(enemy, damage, x, y, vfx)`.
+//         vfx? (hit effect id), hitScale?/hitMs? (the sprite swells on a hit), faceTravel? (turned along the orbit),
+//         onKill?(enemy) (an orbit hit killed it) }.
+// scene must have `enemies` and `hurtEnemy(enemy, damage, x, y, vfx)` returning true on a kill.
 export function createOrbit(scene, opts) {
   const group = scene.physics.add.group({
     defaultKey: opts.texture,
@@ -16,7 +17,8 @@ export function createOrbit(scene, opts) {
     const last = orbit.lastHitMs.get(enemy);
     if (last !== undefined && orbit.clockMs - last < opts.hitCooldownMs) return;
     orbit.lastHitMs.set(enemy, orbit.clockMs);
-    scene.hurtEnemy(enemy, typeof opts.damage === 'function' ? opts.damage() : opts.damage, enemy.x, enemy.y, opts.vfx);
+    const killed = scene.hurtEnemy(enemy, typeof opts.damage === 'function' ? opts.damage() : opts.damage, enemy.x, enemy.y, opts.vfx);
+    if (killed) opts.onKill?.(enemy);
     if (opts.hitScale && !s.stinging) {
       s.stinging = true;
       scene.tweens.add({ targets: s, scale: opts.hitScale, duration: opts.hitMs, yoyo: true, onComplete: () => { s.stinging = false; } });

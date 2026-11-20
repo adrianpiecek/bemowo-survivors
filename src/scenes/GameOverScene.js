@@ -28,6 +28,9 @@ export default class GameOverScene extends Phaser.Scene {
       save.unlocks.push(def.id);
       this.newUnlocks.push(def);
     }
+    // Evolutions seen for the first time this run: kept in the save, named on this screen.
+    this.newEvolutions = weapons.map((d) => d.evolution).filter((e) => e && r.evolutions.includes(e.id) && !save.evolutions.includes(e.id));
+    for (const e of this.newEvolutions) save.evolutions.push(e.id);
     writeSave(save);
     stopMusic();
   }
@@ -60,9 +63,14 @@ export default class GameOverScene extends Phaser.Scene {
         this.tweens.add({ targets: btn, scale: u.gymPulse.scale, duration: u.gymPulse.ms, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
     }
-    // A weapon unlocked by this run: from now on it can drop as a card.
+    // Weapons and passives unlocked by this run (from now on they can drop as cards) and evolutions seen for the first time.
+    const lines = [];
     if (this.newUnlocks.length) {
-      this.add.text(cx, cy + u.lineGap * 3, `Odblokowane: ${this.newUnlocks.map((d) => d.name).join(', ')}! ${this.newUnlocks.length > 1 ? 'Mogą teraz wypaść jako karty.' : 'Może teraz wypaść jako karta.'}`, {
+      lines.push(`Odblokowane: ${this.newUnlocks.map((d) => d.name).join(', ')}! ${this.newUnlocks.length > 1 ? 'Mogą teraz wypaść jako karty.' : 'Może teraz wypaść jako karta.'}`);
+    }
+    if (this.newEvolutions.length) lines.push(`Nowa ewolucja: ${this.newEvolutions.map((e) => e.name).join(', ')}!`);
+    if (lines.length) {
+      this.add.text(cx, cy + u.lineGap * 3, lines.join('\n'), {
         fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, fontStyle: 'bold', color: '#ffc400',
         align: 'center', wordWrap: { width: this.scale.width - 2 * u.margin },
       }).setOrigin(0.5, 0);

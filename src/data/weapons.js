@@ -14,6 +14,9 @@ import { createOrbit, updateOrbit } from '../systems/orbit.js';
 //   update(scene, w, delta)   every frame while GameScene runs
 //   unlock       null: can always drop; else { text, check(run, won) }: checked at the end of a run, kept in save.unlocks
 //   icon         texture key for the HUD (drawn in BootScene)
+//   evolution    { passive, id, name, icon, description, evolve?(scene, w) }: at maxLevel with that passive in a slot, the
+//                next chest evolves it (systems/cards.js evolutionCard). w.evolved is then true; the weapon's own
+//                create/update read it, and evolve() changes what has to change at that moment.
 // Damage goes through scene.weaponDamage(base), cooldowns through scene.weaponCooldown(ms), sizes through
 // scene.weaponArea(x), durations through scene.weaponDuration(ms) and counts through scene.weaponAmount(n),
 // so the passives, the gym and timed pickups work on every weapon.
@@ -31,6 +34,8 @@ export const weapons = [
     levels: p.levels,
     maxLevel: p.levels.length + 1,
     unlock: null,
+    evolution: { passive: 'ticket', id: 'uzi', name: 'Uzi z bazaru', icon: 'weapon_uzi',
+      description: `Ciągła seria. Każdy pocisk przebija ${p.evolution.pierce} wroga.` },
     description: (level, m) => (level === 1 ? 'Strzela sam w najbliższych wrogów.'
       : `+${count(p.levels[level - 2].bullets, m)} ${bulletsWord(count(p.levels[level - 2].bullets, m))} na strzał, w kolejne najbliższe zombie`),
     create(scene, w) {
@@ -65,10 +70,12 @@ export const weapons = [
         if (!b) break;
         b.enableBody(true, tx, ty, true, true);
         b.setScale(area); // the circle body scales with the sprite
-        b.damage = scene.weaponDamage(p.bulletDamage);
+        b.damage = scene.weaponDamage(p.bulletDamage * (w.evolved ? p.evolution.damagePct : 1));
+        b.pierce = w.evolved ? p.evolution.pierce : 0; // enemies it still goes through (GameScene.onBulletHit)
+        b.lastHit = null;
         scene.physics.moveToObject(b, targets[i % targets.length].z, scene.run.player.bulletSpeed);
       }
-      w.cooldownMs = scene.weaponCooldown(p.fireRateMs);
+      w.cooldownMs = scene.weaponCooldown(w.evolved ? p.evolution.fireRateMs : p.fireRateMs);
       playVfx(scene, 'muzzleFlash', tx, ty, Phaser.Math.RadToDeg(w.aim));
       playVfx(scene, 'shell', x, y, Math.cos(w.aim) < 0 ? 30 : -30);
       playSfx(scene, 'muzzleShot');
@@ -84,6 +91,10 @@ export const weapons = [
       text: `„Dlaczego taki poważny?”: zabij ${gz.unlockJokers} Jokerów w jednej rundzie`,
       check: (run) => (run.killsByType.joker ?? 0) >= gz.unlockJokers,
     },
+    evolution: { passive: 'gymPass', id: 'smog', name: 'Smog nad Bemowem', icon: 'weapon_smog',
+      description: 'Chmury nie znikają i powoli płyną za najbliższym wrogiem.',
+      // The short-lived clouds go; update() keeps the lasting smog clouds from now on.
+      evolve(scene, w) { for (const c of w.pool.getChildren()) c.setActive(false).setVisible(false); } },
     description(level, m) {
       if (level === 1) return 'Chmura gazu spada na wrogów. Kto w środku, ten się śmieje i traci HP.';
       const b = gz.levels[level - 2], n = count(b.clouds ?? 0, m);
@@ -104,6 +115,10 @@ export const weapons = [
     },
     update(scene, w, delta) {
       for (const c of w.pool.getChildren()) if (c.active) updateCloud(scene, w, c, delta);
+      if (w.evolved) {
+        updateSmog(scene, w, delta);
+        return;
+      }
       w.cooldownMs -= delta;
       if (w.cooldownMs > 0) return;
       const pl = scene.player, near = nearestEnemies(scene, pl.x, pl.y, gz.range).slice(0, gz.pick);
@@ -129,6 +144,8 @@ export const weapons = [
       text: '„Wzrok, który zabija”: wygraj rundę, pokonując Wielkiego Homelandera',
       check: (run, won) => won && run.bossesKilled.includes(lz.unlockBoss),
     },
+    evolution: { passive: 'dumbbells', id: 'homelanderGaze', name: 'Wzrok Homelandera', icon: 'weapon_gaze',
+      description: 'Promień świeci bez przerwy i sam obraca się za celem.', evolve(scene, w) { w.tickMs = 0; } },
     description(level, m) {
       if (level === 1) return 'Promień z oczu Bartka przepala wszystkich wrogów na linii.';
       const b = lz.levels[level - 2], n = count(b.beams ?? 0, m);
@@ -148,22 +165,15 @@ export const weapons = [
     },
     update(scene, w, delta) {
       const pl = scene.player, ex = pl.x, ey = pl.y + lz.eyeOffsetY * scene.run.player.scale, width = scene.weaponArea(w.width);
+      if (w.evolved) aimGaze(scene, w, ex, ey, width, delta);
       drawBeams(w, ex, ey, scene.run.player.scale, width, delta);
+      if (w.evolved) return;
       w.cooldownMs -= delta;
       if (w.cooldownMs > 0) return;
       const targets = nearestEnemies(scene, ex, ey, w.range).slice(0, scene.weaponAmount(w.beams));
       if (!targets.length) return;
       w.angles = targets.map((t) => Math.atan2(t.y - ey, t.x - ex));
-      for (const a of w.angles) {
-        const dx = Math.cos(a), dy = Math.sin(a);
-        for (const z of scene.enemies.getChildren()) {
-          if (!z.active) continue;
-          // Distance along the beam and off it; the enemy's body counts, so a big one is hit at its edge.
-          const px = z.x - ex, py = z.y - ey, along = px * dx + py * dy;
-          if (along < 0 || along > w.range) continue;
-          if (Math.abs(px * dy - py * dx) <= width / 2 + (z.body?.halfWidth ?? 0)) scene.hurtEnemy(z, scene.weaponDamage(w.damage), z.x, z.y, 'laserHit');
-        }
-      }
+      for (const a of w.angles) burnLine(scene, w, ex, ey, a, width, scene.weaponDamage(w.damage));
       w.showMs = lz.beamMs;
       w.cooldownMs = scene.weaponCooldown(lz.cooldownMs);
     },
@@ -175,6 +185,8 @@ export const weapons = [
     levels: bz.levels,
     maxLevel: bz.levels.length + 1,
     unlock: null,
+    evolution: { passive: 'broth', id: 'apiary', name: 'Pasieka babci', icon: 'weapon_apiary',
+      description: `${bz.evolution.beesMult}x więcej pszczół. Kto zginie od żądła, czasem zostawia pierogi.` },
     description(level, m) {
       if (level === 1) return `Pszczoły są szczęśliwe.\n${bz.bees} pszczoły krążą wokół Bartka i żądlą wrogów.`;
       const b = bz.levels[level - 2];
@@ -187,6 +199,7 @@ export const weapons = [
       w.orbit = createOrbit(scene, {
         texture: 'bee', maxSize: config.pools.bees, damage: () => scene.weaponDamage(w.damage), hitCooldownMs: bz.hitCooldownMs,
         vfx: 'beeSting', hitScale: bz.hitScale, hitMs: bz.hitMs, faceTravel: true,
+        onKill: (z) => { if (w.evolved && Math.random() < bz.evolution.pierogiChance) scene.dropPickupById('pierogi', z.x, z.y); },
       });
     },
     // Bees never multiply with rarity (too many bees); a rarer bee card gives extra damage instead.
@@ -199,7 +212,7 @@ export const weapons = [
     update(scene, w, delta) {
       const small = isEffectActive(scene.run, 'smallB');
       updateOrbit(w.orbit, scene.player.x, scene.player.y, {
-        count: scene.weaponAmount(w.bees) * (small ? bz.smallMult : 1), radius: scene.weaponArea(small ? bz.smallRadius : bz.radius),
+        count: scene.weaponAmount(w.bees) * (small ? bz.smallMult : 1) * (w.evolved ? bz.evolution.beesMult : 1), radius: scene.weaponArea(small ? bz.smallRadius : bz.radius),
         degPerSec: bz.degPerSec, waveAmp: bz.waveAmp, waveHz: bz.waveHz,
       }, delta);
     },
@@ -216,6 +229,14 @@ export const weapons = [
       check: (run, won) => won && run.damageTaken >= sh.unlockDamageTaken
         && weapons.every((d) => !d.unlock || d.id === 'shield' || save.unlocks.includes(d.id)),
     },
+    evolution: { passive: 'jacket', id: 'bemowoShield', name: 'Tarcza Bemowa', icon: 'weapon_bemowo_shield',
+      description: `Tarcze lecą znowu bez czekania. Każde trafienie leczy ${sh.evolution.healPerHit} HP.`,
+      evolve(scene, w) {
+        for (const s of w.shields) {
+          s.setTint(sh.evolution.tint);
+          s.cooldownMs = 0; // no wait left over from before
+        }
+      } },
     description(level, m) {
       if (level === 1) return 'Leci do wroga, odbija się do kolejnych i wraca do Bartka.';
       const b = sh.levels[level - 2];
@@ -285,6 +306,55 @@ function updateCloud(scene, w, c, delta) {
   }
 }
 
+// Smog: w.clouds lasting clouds (plus Bilet ZTM), each drifting toward the nearest enemy no other cloud follows, so they
+// spread out instead of piling up. A missing one forms over the i-th nearest enemy in range, or on Bartek when none is.
+function updateSmog(scene, w, delta) {
+  const clouds = w.pool.getChildren().filter((c) => c.active), pl = scene.player, ev = gz.evolution;
+  const near = nearestEnemies(scene, pl.x, pl.y, gz.range);
+  for (let i = clouds.length; i < scene.weaponAmount(w.clouds); i++) {
+    const t = near[i] ?? near[0] ?? pl, radius = scene.weaponArea(w.radius), c = w.pool.get(t.x, t.y);
+    if (!c) break; // pool full
+    c.setTexture('smog_cloud').setActive(true).setVisible(true).setDepth(0.6).setPosition(t.x, t.y).setDisplaySize(radius * 2, radius * 2).setAlpha(1);
+    Object.assign(c, { radius, totalMs: 1, remainingMs: Infinity, tickMs: 0, laughMs: gz.laughEveryMs * Math.random() });
+  }
+  const step = ev.speed * delta / 1000, taken = new Set();
+  for (const c of clouds) {
+    const t = nearestEnemy(scene, c.x, c.y, Infinity, taken) ?? nearestEnemy(scene, c.x, c.y, Infinity, new Set());
+    if (!t) continue;
+    taken.add(t);
+    const dx = t.x - c.x, dy = t.y - c.y, d = Math.hypot(dx, dy);
+    if (d > step) c.setPosition(c.x + (dx / d) * step, c.y + (dy / d) * step);
+  }
+}
+
+// Hurts every enemy on a beam from (ex, ey) at angle `a`, w.range long; the enemy's body counts, so a big one is hit at its edge.
+function burnLine(scene, w, ex, ey, a, width, damage) {
+  const dx = Math.cos(a), dy = Math.sin(a);
+  for (const z of scene.enemies.getChildren()) {
+    if (!z.active) continue;
+    const px = z.x - ex, py = z.y - ey, along = px * dx + py * dy; // distance along the beam and off it
+    if (along < 0 || along > w.range) continue;
+    if (Math.abs(px * dy - py * dx) <= width / 2 + (z.body?.halfWidth ?? 0)) scene.hurtEnemy(z, damage, z.x, z.y, 'laserHit');
+  }
+}
+
+// Wzrok Homelandera: each beam turns toward its own target (the nearest ones in range) and burns every tickMs.
+// With no target in range the beams fade out as a normal shot does.
+function aimGaze(scene, w, ex, ey, width, delta) {
+  const ev = lz.evolution, targets = nearestEnemies(scene, ex, ey, w.range).slice(0, scene.weaponAmount(w.beams));
+  if (!targets.length) return;
+  const turn = Phaser.Math.DegToRad(ev.turnDegPerSec) * delta / 1000;
+  w.angles = targets.map((t, i) => {
+    const goal = Math.atan2(t.y - ey, t.x - ex);
+    return w.angles[i] === undefined ? goal : Phaser.Math.Angle.RotateTo(w.angles[i], goal, turn);
+  });
+  w.showMs = lz.beamMs; // full brightness while it has targets
+  w.tickMs -= delta;
+  if (w.tickMs > 0) return;
+  w.tickMs += ev.tickMs;
+  for (const a of w.angles) burnLine(scene, w, ex, ey, a, width, scene.weaponDamage(w.damage * ev.damagePct));
+}
+
 // Eye laser beams, redrawn every frame while they show: a wide soft glow, the red beam, a white-hot core, glowing eyes.
 // They follow Bartek and fade over beamMs.
 function drawBeams(w, ex, ey, scale, width, delta) {
@@ -306,6 +376,7 @@ function drawBeams(w, ex, ey, scale, width, delta) {
 function addShields(scene, w, n) {
   for (let i = 0; i < n; i++) {
     const s = scene.add.image(0, 0, 'captain_shield').setDisplaySize(sh.size, sh.size).setDepth(1.5).setVisible(false);
+    if (w.evolved) s.setTint(sh.evolution.tint);
     s.phase = 'ready';
     s.cooldownMs = 0;
     s.target = null;
@@ -356,7 +427,7 @@ function updateShield(scene, w, s, delta) {
   if (s.phase === 'back') {
     s.phase = 'ready';
     s.target = null;
-    s.cooldownMs = scene.weaponCooldown(sh.cooldownMs);
+    s.cooldownMs = w.evolved ? 0 : scene.weaponCooldown(sh.cooldownMs);
     s.setVisible(false);
     return;
   }
@@ -365,6 +436,7 @@ function updateShield(scene, w, s, delta) {
   s.hitsLeft--;
   playVfx(scene, 'metalClang', s.x, s.y);
   scene.hurtEnemy(t, scene.weaponDamage(w.damage), s.x, s.y);
+  if (w.evolved) scene.heal(sh.evolution.healPerHit);
   s.target = s.hitsLeft > 0 ? nearestEnemy(scene, s.x, s.y, sh.bounceRange, s.hit) : null;
   if (!s.target) s.phase = 'back';
 }

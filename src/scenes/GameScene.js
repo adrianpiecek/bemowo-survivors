@@ -127,6 +127,16 @@ export default class GameScene extends Phaser.Scene {
         this.spawnEnemy(enemies.find((d) => d.id === 'sportakus'), x - 350, y);
       });
     }
+    if (config.debug.evolveKey) {
+      // E: every carried weapon to its max level, plus its evolution passive; the next chest then evolves one of them.
+      this.input.keyboard.on('keydown-E', () => {
+        for (const w of this.run.weapons) {
+          while (w.level < w.def.maxLevel) this.levelUpWeapon(w);
+          const pid = w.def.evolution?.passive;
+          if (pid && !this.run.passives.some((p) => p.def.id === pid)) this.gainPassive(passives.find((d) => d.id === pid));
+        }
+      });
+    }
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
     if (config.debug.timeSkipKey) {
       this.input.keyboard.on('keydown-J', () => {
@@ -171,18 +181,32 @@ export default class GameScene extends Phaser.Scene {
   }
 
   onBulletHit(bullet, enemy) {
-    if (!bullet.active || !enemy.active) return; // several overlaps can fire in one step
-    bullet.disableBody(true, true);
+    // Several overlaps can fire in one step; a piercing bullet (Uzi z bazaru) overlaps the enemy it went through for a while.
+    if (!bullet.active || !enemy.active || bullet.lastHit === enemy) return;
+    if (bullet.pierce > 0) {
+      bullet.pierce--;
+      bullet.lastHit = enemy;
+    } else {
+      bullet.disableBody(true, true);
+    }
     playSfx(this, 'shotHit');
     this.hurtEnemy(enemy, bullet.damage, bullet.x, bullet.y);
   }
 
   // Shared by bullets and orbits: damage, a hit effect where it hit (vfx id, default a spark), death at 0 HP.
+  // Returns true when this hit killed it.
   hurtEnemy(enemy, damage, x, y, vfx = 'hitSpark') {
     playVfx(this, vfx, x, y);
     this.run.damageDealt += Math.min(damage, enemy.hp);
     enemy.hp -= damage;
-    if (enemy.hp <= 0) this.killEnemy(enemy);
+    if (enemy.hp > 0) return false;
+    this.killEnemy(enemy);
+    return true;
+  }
+
+  heal(hp) {
+    const pl = this.run.player;
+    pl.hp = Math.min(pl.maxHp, pl.hp + hp);
   }
 
   killEnemy(enemy) {
@@ -275,6 +299,8 @@ export default class GameScene extends Phaser.Scene {
       }
     }
   }
+
+  dropPickupById(id, x, y) { return this.dropPickup(pickups.find((d) => d.id === id), x, y); }
 
   dropPickup(def, x, y, lifetimeSec = config.pickups.lifetimeSec) {
     const p = this.pickups.get(x, y);
@@ -379,6 +405,16 @@ export default class GameScene extends Phaser.Scene {
   levelUpWeapon(w, mult = 1) {
     w.level++;
     w.def.levelUp(this, w, mult);
+  }
+
+  // A chest's evolution card (systems/cards.js): the weapon turns into its evolved form in the same slot.
+  evolveWeapon(w) {
+    const evo = w.def.evolution;
+    w.evolved = true;
+    evo.evolve?.(this, w);
+    if (!this.run.evolutions.includes(evo.id)) this.run.evolutions.push(evo.id);
+    playVfx(this, 'starBurst', this.player.x, this.player.y);
+    this.scene.get('UIScene').showBanner(`EWOLUCJA: ${evo.name}`, evo.description);
   }
 
   // Every weapon's damage and cooldown go through these, so damage and fire rate cards, the gym and pickups reach all of them.

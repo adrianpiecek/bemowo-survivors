@@ -77,6 +77,7 @@ export function newRun() {
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
     upgrades: {}, // upgrade id -> how many times taken
     banished: [], // card ids thrown out with Wywal: never drawn again this run
+    evolutions: [], // evolution ids this run (save.evolutions gets the new ones at the end)
     weapons: [], // the weapons Bartek carries: { def, level, ... }, see data/weapons.js
     passives: [], // the passives Bartek carries: { def, level }, see data/passives.js
   };
@@ -106,7 +107,7 @@ const SAVE_KEY = 'bemowo-survivors-save-v1';
 const SAVE_VERSION = 1;
 
 function freshSave() {
-  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, orientation: 'portrait', runsPlayed: 0, stats: freshStats() };
+  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, orientation: 'portrait', evolutions: [], runsPlayed: 0, stats: freshStats() };
 }
 
 // Totals over all runs, for the passives' unlocks. Added in GameOverScene.
@@ -131,6 +132,7 @@ export function loadSave() {
   if (typeof d.muted === 'boolean') s.muted = d.muted;
   for (const k of ['musicVolume', 'sfxVolume']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], 0, 1);
   if (d.orientation === 'landscape') s.orientation = 'landscape';
+  if (Array.isArray(d.evolutions)) s.evolutions = d.evolutions.filter((id) => typeof id === 'string');
   if (isObject(d.stats)) for (const k of Object.keys(s.stats)) if (Number.isFinite(d.stats[k]) && d.stats[k] >= 0) s.stats[k] = d.stats[k];
   if (Number.isInteger(d.runsPlayed) && d.runsPlayed >= 0) s.runsPlayed = d.runsPlayed;
   // A save from before the counter that already has progress has clearly played a run.

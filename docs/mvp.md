@@ -225,6 +225,14 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 | Laser z oczu | Hantle w plecaku | Wzrok Homelandera | ciągły promień, który obraca się za celem |
 | Ul | Rosół babci | Pasieka babci | 2x pszczół, a zabici przez pszczoły czasem zostawiają pierogi |
 
+**Jak działa (krok 32):**
+- Pole `evolution` broni: `{ passive, id, name, icon, description, evolve? }`, liczby w `config.weapons.<broń>.evolution`. Ewoluowana broń ma `w.evolved`, a jej zwykłe `update` czyta tę flagę.
+- Skrzynia: gdy jakaś broń jest gotowa (maksymalny poziom + jej pasywka w slocie), pierwsza karta skrzyni to ewolucja: złota ramka i napis „BROŃ → EWOLUCJA”. Pozostałe karty są losowane jak zwykle. Jedna skrzynia daje jedną ewolucję, kolejność jak w slotach broni. Po ewolucji jest baner „EWOLUCJA: …”, a ikonka w slocie zmienia się na ewoluowaną (złota ramka).
+- Liczby: Uzi strzela co 120 ms pociskami za 60% obrażeń, każdy przebija 1 wroga. Tarcza Bemowa wraca do rzutu bez czekania (złota), każde trafienie leczy 1 HP. Smog: tyle chmur, ile chmur ma gaz, nie znikają, każda płynie 45 px/s za innym wrogiem (szara chmura). Wzrok Homelandera: promienie świecą stale, obracają się 200°/s za celem i palą co 200 ms za 35% obrażeń lasera. Pasieka: 2x pszczół, zabity przez pszczołę zostawia pierogi z szansą 4%.
+- Podpowiedź „Ewolucja: Broń + Pasywka” stoi na dole karty broni i karty pasywki (na level upie i w skrzyni), dopóki ta broń nie ewoluowała w tej rundzie.
+- `save.evolutions`: odkryte ewolucje. Ekran końca gry pokazuje „Nowa ewolucja: …!” przy pierwszym odkryciu.
+- Debug: `config.debug.evolveKey`, klawisz E daje noszonym broniom maksymalny poziom i ich pasywki; następna skrzynia (P z `pickupKey`) ewoluuje pierwszą gotową broń.
+
 ### 4. Plan treningowy na start (krok 33, z Brotato i z postaci z VS)
 
 - **Wybór przed rundą.** Po „Na Bemowo!” gracz wybiera 1 z 3 losowych planów (`src/data/plans.js`, nowa scena `PlanScene`).

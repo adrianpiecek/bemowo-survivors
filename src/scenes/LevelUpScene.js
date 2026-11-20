@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { fallbackUpgrade } from '../data/upgrades.js';
-import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter } from '../systems/cards.js';
+import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter, addCardHint } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { font, button } from '../systems/ui.js';
 
@@ -50,14 +50,15 @@ export default class LevelUpScene extends Phaser.Scene {
           .setOrigin(0.5, 1);
       }
       if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, top);
-      this.add.text(x, top + u.margin, up.name, {
+      const name = this.add.text(x, top + u.margin, up.name, {
         fontFamily: config.ui.font, fontSize: `${c.nameFontSize}px`, align: 'center', wordWrap: { width: c.width - 2 * u.margin },
       }).setOrigin(0.5, 0);
-      this.add.text(x, y, describe(up, rarity), {
+      const desc = this.add.text(x, y, describe(up, rarity), {
         fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, align: 'center', wordWrap: { width: c.width - 2 * u.margin },
       }).setOrigin(0.5);
-      this.add.text(x, bottom - u.margin, `${level}[${i + 1}]`, { fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, align: 'center' })
+      const foot = this.add.text(x, bottom - u.margin, `${level}[${i + 1}]`, { fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, align: 'center' })
         .setOrigin(0.5, 1);
+      addCardHint(this, up, x, name, desc, foot.y - foot.height);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.choose(i));
       return card;
     });

@@ -205,7 +205,7 @@ export default class UIScene extends Phaser.Scene {
   updateWeaponHud() {
     const wh = config.ui.weaponHud, m = config.ui.margin, bottom = this.scale.height - m - wh.size;
     const rows = [[this.run.weapons, config.weapons.maxSlots, bottom], [this.run.passives, config.passives.maxSlots, bottom - wh.size - wh.gap]];
-    const sig = rows.map(([items]) => items.map((it) => it.level).join()).join('|');
+    const sig = rows.map(([items]) => items.map((it) => `${it.level}${it.evolved ? 'e' : ''}`).join()).join('|');
     if (sig === this.weaponSig) return;
     this.weaponSig = sig;
     const g = this.weaponSlots.clear(), badges = this.slotBadges.clear();
@@ -221,6 +221,7 @@ export default class UIScene extends Phaser.Scene {
         };
         badges.fillStyle(config.ui.hud.levelColor).fillCircle(bx, by, wh.badgeRadius).lineStyle(2, 0xffffff).strokeCircle(bx, by, wh.badgeRadius);
         this.weaponHud[key].level.setText(it.level);
+        if (it.evolved) this.weaponHud[key].icon.setTexture(it.def.evolution.icon).setDisplaySize(wh.iconSize, wh.iconSize);
       }
     });
   }

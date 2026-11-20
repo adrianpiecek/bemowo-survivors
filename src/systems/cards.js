@@ -19,6 +19,29 @@ export function rollRarity(up, run) {
 
 const isUnlocked = (def) => !def.unlock || save.unlocks.includes(def.id);
 
+// "Ewolucja: Broń + Pasywka" under a weapon card and under the card of a passive some weapon evolves with;
+// nothing once that weapon has evolved this run.
+function evolutionHint(run, weapon) {
+  const evo = weapon?.evolution;
+  if (!evo || run.weapons.some((w) => w.def === weapon && w.evolved)) return undefined;
+  return `Ewolucja: ${weapon.name} + ${passives.find((d) => d.id === evo.passive).name}`;
+}
+const passiveHint = (run, def) => evolutionHint(run, weapons.find((w) => w.evolution?.passive === def.id));
+
+// The chest's evolution card: the first carried weapon at its max level whose evolution passive is in a slot.
+// Not in the level-up pool; ChestScene puts it first, one per chest.
+export function evolutionCard(run) {
+  const w = run.weapons.find((it) => !it.evolved && it.def.evolution && it.level >= it.def.maxLevel
+    && run.passives.some((p) => p.def.id === it.def.evolution.passive));
+  if (!w) return null;
+  const evo = w.def.evolution;
+  return {
+    id: `evolution_${evo.id}`, name: evo.name, description: evo.description, maxStack: Infinity, rarity: false, evolution: true,
+    levelText: `${w.def.name} → EWOLUCJA`,
+    apply(player, scene) { scene.evolveWeapon(w); },
+  };
+}
+
 // Weapon cards for this draw: the next level of each weapon Bartek carries, and every unlocked weapon he does not
 // have while a slot is free. levelText replaces the stack counter on the card. A new weapon has no numbers to multiply.
 function weaponCards(run) {
@@ -28,6 +51,7 @@ function weaponCards(run) {
     const level = w.level + 1;
     cards.push({
       id: `weapon_${w.def.id}`, name: w.def.name, weight: w.def.weight, maxStack: Infinity, levelText: `Poziom ${w.level} → ${level}`,
+      hint: evolutionHint(run, w.def),
       description: (m) => w.def.description(level, m),
       apply(player, scene, m) { scene.levelUpWeapon(w, m); },
     });
@@ -37,6 +61,7 @@ function weaponCards(run) {
     if (run.weapons.some((w) => w.def === def) || !isUnlocked(def)) continue;
     cards.push({
       id: `weapon_${def.id}`, name: def.name, weight: def.weight, maxStack: Infinity, levelText: 'NOWA BROŃ', rarity: false,
+      hint: evolutionHint(run, def),
       description: def.description(1, 1),
       apply(player, scene) { scene.addWeapon(def); },
     });
@@ -48,7 +73,7 @@ function weaponCards(run) {
 // he does not have while a passive slot is free.
 export function passiveCards(run) {
   const card = (def, level, levelText) => ({
-    id: `passive_${def.id}`, name: def.name, weight: def.weight, maxStack: Infinity, levelText,
+    id: `passive_${def.id}`, name: def.name, weight: def.weight, maxStack: Infinity, levelText, hint: passiveHint(run, def),
     description: (m) => def.description(level, m),
     apply(player, scene, m) { scene.gainPassive(def, m); },
   });
@@ -83,6 +108,17 @@ export function describe(up, rarity) {
 export function applyUpgrade(run, scene, up, rarity) {
   up.apply(run.player, scene, rarity?.mult ?? 1);
   run.upgrades[up.id] = (run.upgrades[up.id] ?? 0) + 1;
+}
+
+// The evolution hint at the bottom of a card (above `bottomY`), and the description moved to the middle of what is
+// left between the name and the hint. Shared by the level up and chest screens.
+export function addCardHint(scene, up, x, nameText, descText, bottomY) {
+  const c = config.ui.card;
+  if (!up.hint) return;
+  const hint = scene.add.text(x, bottomY, up.hint, {
+    fontFamily: config.ui.font, fontSize: `${c.hintFontSize}px`, color: c.hintColor, align: 'center', wordWrap: { width: c.width - 2 * config.ui.margin },
+  }).setOrigin(0.5, 1);
+  descText.setY((nameText.y + nameText.height + hint.y - hint.height) / 2);
 }
 
 // Middle of card i of n on the level up and chest screens: side by side in landscape (card.row), stacked in portrait.

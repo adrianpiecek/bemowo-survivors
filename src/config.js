@@ -5,9 +5,13 @@ export const config = {
   weapons: {
     maxSlots: 4,
     start: 'pistol',
+    // Evolutions (data/weapons.js, `evolution`): a weapon at its max level plus its passive in a slot evolves from the
+    // next chest. Each weapon's `evolution` numbers below.
     // Auto-aims at the nearest enemies in range. levels: what each level after the first adds.
     pistol: { fireRateMs: 600, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1,
       levels: [{ bullets: 1 }, { bullets: 1 }, { bullets: 1 }],
+      // Uzi z bazaru: fires every fireRateMs, each bullet damagePct of the pistol's and goes through `pierce` enemies.
+      evolution: { fireRateMs: 120, damagePct: 0.6, pierce: 1 },
       // The gun's grip sits this far from Bartek's middle toward the target and offsetY px lower; the flash at its barrel tip.
       gun: { distance: 22, offsetY: 8 } },
     // Captain's shield: flies to the nearest enemy within range, bounces `bounces` times to the next nearest ones (not hit
@@ -15,26 +19,33 @@ export const config = {
     // unlockDamageTaken: the unlock (data/weapons.js) needs a won run with at least this much damage taken.
     shield: { damage: 20, bounces: 2, shields: 1, cooldownMs: 1800, range: 380, bounceRange: 300, speed: 650, hitDist: 20,
       size: 34, spinDegPerSec: 900, unlockDamageTaken: 500,
-      levels: [{ bounces: 1 }, { damage: 10 }, { shields: 1 }, { bounces: 2 }, { damage: 10 }, { shields: 1 }] },
+      levels: [{ bounces: 1 }, { damage: 10 }, { shields: 1 }, { bounces: 2 }, { damage: 10 }, { shields: 1 }],
+      evolution: { healPerHit: 1, tint: 0xffd54f } }, // Tarcza Bemowa: thrown again at once, every hit heals Bartek
     // Laughing gas (Joker): every cooldownMs `clouds` clouds land on random ones of the `pick` nearest enemies within range.
     // A cloud lasts durationMs and hurts every enemy inside its radius every tickMs; a "HA" rises from it every laughEveryMs.
     // unlockJokers: Jokers killed in one run to unlock it.
     gas: { damage: 6, clouds: 1, cooldownMs: 3000, range: 350, pick: 5, radius: 70, durationMs: 3000, tickMs: 500,
       laughEveryMs: 450, spinDegPerSec: 25, fadeShare: 0.2, unlockJokers: 30,
-      levels: [{ damage: 3 }, { clouds: 1 }, { radius: 15 }, { durationMs: 1000 }, { damage: 4 }, { clouds: 1 }] },
+      levels: [{ damage: 3 }, { clouds: 1 }, { radius: 15 }, { durationMs: 1000 }, { damage: 4 }, { clouds: 1 }],
+      // Smog nad Bemowem: `clouds` clouds that never end, each drifting at speed px/s toward the nearest enemy.
+      evolution: { speed: 45 } },
     // Eye laser (Homelander): every cooldownMs one beam per `beams` toward the nearest enemies within range, from Bartek's
     // eyes (eyeOffsetY above his middle, eyeGap apart, at normal size). A beam is `range` long and hurts every enemy whose
     // body is within width/2 of its line. It shows for beamMs. Unlock: kill the boss `unlockBoss` in a won run.
     laser: { damage: 15, beams: 1, cooldownMs: 2500, range: 520, width: 12, beamMs: 260, eyeOffsetY: -14, eyeGap: 7,
       color: 0xff1744, glowColor: 0xff8a80, glowAlpha: 0.35, unlockBoss: 'bigHomelander',
-      levels: [{ damage: 8 }, { beams: 1 }, { width: 8 }, { damage: 10 }, { beams: 1 }, { range: 120 }] },
+      levels: [{ damage: 8 }, { beams: 1 }, { width: 8 }, { damage: 10 }, { beams: 1 }, { range: 120 }],
+      // Wzrok Homelandera: the beams stay on and turn toward their targets at turnDegPerSec, burning damagePct of the
+      // laser's damage every tickMs.
+      evolution: { turnDegPerSec: 200, tickMs: 200, damagePct: 0.35 } },
     // Ul: bees circling Bartek (systems/orbit.js); a bee hurts an enemy it touches at most once per hitCooldownMs.
     // A bees level adds bees whatever the card's rarity (a rarer card adds damagePct * (mult - 1) of the base damage on top);
     // a damage level is multiplied by it. While Bartek is a small B there are smallMult times more, on the smaller smallRadius.
     // On a hit the bee swells to hitScale for hitMs and the enemy gets the 'beeSting' effect.
     bees: { bees: 2, damage: 4, damagePct: 0.5, hitCooldownMs: 500, radius: 70, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
       smallMult: 2, smallRadius: 42, hitScale: 1.7, hitMs: 90,
-      levels: [{ bees: 1 }, { damage: 2 }, { bees: 1 }, { damage: 3 }, { bees: 1 }] },
+      levels: [{ bees: 1 }, { damage: 2 }, { bees: 1 }, { damage: 3 }, { bees: 1 }],
+      evolution: { beesMult: 2, pierogiChance: 0.04 } }, // Pasieka babci: beesMult x bees; a bee kill drops Pierogi w domu this often
   },
   // Passives (data/passives.js): items that raise one stat each level, up to maxSlots at once. The numbers are one level
   // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
@@ -129,6 +140,7 @@ export const config = {
     giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
     givePassives: null, // a list of passive ids (e.g. ['ticket', 'dumbbells']): unlocked in the save and given at level 1 every run
     drawCharges: null, // a number: every run starts with this many Odśwież, Pomiń and Wywal (gym included)
+    evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -221,7 +233,7 @@ export const config = {
   // Pomiń takes nothing and heals skipHeal HP, Wywal takes a card out of the pool for the rest of the run.
   draw: { rerolls: 2, skips: 2, banishes: 1, skipHeal: 15 },
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
-    dimAlpha: 0.6, card: { count: 3, row: false, width: 600, height: 210, gap: 44, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
+    dimAlpha: 0.6, card: { count: 3, row: false, width: 600, height: 230, gap: 44, hintFontSize: 20, hintColor: '#ffc400', evolutionColor: 0xffc400, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
       rarityBorderWidth: 5, rarityFontSize: 22 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
     // Every text uses this font: Not Jam Mono Clean 16 (CC0, assets/font), loaded in BootScene under fontKey. The system
@@ -301,7 +313,7 @@ export const config = {
     landscape: {
       game: { width: 1280, height: 720 },
       ui: {
-        card: { row: true, width: 260, height: 320, gap: 40, nameFontSize: 22, textFontSize: 18, rarityFontSize: 18 },
+        card: { row: true, width: 260, height: 320, gap: 40, nameFontSize: 22, textFontSize: 18, rarityFontSize: 18, hintFontSize: 16 },
         title: { bemowoY: 250, survivorsY: 410, pressBottom: 90 },
         bossBar: { y: 76 },
         chest: { titleY: 110 },
@@ -416,9 +428,12 @@ export const config = {
     captainShield: { file: './assets/captain_shield.png' }, // 50x50 pixel art, also the shield's HUD icon
     // Drawn weapon icons for the HUD, size x size px.
     weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41,
-      gasColors: [0x9ccc65, 0xba68c8, 0x7cb342], laserColor: 0xff1744, eyeColor: 0xffffff },
+      gasColors: [0x9ccc65, 0xba68c8, 0x7cb342], laserColor: 0xff1744, eyeColor: 0xffffff,
+      // Evolved weapons: a gold frame.
+      evoBorder: 0xffc400, uziColor: 0x37474f, smogColors: [0x9e9e9e, 0x757575, 0xbdbdbd], shieldColors: [0xd32f2f, 0xffd54f, 0xfafafa] },
     // Laughing gas cloud, size x size px, shown scaled to its radius: soft green and purple puffs.
-    gasCloud: { size: 128, colors: [0x9ccc65, 0xba68c8, 0x7cb342, 0xce93d8], alpha: 0.28, puffs: 9 },
+    gasCloud: { size: 128, colors: [0x9ccc65, 0xba68c8, 0x7cb342, 0xce93d8], alpha: 0.28, puffs: 9,
+      smogColors: [0x9e9e9e, 0x616161, 0xbdbdbd, 0x757575], smogAlpha: 0.38 }, // smog_cloud: the evolved gas, grey and thicker
     tank: { height: 110, bodyRadius: 45 }, // czołg.png: Bartek in a tank, barrel to the left
     pigeon: { frames: 3, fps: 10, scale: 2, width: 48, height: 40, flipX: true }, // assets/Pigeons/pigeon1..3.png, 24x20 px, facing left; size after scale; flipX turns it to face the flight
   },

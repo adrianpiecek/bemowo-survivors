@@ -138,14 +138,50 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(t.bee.stripeColor).fillRect(ws * 0.36, ws * 0.24, ws * 0.08, ws * 0.52).fillRect(ws * 0.56, ws * 0.24, ws * 0.08, ws * 0.52);
     g.lineStyle(2, t.bee.stripeColor).strokePoints(hex, true);
     g.generateTexture('weapon_bees', ws, ws).clear();
+
+    // Evolved weapons: the same framed square with a gold frame.
+    const evoFrame = () => g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(3, wi.evoBorder).strokeRect(1.5, 1.5, ws - 3, ws - 3);
+    // Uzi z bazaru: a long dark body, a magazine and a stock.
+    evoFrame();
+    g.fillStyle(wi.uziColor).fillRect(ws * 0.12, ws * 0.3, ws * 0.7, ws * 0.17).fillRect(ws * 0.82, ws * 0.34, ws * 0.08, ws * 0.08);
+    g.fillStyle(wi.gunColor).fillRect(ws * 0.44, ws * 0.47, ws * 0.12, ws * 0.36).fillRect(ws * 0.1, ws * 0.47, ws * 0.08, ws * 0.18);
+    g.fillStyle(wi.gripColor).fillRect(ws * 0.26, ws * 0.47, ws * 0.12, ws * 0.26);
+    g.generateTexture('weapon_uzi', ws, ws).clear();
+    // Smog nad Bemowem: grey puffs stacked into a heavy cloud.
+    evoFrame();
+    [[0.3, 0.6, 0.18], [0.52, 0.42, 0.22], [0.7, 0.62, 0.17], [0.5, 0.68, 0.2]].forEach(([x, y, r], i) => {
+      g.fillStyle(wi.smogColors[i % wi.smogColors.length]).fillCircle(ws * x, ws * y, ws * r);
+    });
+    g.generateTexture('weapon_smog', ws, ws).clear();
+    // Wzrok Homelandera: two wide beams from bigger eyes.
+    evoFrame();
+    g.lineStyle(ws * 0.16, wi.laserColor).lineBetween(ws * 0.26, ws * 0.36, ws * 0.95, ws * 0.62).lineBetween(ws * 0.5, ws * 0.36, ws * 0.95, ws * 0.92);
+    g.fillStyle(wi.laserColor).fillCircle(ws * 0.26, ws * 0.36, ws * 0.15).fillCircle(ws * 0.5, ws * 0.36, ws * 0.15);
+    g.fillStyle(wi.eyeColor).fillCircle(ws * 0.26, ws * 0.36, ws * 0.07).fillCircle(ws * 0.5, ws * 0.36, ws * 0.07);
+    g.generateTexture('weapon_gaze', ws, ws).clear();
+    // Pasieka babci: three honeycomb cells.
+    evoFrame();
+    [[0.32, 0.36], [0.68, 0.36], [0.5, 0.68]].forEach(([x, y]) => {
+      const cell = Array.from({ length: 6 }, (_, i) => ({ x: ws * x + Math.cos(i * Math.PI / 3) * ws * 0.19, y: ws * y + Math.sin(i * Math.PI / 3) * ws * 0.19 }));
+      g.fillStyle(t.bee.color).fillPoints(cell, true).lineStyle(2, t.bee.stripeColor).strokePoints(cell, true);
+    });
+    g.generateTexture('weapon_apiary', ws, ws).clear();
+    // Tarcza Bemowa: a round shield in rings, red and gold, with a white middle.
+    evoFrame();
+    wi.shieldColors.forEach((color, i) => g.fillStyle(color).fillCircle(ws / 2, ws / 2, ws * (0.38 - i * 0.11)));
+    g.fillStyle(wi.shieldColors[0]).fillCircle(ws / 2, ws / 2, ws * 0.07);
+    g.generateTexture('weapon_bemowo_shield', ws, ws).clear();
     // Laughing gas cloud: puffs scattered around the middle, see-through so they stack into a soft cloud.
     const gz = t.gasCloud, gcs = gz.size, gcc = gcs / 2;
-    for (let i = 0; i < gz.puffs; i++) {
-      const a = (i / gz.puffs) * Math.PI * 2, d = i % 2 ? gcs * 0.2 : gcs * 0.12;
-      g.fillStyle(gz.colors[i % gz.colors.length], gz.alpha).fillCircle(gcc + Math.cos(a) * d, gcc + Math.sin(a) * d, gcs * 0.26);
+    // The same puffs in other colors make the evolved Smog nad Bemowem cloud.
+    for (const [key, colors, alpha] of [['gas_cloud', gz.colors, gz.alpha], ['smog_cloud', gz.smogColors, gz.smogAlpha]]) {
+      for (let i = 0; i < gz.puffs; i++) {
+        const a = (i / gz.puffs) * Math.PI * 2, d = i % 2 ? gcs * 0.2 : gcs * 0.12;
+        g.fillStyle(colors[i % colors.length], alpha).fillCircle(gcc + Math.cos(a) * d, gcc + Math.sin(a) * d, gcs * 0.26);
+      }
+      g.fillStyle(colors[0], alpha).fillCircle(gcc, gcc, gcs * 0.3);
+      g.generateTexture(key, gcs, gcs).clear();
     }
-    g.fillStyle(gz.colors[0], gz.alpha).fillCircle(gcc, gcc, gcs * 0.3);
-    g.generateTexture('gas_cloud', gcs, gcs).clear();
 
     const pk = t.pickup;
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);
