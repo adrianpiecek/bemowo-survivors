@@ -5,6 +5,7 @@ import BootScene from './scenes/BootScene.js';
 import GameScene from './scenes/GameScene.js';
 import UIScene from './scenes/UIScene.js';
 import LevelUpScene from './scenes/LevelUpScene.js';
+import ChestScene from './scenes/ChestScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
 import GymScene from './scenes/GymScene.js';
 
@@ -15,7 +16,7 @@ const game = new Phaser.Game({
   backgroundColor: config.game.background,
   scale: { parent: 'game', mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { debug: false } },
-  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, GameOverScene, GymScene],
+  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, GameOverScene, GymScene],
 });
 
 // M mutes and unmutes in every scene; the choice is kept in the save.

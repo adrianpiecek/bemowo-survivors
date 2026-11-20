@@ -61,6 +61,15 @@ export default class BootScene extends Phaser.Scene {
     g.lineStyle(kl.borderWidth, kl.borderColor).strokeRect(0, 0, kl.width, kl.height);
     g.generateTexture('klapa', kl.width, kl.height).clear();
 
+    // Boss chest: a box, a darker lid, a gold band down the middle and a lock.
+    const ch = t.chest;
+    g.fillStyle(ch.color).fillRect(0, ch.lidHeight, ch.width, ch.height - ch.lidHeight);
+    g.fillStyle(ch.lidColor).fillRect(0, 0, ch.width, ch.lidHeight);
+    g.fillStyle(ch.bandColor).fillRect((ch.width - ch.bandWidth) / 2, 0, ch.bandWidth, ch.height);
+    g.fillRect(0, ch.lidHeight - ch.bandWidth / 2, ch.width, ch.bandWidth);
+    g.fillStyle(ch.lidColor).fillRect((ch.width - ch.lockSize) / 2, ch.lidHeight - ch.lockSize / 2, ch.lockSize, ch.lockSize);
+    g.generateTexture('chest', ch.width, ch.height).clear();
+
     const pk = t.pickup;
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);
     g.lineStyle(pk.borderWidth, pk.borderColor).strokeRect(0, 0, pk.size, pk.size);

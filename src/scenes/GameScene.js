@@ -72,7 +72,19 @@ export default class GameScene extends Phaser.Scene {
     this.input.keyboard.addCapture('SPACE');
     this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
     if (config.debug.klapaKey) this.input.keyboard.on('keydown-K', () => this.spawnEnemy(enemies.find((d) => d.id === 'klapa')));
-    this.boss = null; // the boss's sprite while one is on the map; UIScene reads it for the HP bar
+    this.boss = null; // the newest boss on the map; UIScene reads it for the HP bar
+    this.bossQueue = enemies.filter((d) => d.isBoss).sort((a, b) => a.appearsAtSec - b.appearsAtSec);
+    if (config.debug.bossKey) {
+      // B arms it, then 1-5 calls that boss (in order of appearance): banner first, the boss bannerSec later.
+      this.input.keyboard.on('keydown-B', () => { this.bossArmed = true; });
+      ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'].forEach((key, i) => this.input.keyboard.on(`keydown-${key}`, () => {
+        const def = this.bossQueue[i];
+        if (!this.bossArmed || !def) return;
+        this.bossArmed = false;
+        this.announceBoss(def);
+        this.time.delayedCall(config.boss.bannerSec * 1000, () => this.spawnBoss(def));
+      }));
+    }
     if (config.debug.bartkowanieKey) {
       // N arms it, then 1-8 picks the effect.
       const digits = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT'];
@@ -168,17 +180,34 @@ export default class GameScene extends Phaser.Scene {
     if (enemy.stats.isBoss) this.bossKilled(enemy);
   }
 
+  announceBoss(def) {
+    this.scene.get('UIScene').showBanner(`UWAGA: ${def.name.toUpperCase()}`, '', config.boss.bannerSec * 1000);
+    playSfx(this, 'boss');
+    playMusic(this, 'boss');
+  }
+
+  spawnBoss(def) {
+    this.boss = this.spawnEnemy(def) ?? this.boss;
+  }
+
   bossKilled(boss) {
-    const b = config.boss, r = b.gemSpread;
+    const b = config.boss, r = b.gemSpread, def = boss.stats;
     boss.clearTint();
-    this.run.bossKilled = true;
-    playMusic(this, 'gameplay');
+    this.run.bossProtein += def.protein;
     for (let i = 0; i < b.gemCount; i++) {
       this.dropGem(boss.x + Phaser.Math.FloatBetween(-r, r), boss.y + Phaser.Math.FloatBetween(-r, r), b.gemKind);
     }
+    const chest = this.dropPickup(pickups.find((d) => d.id === 'chest'), boss.x, boss.y, Infinity); // stays until taken
+    if (chest) chest.count = def.chest;
     playVfx(this, 'bossBoom', boss.x, boss.y);
-    this.scene.get('UIScene').showBanner('Boss pokonany');
+    this.scene.get('UIScene').showBanner(`${def.name} pokonany`);
+    // A boss not killed before the next one's minute may still be on the map.
+    this.boss = this.enemies.getChildren().find((z) => z.active && z.stats.isBoss) ?? null;
+    if (!this.boss) playMusic(this, 'gameplay');
   }
+
+  // A boss chest opens in update(), so never in the middle of a physics step that also opened the level-up cards.
+  openChest(count) { this.run.chestQueue.push(count); }
 
   // Space or a tap on the HUD bar. Ignored while paused, already a tank, or not fully charged.
   activateTank() {
@@ -238,7 +267,9 @@ export default class GameScene extends Phaser.Scene {
     p.def = def;
     p.ageMs = 0;
     p.lifetimeMs = lifetimeSec * 1000;
+    p.count = 1; // upgrades inside, only a chest uses it
     this.run.pickupDropMs[def.id] = this.run.elapsedMs;
+    return p;
   }
 
   collectPickup(player, p) {
@@ -247,8 +278,8 @@ export default class GameScene extends Phaser.Scene {
     playSfx(this, 'pickup');
     playVfx(this, 'starBurst', this.player.x, this.player.y);
     if (p.def.vfx) playVfx(this, p.def.vfx, this.player.x, this.player.y);
-    this.scene.get('UIScene').showBanner(p.def.bannerText, p.def.bannerSubtext);
-    p.def.apply(this);
+    if (p.def.bannerText) this.scene.get('UIScene').showBanner(p.def.bannerText, p.def.bannerSubtext);
+    p.def.apply(this, p);
   }
 
   // Magnet pickup and Bartkowanie "Sprzątanie Bemowa": every gem on the map flies to Bartek.
@@ -363,8 +394,9 @@ export default class GameScene extends Phaser.Scene {
     // Pooled sprites can come back as any type, so set the look and body every spawn.
     const t = config.textures[def.texture];
     z.setTexture(def.texture).setAngle(0).clearTint();
-    z.setScale(t.height ? t.height / z.height : 1); // drawn textures already have their config height, so 1
-    const br = (t.bodyRadius ?? t.radius) / z.scale; // body sizes are in texture px, before scale
+    const fit = t.height ? t.height / z.height : 1; // drawn textures already have their config height, so 1
+    z.setScale(fit * (def.scale ?? 1)); // a boss is its base type, bigger
+    const br = (t.bodyRadius ?? t.radius) / fit; // body sizes are in texture px, before scale, so the body grows with it
     z.body.setCircle(br, z.width / 2 - br, z.height / 2 - br);
     z.enableBody(true, x, y, true, true);
     z.stats = def;
@@ -416,12 +448,30 @@ export default class GameScene extends Phaser.Scene {
       this.scene.start('GameOverScene', { run, won: true });
       return;
     }
+    // update() runs after the physics step: a chest picked up in it waits until any level-up cards are picked.
+    if (run.chestQueue.length && run.pendingLevelUps === 0) {
+      this.scene.pause();
+      this.scene.launch('ChestScene', { run, count: run.chestQueue.shift() });
+      return;
+    }
 
     const { startPerSec, endPerSec, curvePow } = config.spawn;
     run.spawnCooldownMs -= delta;
     if (run.spawnCooldownMs <= 0) {
       this.spawnPick();
       run.spawnCooldownMs += 1000 / Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow);
+    }
+
+    // Bosses walk in at their minute; the banner and the boss music come bannerSec earlier.
+    const nextBoss = this.bossQueue[run.nextBoss];
+    if (nextBoss && !run.bossAnnounced && run.elapsedMs >= (nextBoss.appearsAtSec - config.boss.bannerSec) * 1000) {
+      run.bossAnnounced = true;
+      this.announceBoss(nextBoss);
+    }
+    if (nextBoss && run.elapsedMs >= nextBoss.appearsAtSec * 1000) {
+      run.nextBoss++;
+      run.bossAnnounced = false;
+      this.spawnBoss(nextBoss);
     }
 
     // Now and then a timed pickup lies down by itself somewhere off screen, a few seconds' walk away.

@@ -47,7 +47,10 @@ export function newRun() {
     tankCharge: 0, // kills toward the tank, 0..config.tank.killsToCharge
     tankMs: 0, // time left as a tank, 0 = Bartek on foot
     scarred: false, // hit by a klapa this run
-    bossKilled: false,
+    nextBoss: 0, // index of the next boss in order of appearance
+    bossAnnounced: false, // the next boss's banner has been shown
+    bossProtein: 0, // protein from bosses killed this run, paid out at the end
+    chestQueue: [], // boss chests picked up and not opened yet: upgrades in each
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
@@ -71,7 +74,7 @@ export function formatTime(ms) {
 export function proteinForRun(run, won) {
   const p = config.protein;
   return Math.floor(run.kills / p.perKills) + Math.floor(run.elapsedMs / 60000) * p.perMinute + (won ? p.winBonus : 0)
-    + (run.bossKilled ? config.boss.proteinBonus : 0);
+    + run.bossProtein;
 }
 
 // Persistent progress in localStorage. Bump SAVE_VERSION and migrate in loadSave() when the schema changes.

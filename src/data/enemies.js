@@ -7,7 +7,7 @@ import { config } from '../config.js';
 // Walking enemies are Bartek variants; the later ones are stronger.
 const e = config.enemies;
 
-export const enemies = [
+const regular = [
   { id: 'zombie', ...e.zombie, behavior: 'chase', isBoss: false, texture: 'zombie', gem: 'green' },
   { id: 'runner', ...e.runner, behavior: 'chase', isBoss: false, texture: 'uncanny', gem: 'green' },
   { id: 'joker', ...e.joker, behavior: 'chase', isBoss: false, texture: 'joker', gem: 'blue' },
@@ -17,3 +17,16 @@ export const enemies = [
   // The first hit by a klapa in a run leaves a scar on Bartek's head.
   { id: 'klapa', ...e.klapa, behavior: 'line', isBoss: false, texture: 'klapa', gem: 'green', leavesScar: true },
 ];
+
+// Bosses (config.boss.list): their base type, bigger and stronger; behavior, texture and extra numbers come from the base.
+// Never picked by the random spawn; GameScene calls each one at its appearsAtSec.
+const bosses = Object.entries(config.boss.list).map(([id, b]) => {
+  const base = regular.find((d) => d.id === b.base);
+  return {
+    ...base, id, name: b.name, isBoss: true, pack: false, spawnWeight: 0, appearsAtSec: b.atSec, scale: b.scale,
+    hp: base.hp * b.hpMult, speed: base.speed * b.speedMult, contactDamage: base.contactDamage * b.damageMult,
+    gem: 'red', chest: b.chest, protein: b.protein,
+  };
+});
+
+export const enemies = [...regular, ...bosses];

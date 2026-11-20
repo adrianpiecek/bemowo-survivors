@@ -10,6 +10,7 @@ import { addEffect } from '../systems/effects.js';
 //   effect id of the timed effect it starts: UIScene shows the icon and the time left
 //   aura   config.textures.auras id drawn around Bartek while that effect lasts
 //   vfx    config.vfx id played on Bartek when picked up
+// apply(scene, sprite) gets the pickup's sprite too (the chest reads its count from it). No bannerText: no banner.
 const pk = config.pickups, o = pk.olx, ps = pk.photoshop;
 const fr = pk.freeze, pw = pk.preworkout, bb = pk.bubble, pi = pk.pierogi, mg = pk.magnet;
 
@@ -95,6 +96,16 @@ export const pickups = [
     effect: 'bubble',
     aura: 'bubble',
     apply(scene) { addEffect(scene.run, { id: 'bubble', durationMs: bb.durationSec * 1000, apply() {} }); },
+  },
+  {
+    // Only bosses drop it, with count = their config chest; the debug P key drops one with a single upgrade.
+    id: 'chest',
+    name: 'Skrzynia',
+    dropChance: 0,
+    cooldownSec: 0,
+    icon: 'chest',
+    vfx: 'chestOpen',
+    apply(scene, p) { scene.openChest(p.count); },
   },
   {
     id: 'pierogi',

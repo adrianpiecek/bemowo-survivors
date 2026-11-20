@@ -112,6 +112,7 @@ export default class UIScene extends Phaser.Scene {
     const bossOn = !!boss?.active && boss.stats.isBoss; // pooled: the same sprite may be a zombie later
     this.bossText.setVisible(bossOn);
     if (bossOn) {
+      this.bossText.setText(boss.stats.name.toUpperCase());
       const x = (this.scale.width - bb.width) / 2;
       this.bars.fillStyle(h.barBg).fillRect(x, bb.y, bb.width, bb.height);
       this.bars.fillStyle(bb.color).fillRect(x, bb.y, bb.width * Phaser.Math.Clamp(boss.hp / boss.stats.hp, 0, 1), bb.height);

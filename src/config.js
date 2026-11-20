@@ -16,10 +16,19 @@ export const config = {
       leapEverySec: 3, leapRange: 450, warnMs: 700, flashMs: 100, flashColor: 0xff0000, leapSpeed: 650 },
     klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // 2.5x zombie speed
   },
-  // Shared by every boss (none in the game until step 26).
+  // Bosses: a bigger copy of a regular enemy type (base), with its behavior. hpMult, speedMult, damageMult multiply the
+  // base numbers, scale its size. atSec: when it walks in (banner and boss music bannerSec earlier). chest: upgrades in the
+  // chest it drops. protein: paid at the end of the run for the kill. Boss HP does not grow with the run time.
   boss: {
+    bannerSec: 2,
     olxDamagePct: 0.1, // the OLX flock takes this share of max HP instead of killing it
-    gemCount: 40, gemKind: 'green', gemSpread: 120, proteinBonus: 30, // the rain on top of the boss's own gem
+    gemCount: 40, gemKind: 'green', gemSpread: 120, // the rain on top of the boss's own gem
+    list: {
+      bigZombie: { base: 'zombie', name: 'Wielki Zombie', atSec: 150, scale: 2.5, hpMult: 100, speedMult: 0.8, damageMult: 2, chest: 1, protein: 10 },
+      bigSportakus: { base: 'sportakus', name: 'Wielki Sportakus', atSec: 270, scale: 2.2, hpMult: 50, speedMult: 1, damageMult: 2, chest: 2, protein: 15 },
+      bigJoker: { base: 'joker', name: 'Wielki Joker', atSec: 390, scale: 2.2, hpMult: 100, speedMult: 0.9, damageMult: 2, chest: 2, protein: 20 },
+      bigHomelander: { base: 'homelander', name: 'Wielki Homelander', atSec: 570, scale: 2, hpMult: 60, speedMult: 0.9, damageMult: 2, chest: 3, protein: 30 },
+    },
   },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
@@ -62,6 +71,7 @@ export const config = {
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
     balanceOverlay: false, // true: numbers for balancing in the top right (enemies, spawn/s, kills/s, DPS)
     timeSkipKey: false, // true: the J key moves the run clock 60 s forward
+    bossKey: false, // true: B, then a digit 1-4, calls that boss (in order of appearance) after its banner
     enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
@@ -144,7 +154,7 @@ export const config = {
     },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
-  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for bosses
+  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -171,6 +181,9 @@ export const config = {
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 250, survivorsY: 410, dropMs: 450, gapMs: 600,
       shakeMs: 250, shakeIntensity: 0.02, pressBottom: 90, blinkMs: 600 },
     bossBar: { y: 52, width: 600, height: 18, fontSize: 14, color: 0xd03030 },
+    // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
+    chest: { titleY: 110, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
+      popScale: 1.08, popMs: 120, promptBottom: 60 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
     banner: { y: 84, fontSize: 64, strokeThickness: 8, durationMs: 1500, subFontSize: 24, subStrokeThickness: 5 },
     olxCard: { width: 420, height: 440, padding: 24, photoSize: 200, titleFontSize: 34, textFontSize: 20, bigFontSize: 38 },
@@ -194,6 +207,7 @@ export const config = {
     vacuumPull: { path: 'wind/vacuum-pull', scale: 2 }, // magnet pickup
     frostNova: { path: 'ice/frost-nova', scale: 4 }, // freeze pickup
     holyHeal: { path: 'holy/holy-heal', scale: 1.5 }, // pierogi
+    chestOpen: { path: 'ui/chest-open', scale: 2 }, // a boss chest opens
   },
   // Texture sizes in px. Images: `height` is the on-screen height, width follows the image, bodyRadius is on-screen too.
   textures: {
@@ -207,6 +221,7 @@ export const config = {
     // Cut out of the original photos (goblin_bartek.png, sportakus.png); a better cut can simply replace these files.
     goblin: { file: './assets/goblin_bartek_cut.png', height: 52, bodyRadius: 19 },
     sportakus: { file: './assets/sportakus_cut.png', height: 66, bodyRadius: 24 },
+    chest: { width: 44, height: 34, lidHeight: 12, color: 0x8d5524, lidColor: 0x6d3f17, bandColor: 0xffc400, bandWidth: 5, lockSize: 10 },
     klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
     bee: { radius: 7, color: 0xffd400, stripeWidth: 3, stripeColor: 0x000000 },
