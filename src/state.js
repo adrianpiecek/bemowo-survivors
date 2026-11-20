@@ -24,11 +24,17 @@ function startingStats() {
     warmupMs: 0,
     warmupSpeedMult: 1,
     afterWarmupDamageMult: 1,
+    // Level-up draw control charges left this run (Odśwież, Pomiń, Wywal).
+    rerolls: config.draw.rerolls,
+    skips: config.draw.skips,
+    banishes: config.draw.banishes,
   };
   for (const up of gymUpgrades) {
     const level = gymLevel(up);
     if (level > 0) up.apply(stats, level);
   }
+  const dc = config.debug.drawCharges;
+  if (dc != null) stats.rerolls = stats.skips = stats.banishes = dc;
   stats.hp = stats.maxHp;
   // In-run upgrades add a share of these post-gym values, so gym and run percentages multiply.
   stats.base = { ...stats };
@@ -70,6 +76,7 @@ export function newRun() {
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
     upgrades: {}, // upgrade id -> how many times taken
+    banished: [], // card ids thrown out with Wywal: never drawn again this run
     weapons: [], // the weapons Bartek carries: { def, level, ... }, see data/weapons.js
     passives: [], // the passives Bartek carries: { def, level }, see data/passives.js
   };

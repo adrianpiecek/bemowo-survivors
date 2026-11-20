@@ -128,6 +128,7 @@ export const config = {
     enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
     giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
     givePassives: null, // a list of passive ids (e.g. ['ticket', 'dumbbells']): unlocked in the save and given at level 1 every run
+    drawCharges: null, // a number: every run starts with this many Odśwież, Pomiń and Wywal (gym included)
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -159,6 +160,7 @@ export const config = {
     back: { maxHp: 10, maxLevel: 5, costs: [10, 25, 50, 100, 200] },
     glasses: { rangePct: 0.1, maxLevel: 3, costs: [20, 60, 150] },
     warmup: { durationSec: 60, speedPct: -0.2, damagePct: 0.3, maxLevel: 1, costs: [80] },
+    plan: { rerolls: 1, banishes: 1, maxLevel: 3, costs: [30, 80, 160] }, // Plan dnia: more level-up rerolls and banishes
     quotes: [
       'Za moich czasów zombie były grzeczniejsze.',
       'Najpierw rozgrzewka. Piętnaście minut. Nie dyskutujemy.',
@@ -215,6 +217,9 @@ export const config = {
     { id: 'legendary', name: 'Legendarna', mult: 3, color: 0xff9800, weight: 0.5, perLevel: 0.3 },
   ],
   upgrade: { fallbackHeal: 20 }, // the heal card when nothing else is left to draw
+  // Level-up draw control, charges per run at the start (the gym's Plan dnia adds more): Odśwież draws new cards,
+  // Pomiń takes nothing and heals skipHeal HP, Wywal takes a card out of the pool for the rest of the run.
+  draw: { rerolls: 2, skips: 2, banishes: 1, skipHeal: 15 },
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
     dimAlpha: 0.6, card: { count: 3, row: false, width: 600, height: 210, gap: 44, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
       rarityBorderWidth: 5, rarityFontSize: 22 },
@@ -237,7 +242,8 @@ export const config = {
       // Passive icons (passive_<id>).
       tub: 0xeceff1, coffee: 0x8d6e63, cup: 0xfff8e1, shoe: 0x1e88e5, gainer: 0x6d4c41, backpack: 0x388e3c, ticket: 0xffd54f,
       ticketStripe: 0xd32f2f, pass: 0xff7043, soup: 0xffca28, bowl: 0xfafafa, jacket: 0x546e7a, jacketLine: 0x37474f,
-      clover: 0x43a047, cloverDark: 0x1b5e20, page: 0xfafafa, grid: 0x90caf9, sack: 0xa1887f, sackDark: 0x5d4037, gem: 0x43a047 },
+      clover: 0x43a047, cloverDark: 0x1b5e20, page: 0xfafafa, grid: 0x90caf9, sack: 0xa1887f, sackDark: 0x5d4037, gem: 0x43a047,
+      planRing: 0xd32f2f },
     // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.
     hud: { width: 330, padding: 10, rowHeight: 30, iconSize: 26, barWidth: 270, barHeight: 20, barGap: 8, barFontSize: 15,
       levelFontSize: 15, hpColor: 0xe53935, xpColor: 0x3a8dff, tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65, levelColor: 0x1565c0,
@@ -246,6 +252,9 @@ export const config = {
     // Settings / pause screen (SettingsScene): a panel with a row per volume (label, -, bar, +, percent) and a back button.
     // step: how much one press of - or + changes a volume. pauseButton: the HUD's square pause button left of the clock;
     // gearSize: the gym's settings button next to its title.
+    // Odśwież / Pomiń / Wywal under the level-up cards, `top` px under the lowest card; the key hint line under them.
+    drawButtons: { width: 200, height: 64, gap: 20, top: 40, fontSize: 24, hintFontSize: 18, hintGap: 14, hintColor: '#b0bec5',
+      banishColor: '#ff5252', banishBorder: 0xff5252 },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
       valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
       barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 56 },

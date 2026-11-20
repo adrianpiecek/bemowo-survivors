@@ -61,9 +61,10 @@ export function passiveCards(run) {
 }
 
 // Up to `count` different cards (upgrades still under their maxStack, weapon and passive cards), drawn by weight
-// (default 1). May return fewer.
-export function drawUpgrades(run, count) {
-  const pool = [...upgrades.filter((up) => (run.upgrades[up.id] ?? 0) < up.maxStack), ...weaponCards(run), ...passiveCards(run)];
+// (default 1). Banished cards (Wywal) and the ids in `exclude` (cards already on screen) are left out. May return fewer.
+export function drawUpgrades(run, count, exclude = []) {
+  const pool = [...upgrades.filter((up) => (run.upgrades[up.id] ?? 0) < up.maxStack), ...weaponCards(run), ...passiveCards(run)]
+    .filter((up) => !run.banished.includes(up.id) && !exclude.includes(up.id));
   const weight = (up) => up.weight ?? 1;
   const picked = [];
   while (picked.length < count && pool.length) {

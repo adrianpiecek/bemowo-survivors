@@ -59,4 +59,16 @@ export const gymUpgrades = [
       stats.afterWarmupDamageMult = 1 + g.warmup.damagePct;
     },
   },
+  {
+    id: 'plan',
+    icon: 'gym_plan',
+    name: 'Plan dnia',
+    description: `+${g.plan.rerolls} Odśwież i +${g.plan.banishes} Wywal na level upie, na poziom`,
+    maxLevel: g.plan.maxLevel,
+    costs: g.plan.costs,
+    apply(stats, level) {
+      stats.rerolls += g.plan.rerolls * level;
+      stats.banishes += g.plan.banishes * level;
+    },
+  },
 ];

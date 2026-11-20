@@ -201,6 +201,14 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
   - **Wywal (W, potem cyfra):** karta znika z puli do końca rundy.
 - **Liczniki na start są małe** (`config.draw`). Siłownia sprzedaje kolejne w nowym ulepszeniu „Plan dnia”.
 - **Po co:** Wywalanie pozwala celować w konkretny build, a Odśwież ratuje słabe losowanie.
+- **Jak działa (krok 31):**
+  - Przyciski stoją pod kartami, każdy z liczbą ładunków; przycisk bez ładunków jest wyszarzony. Na start: 2 Odśwież, 2 Pomiń, 1 Wywal (`config.draw`). Ładunki są w `run.player`, więc liczą się jak inne statystyki: config, potem siłownia.
+  - Pomiń leczy o `config.draw.skipHeal` HP i zużywa level up.
+  - Wywal: W albo przycisk włącza tryb wywalania (czerwone ramki, podpowiedź pod przyciskami), cyfra albo kliknięcie karty ją wywala, ponowne W anuluje. Wywalona karta trafia do `run.banished`. Nie wraca do końca rundy ani na level upie, ani w skrzyni, ani w „Losowym treningu”. Na jej miejsce wpada nowa karta, inna niż te na ekranie. Wywalona karta broni czy pasywki zabiera też wszystkie jej poziomy. Leczenia (karta-zapychacz) nie da się wywalić.
+  - Trzymany klawisz W albo S (ruch) nie odpala przycisków: liczy się tylko świeże wciśnięcie.
+  - Siłownia: „Plan dnia”, 3 poziomy, każdy daje +1 Odśwież i +1 Wywal (`config.gym.plan`).
+  - Skrzynia nie ma tych przycisków.
+  - Debug: `config.debug.drawCharges` (liczba) ustawia wszystkie trzy liczniki na start rundy.
 
 ### 3. Ewolucje broni (krok 32, z VS)
 

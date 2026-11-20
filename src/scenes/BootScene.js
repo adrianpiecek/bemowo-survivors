@@ -256,6 +256,15 @@ export default class BootScene extends Phaser.Scene {
     clock(ic.accent);
     g.generateTexture('gym_warmup', s, s).clear();
 
+    // Plan dnia: a calendar page with rings on top and one day circled.
+    g.fillStyle(ic.page).fillRoundedRect(s * 0.12, s * 0.16, s * 0.76, s * 0.74, s * 0.06);
+    g.fillStyle(ic.heart).fillRect(s * 0.12, s * 0.16, s * 0.76, s * 0.18);
+    g.fillStyle(ic.metalDark).fillRect(s * 0.28, s * 0.08, s * 0.08, s * 0.16).fillRect(s * 0.64, s * 0.08, s * 0.08, s * 0.16);
+    g.fillStyle(ic.grid);
+    for (let r = 0; r < 3; r++) for (let k = 0; k < 4; k++) g.fillRect(s * (0.2 + k * 0.16), s * (0.42 + r * 0.15), s * 0.1, s * 0.09);
+    g.lineStyle(s * 0.05, ic.planRing).strokeCircle(s * 0.41, s * 0.61, s * 0.1);
+    g.generateTexture('gym_plan', s, s).clear();
+
     // Pause: two white bars. Settings: a gear (teeth around a ring with a hole).
     g.fillStyle(0xffffff).fillRoundedRect(s * 0.24, s * 0.18, s * 0.18, s * 0.64, s * 0.04).fillRoundedRect(s * 0.58, s * 0.18, s * 0.18, s * 0.64, s * 0.04);
     g.generateTexture('icon_pause', s, s).clear();

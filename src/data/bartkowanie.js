@@ -54,7 +54,7 @@ export const bartkowanie = [
     name: 'Losowy trening',
     // A free passive card: a new passive (while a slot is free) or the next level of one Bartek has.
     apply(scene) {
-      const open = passiveCards(scene.run);
+      const open = passiveCards(scene.run).filter((c) => !scene.run.banished.includes(c.id)); // a banished passive stays out
       if (!open.length) return 'Wszystko już wytrenowane';
       const card = Phaser.Utils.Array.GetRandom(open);
       card.apply(scene.run.player, scene, 1);
