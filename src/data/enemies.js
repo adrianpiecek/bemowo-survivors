@@ -19,13 +19,12 @@ const regular = [
 ];
 
 // Bosses (config.boss.list): their base type, bigger and stronger; behavior, texture and extra numbers come from the base.
-// Never picked by the random spawn; GameScene calls each one at its appearsAtSec.
+// Never picked by the random spawn. HP, minute, chest and protein come from the boss slot it is drawn for (GameScene.drawBosses).
 const bosses = Object.entries(config.boss.list).map(([id, b]) => {
   const base = regular.find((d) => d.id === b.base);
   return {
-    ...base, id, name: b.name, isBoss: true, pack: false, spawnWeight: 0, appearsAtSec: b.atSec, scale: b.scale,
-    hp: base.hp * b.hpMult, speed: base.speed * b.speedMult, contactDamage: base.contactDamage * b.damageMult,
-    gem: 'red', chest: b.chest, protein: b.protein,
+    ...base, id, name: b.name, isBoss: true, pack: false, spawnWeight: 0, scale: b.scale,
+    speed: base.speed * b.speedMult, contactDamage: base.contactDamage * b.damageMult, gem: 'red',
   };
 });
 

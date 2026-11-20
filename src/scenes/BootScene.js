@@ -104,6 +104,26 @@ export default class BootScene extends Phaser.Scene {
     g.lineStyle(kl.borderWidth, kl.borderColor).strokeRect(0, 0, kl.width, kl.height);
     g.generateTexture('klapa', kl.width, kl.height).clear();
 
+    // Żabka shop: a wall, a green awning with white stripes, a door between two windows, a dark outline.
+    const zs = t.zabkaShop, zw = zs.width, zh = zs.height, ah = zs.awningHeight;
+    g.fillStyle(zs.wall).fillRect(0, ah, zw, zh - ah);
+    for (let i = 0; i < zs.stripes; i++) g.fillStyle(i % 2 ? zs.stripe : zs.awning).fillRect((zw / zs.stripes) * i, 0, zw / zs.stripes, ah);
+    g.fillStyle(zs.door).fillRect(zw * 0.4, zh * 0.5, zw * 0.2, zh * 0.5);
+    g.fillStyle(zs.window).fillRect(zw * 0.08, zh * 0.45, zw * 0.24, zh * 0.3).fillRect(zw * 0.68, zh * 0.45, zw * 0.24, zh * 0.3);
+    g.lineStyle(2, zs.border).strokeRect(1, 1, zw - 2, zh - 2).lineBetween(0, ah, zw, ah);
+    g.generateTexture('zabka_shop', zw, zh).clear();
+
+    // Awaria prądu: black with a soft see-through hole in the middle. GameScene stretches it over the screen's diagonal,
+    // so the hole's radius is worked out against that (the same in portrait and landscape).
+    const bo = config.events.blackout, ds = bo.textureSize, cover = Math.hypot(config.game.width, config.game.height) / 2;
+    const dark = this.textures.createCanvas('darkness', ds, ds), ctx = dark.getContext();
+    const grad = ctx.createRadialGradient(ds / 2, ds / 2, (ds / 2) * (bo.holeRadius / cover), ds / 2, ds / 2, (ds / 2) * ((bo.holeRadius + bo.edge) / cover));
+    grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    grad.addColorStop(1, `rgba(0, 0, 0, ${bo.alpha})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, ds, ds);
+    dark.refresh();
+
     // Boss chest: a box, a darker lid, a gold band down the middle and a lock.
     const ch = t.chest;
     g.fillStyle(ch.color).fillRect(0, ch.lidHeight, ch.width, ch.height - ch.lidHeight);

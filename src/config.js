@@ -78,19 +78,58 @@ export const config = {
       leapEverySec: 3, leapRange: 450, warnMs: 700, flashMs: 100, flashColor: 0xff0000, leapSpeed: 650 },
     klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // about 2x zombie speed
   },
-  // Bosses: a bigger copy of a regular enemy type (base), with its behavior. hpMult, speedMult, damageMult multiply the
-  // base numbers, scale its size. atSec: when it walks in (banner and boss music bannerSec earlier). chest: upgrades in the
-  // chest it drops. protein: paid at the end of the run for the kill. Boss HP does not grow with the run time.
   boss: {
     bannerSec: 2,
     olxDamagePct: 0.1, // the OLX flock takes this share of max HP instead of killing it
     gemCount: 40, gemKind: 'green', gemSpread: 120, // the rain on top of the boss's own gem
+    // Boss slots in order: atSec when it walks in (banner and boss music bannerSec earlier), hp, chest (upgrades in the
+    // chest it drops), protein (paid at the end of the run for the kill). Every run draws one boss from each slot's pool,
+    // never one drawn for an earlier slot, and not the same line-up as the run before. Boss HP does not grow with the run time.
+    slots: [
+      { atSec: 150, hp: 1000, chest: 1, protein: 10, pool: ['bigZombie', 'bigUncanny', 'bigGoblin'] },
+      { atSec: 270, hp: 2000, chest: 2, protein: 15, pool: ['bigSportakus', 'bigJoker', 'bigGoblin'] },
+      { atSec: 390, hp: 3000, chest: 2, protein: 20, pool: ['bigJoker', 'bigSportakus', 'bigZombie'] },
+      { atSec: 570, hp: 4800, chest: 3, protein: 30, pool: ['bigHomelander'] }, // the last one is always the same
+    ],
+    // The bosses: a bigger copy of a regular enemy type (base), with its behavior. speedMult and damageMult multiply the
+    // base numbers, scale its size.
     list: {
-      bigZombie: { base: 'zombie', name: 'Wielki Zombie', atSec: 150, scale: 2.5, hpMult: 100, speedMult: 0.8, damageMult: 2, chest: 1, protein: 10 },
-      bigSportakus: { base: 'sportakus', name: 'Wielki Sportakus', atSec: 270, scale: 2.2, hpMult: 50, speedMult: 1, damageMult: 2, chest: 2, protein: 15 },
-      bigJoker: { base: 'joker', name: 'Wielki Joker', atSec: 390, scale: 2.2, hpMult: 100, speedMult: 0.9, damageMult: 2, chest: 2, protein: 20 },
-      bigHomelander: { base: 'homelander', name: 'Wielki Homelander', atSec: 570, scale: 2, hpMult: 60, speedMult: 0.9, damageMult: 2, chest: 3, protein: 30 },
+      bigZombie: { base: 'zombie', name: 'Wielki Zombie', scale: 2.5, speedMult: 0.8, damageMult: 2 },
+      bigUncanny: { base: 'runner', name: 'Wielki Uncanny', scale: 2.6, speedMult: 0.6, damageMult: 2 },
+      bigGoblin: { base: 'goblin', name: 'Wielki Goblin', scale: 2.5, speedMult: 0.7, damageMult: 2 },
+      bigSportakus: { base: 'sportakus', name: 'Wielki Sportakus', scale: 2.2, speedMult: 1, damageMult: 2 },
+      bigJoker: { base: 'joker', name: 'Wielki Joker', scale: 2.2, speedMult: 0.9, damageMult: 2 },
+      bigHomelander: { base: 'homelander', name: 'Wielki Homelander', scale: 2, speedMult: 0.9, damageMult: 2 },
     },
+  },
+  // Elites (data/elites.js): every everySec the next walking enemy that spawns alone (no boss, pack or klapa) becomes an
+  // elite with a random trait: hpMult x HP, scale x size, a glow in the trait's colour and its name over its head.
+  // It drops a chest with one card (an evolution when one is ready).
+  elites: {
+    everySec: 40, hpMult: 5, scale: 1.25, glowStrength: 4, glowPadding: 8, labelFontSize: 14, labelGap: 2, debugOffset: 200,
+    fast: { speedPct: 0.6, color: 0x40c4ff },
+    armored: { hpMult: 4, color: 0xb0bec5 },
+    splitter: { copies: 3, scale: 0.7, hpPct: 0.5, spread: 30, color: 0x9ccc65 }, // on death: copies of its type, smaller
+    vampire: { radius: 160, everyMs: 1000, healPct: 0.15, color: 0xff1744 }, // heals walkers around it (not bosses, not itself)
+    // Walks to the nearest gem within seekRadius and takes the ones within stealRadius; dies dropping their XP plus bonusPct.
+    thief: { stealRadius: 40, seekRadius: 450, bonusPct: 0.5, color: 0xffd600 },
+  },
+  // Run events (data/events.js): perRun of them in a run (none of the last run's while others are left), each starting
+  // at a random second between firstSec and lastSec, at least gapSec after the one before and bossGapSec away from
+  // every boss slot. A banner announces each; one that lasts shows a time bar under the HUD.
+  events: {
+    perRun: 3, firstSec: 50, lastSec: 540, gapSec: 60, bossGapSec: 30,
+    schoolTrip: { count: 40, spread: 150 }, // goblins at one point of the spawn ring
+    // Dark overlay with a soft hole around Bartek (drawn once, textureSize px, stretched over the screen).
+    blackout: { durationSec: 20, holeRadius: 190, edge: 120, alpha: 0.95, textureSize: 256, fadeMs: 600, depth: 10 },
+    goldenHour: { durationSec: 30, xpMult: 2 },
+    ticketControl: { elites: 3 },
+    // A shop minDist-maxDist from Bartek for durationSec; walking in opens `cards` cards for protein from this run's coins.
+    // price by the card's rarity (none: a card without one, a new weapon).
+    zabka: { durationSec: 45, minDist: 500, maxDist: 700, cards: 3, prices: { none: 15, common: 8, rare: 15, epic: 25, legendary: 40 } },
+    storm: { durationSec: 15, everyMs: 400, damage: 30 }, // a bolt into a random enemy on screen; damage goes through weaponDamage
+    festyn: { count: 3, minDist: 250, maxDist: 450 }, // map pickups around Bartek
+    gemRain: { durationSec: 10, everyMs: 60, radius: 380, kind: 'blue' },
   },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
@@ -141,7 +180,9 @@ export const config = {
     givePassives: null, // a list of passive ids (e.g. ['ticket', 'dumbbells']): unlocked in the save and given at level 1 every run
     drawCharges: null, // a number: every run starts with this many Odśwież, Pomiń and Wywal (gym included)
     forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
-    evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
+    evolveKey: false,
+    eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
+    eventKey: false, // true: V, then a digit 1-8, starts that run event (data/events.js order) // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -220,7 +261,8 @@ export const config = {
     },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
-  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 20, gas: 12 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
+  // enemies: spawn.maxEnemies + room for bosses, the school trip and split elites; pickups: room for boss and elite chests
+  pools: { bullets: 100, enemies: 320, gems: 300, pickups: 20, vfx: 60, bees: 20, gas: 12 },
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -290,7 +332,8 @@ export const config = {
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
     // Arrow at the screen edge toward the nearest pickup lying off screen.
-    pickupArrow: { size: 22, margin: 30, color: 0xffcc00 },
+    pickupArrow: { size: 22, margin: 30, color: 0xffcc00 }, // points at the Żabka shop first, else at the nearest pickup off screen
+    shop: { titleFontSize: 56, titleColor: '#76ff03', poorColor: '#ff8a80', boughtColor: '#9e9e9e', boughtAlpha: 0.45, shakePx: 6, shakeMs: 50 },
     // Active timed effects under the HUD panel: icon, name, a bar of the time left.
     effectHud: { width: 230, height: 38, iconSize: 28, barHeight: 6, gap: 6, fontSize: 15, color: 0xffcc00 },
     // Weapon slots, bottom left (maxSlots, empty ones dimmed): icon with a level badge in its corner.
@@ -398,6 +441,15 @@ export const config = {
     gasLaugh: { layers: [ // a "HA" rising from a gas cloud
       { particles: { texture: 'fx_ha', count: 1, speed: [25, 45], angle: -90, spread: 40, lifeMs: 900, scale: [0.9, 1.2], alpha: [1, 0],
         tint: [0x9ccc65, 0xba68c8], spin: 20, depth: 1.7 } }] },
+    lightning: { layers: [ // Burza: a bolt from the sky into an enemy, a flash where it lands
+      { image: { texture: 'fx_bolt', origin: [0.5, 1], scale: [1.4, 1.4], alpha: [1, 0], ms: 260, tint: 0xfff59d, add: true, ease: 'Expo.easeIn' } },
+      { image: { texture: 'fx_ring', scale: [0.3, 1.6], alpha: [1, 0], ms: 300, tint: 0xffffff, add: true } },
+      { particles: { texture: 'fx_spark', count: 8, speed: [100, 260], lifeMs: 280, scale: [1, 0], tint: [0xfff59d, 0xffffff], add: true } }] },
+    vampireHeal: { layers: [ // a vampire elite heals the walkers around it
+      { image: { texture: 'fx_ring', scale: [5, 0.5], alpha: [0, 0.7], ms: 450, tint: 0xff1744, ease: 'Cubic.easeIn' } },
+      { particles: { texture: 'fx_plus', count: 5, speed: [20, 50], angle: -90, spread: 120, gravityY: -80, lifeMs: 600, scale: [0.8, 0.3], tint: 0xff5252 } }] },
+    gemDrop: { minGapMs: 40, layers: [ // Deszcz kryształów: a gem lands
+      { image: { texture: 'fx_star', scale: [1.2, 0.2], alpha: [1, 0], ms: 250, tint: 0x90caf9, add: true, spinDeg: 90 } }] },
     laserHit: { minGapMs: 40, layers: [ // the eye laser burns an enemy
       { particles: { texture: 'fx_spark', count: 5, speed: [80, 200], lifeMs: 200, scale: [1, 0], tint: [0xff1744, 0xffffff], add: true } },
       { image: { texture: 'fx_dot', scale: [2.2, 0], alpha: [1, 0], ms: 140, tint: 0xff8a80, add: true } }] },
@@ -421,6 +473,9 @@ export const config = {
     // Cut out of the original photos (goblin_bartek.png, sportakus.png); a better cut can simply replace these files.
     goblin: { file: './assets/goblin_bartek_cut.png', height: 52, bodyRadius: 19 },
     sportakus: { file: './assets/sportakus_cut.png', height: 66, bodyRadius: 24 },
+    // Żabka shop (event): a white wall, a striped green awning, a door and two windows.
+    zabkaShop: { width: 88, height: 74, awningHeight: 20, stripes: 6, wall: 0xf5f5f5, awning: 0x2e7d32, stripe: 0xffffff,
+      door: 0x1b5e20, window: 0x81d4fa, border: 0x212121 },
     chest: { width: 44, height: 34, lidHeight: 12, color: 0x8d5524, lidColor: 0x6d3f17, bandColor: 0xffc400, bandWidth: 5, lockSize: 10 },
     klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
@@ -440,7 +495,8 @@ export const config = {
     pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
     // Effect shapes (systems/vfx.js), radius in px (flash: width and height, shell: height, twice as long).
-    fx: { dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9 },
+    fx: { dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9,
+      bolt: 64 }, // bolt: a zigzag down the middle of a bolt*2 square
     // The pistol Bartek holds, drawn pointing right: width x height px, held at grip (fraction of the size).
     gun: { width: 28, height: 15, grip: [0.3, 0.5], slide: 0x455a64, slideLight: 0x90a4ae, frame: 0x263238, handle: 0x6d4c41, handleLight: 0x8d6e63 },
     captainShield: { file: './assets/captain_shield.png' }, // 50x50 pixel art, also the shield's HUD icon

@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { xpToNextLevel, formatTime } from '../state.js';
 import { isEffectActive } from '../systems/effects.js';
 import { pickups } from '../data/pickups.js';
+import { events } from '../data/events.js';
 import { font, drawPanel, drawBar } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
 
@@ -75,13 +76,18 @@ export default class UIScene extends Phaser.Scene {
     this.weaponHud = {}; // `${row}_${slot}` -> icon and level text, filled by updateWeaponHud as items come
     this.weaponSig = null;
 
-    // Active timed pickup effects, one row per pickup that has an effect: icon, name, time bar (drawn in update).
+    // Active timed pickup effects and run events that last, one row each: icon, name, time bar (drawn in update).
+    // timer() returns what has remainingMs and durationMs, or nothing while it is off.
     const eh = u.effectHud;
-    this.effectRows = pickups.filter((d) => d.effect).map((d) => ({
-      effect: d.effect,
-      image: this.add.image(0, 0, d.icon ?? 'pickup').setDisplaySize(eh.iconSize, eh.iconSize).setVisible(false),
-      name: this.add.text(0, 0, d.name, font(eh.fontSize, { fontStyle: 'bold', ...outline })).setOrigin(0, 0.5).setVisible(false),
-    }));
+    const row = (icon, name, timer) => ({
+      timer,
+      image: this.add.image(0, 0, icon).setDisplaySize(eh.iconSize, eh.iconSize).setVisible(false),
+      name: this.add.text(0, 0, name, font(eh.fontSize, { fontStyle: 'bold', ...outline })).setOrigin(0, 0.5).setVisible(false),
+    });
+    this.effectRows = [
+      ...pickups.filter((d) => d.effect).map((d) => row(d.icon ?? 'pickup', d.name, () => this.run.effects[d.effect])),
+      ...events.filter((d) => d.durationSec > 0).map((d) => row('icon_clock', d.name, () => this.run.activeEvents.find((ev) => ev.def === d))),
+    ];
 
     const pa = u.pickupArrow;
     this.pickupArrow = this.add.triangle(0, 0, pa.size, pa.size / 2, 0, 0, 0, pa.size, pa.color).setStrokeStyle(2, 0x000000).setVisible(false);
@@ -186,8 +192,8 @@ export default class UIScene extends Phaser.Scene {
   updateEffectHud() {
     const eh = config.ui.effectHud, m = config.ui.margin, pad = config.ui.hud.padding;
     let y = this.effectTop;
-    for (const { effect, image, name } of this.effectRows) {
-      const e = this.run.effects[effect];
+    for (const { timer, image, name } of this.effectRows) {
+      const e = timer();
       image.setVisible(!!e);
       name.setVisible(!!e);
       if (!e) continue;
@@ -226,14 +232,14 @@ export default class UIScene extends Phaser.Scene {
     });
   }
 
-  // Arrow on the screen edge toward the nearest pickup lying off screen; hidden when none is.
+  // Arrow on the screen edge toward the Żabka shop, else the nearest pickup lying off screen; hidden when none is.
   updatePickupArrow() {
     const gs = this.scene.get('GameScene'), cam = gs.cameras.main, view = cam.worldView, pa = config.ui.pickupArrow;
     const cx = view.centerX, cy = view.centerY;
     let best = null, bestD = Infinity;
     for (const p of gs.pickups.getChildren()) {
       if (!p.active || view.contains(p.x, p.y)) continue;
-      const d = Phaser.Math.Distance.Squared(cx, cy, p.x, p.y);
+      const d = p.def.arrowFirst ? -1 : Phaser.Math.Distance.Squared(cx, cy, p.x, p.y);
       if (d < bestD) { bestD = d; best = p; }
     }
     this.pickupArrow.setVisible(!!best);

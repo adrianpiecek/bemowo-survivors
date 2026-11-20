@@ -5,6 +5,9 @@ import { enemies } from '../data/enemies.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
+import { elites } from '../data/elites.js';
+import { events } from '../data/events.js';
+import { font } from '../systems/ui.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { updateLeaper } from '../systems/charge.js';
 import { playVfx } from '../systems/vfx.js';
@@ -103,7 +106,13 @@ export default class GameScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
     if (config.debug.klapaKey) this.input.keyboard.on('keydown-K', () => this.spawnEnemy(enemies.find((d) => d.id === 'klapa')));
     this.boss = null; // the newest boss on the map; UIScene reads it for the HP bar
-    this.bossQueue = enemies.filter((d) => d.isBoss).sort((a, b) => a.appearsAtSec - b.appearsAtSec);
+    this.bossQueue = this.drawBosses();
+    this.scheduleEvents();
+    // Awaria prądu: a dark overlay fixed to the screen, its soft hole on Bartek (the camera keeps him in the middle).
+    const cover = Math.hypot(width, height) / 2;
+    this.darkness = this.add.image(width / 2, height / 2, 'darkness').setScrollFactor(0).setDisplaySize(cover * 2, cover * 2)
+      .setDepth(config.events.blackout.depth).setVisible(false);
+    this.shop = null; // the Żabka shop sprite while its promotion lasts
     if (config.debug.bossKey) {
       // B arms it, then 1-5 calls that boss (in order of appearance): banner first, the boss bannerSec later.
       this.input.keyboard.on('keydown-B', () => { this.bossArmed = true; });
@@ -151,6 +160,19 @@ export default class GameScene extends Phaser.Scene {
           if (pid && !this.run.passives.some((p) => p.def.id === pid)) this.gainPassive(passives.find((d) => d.id === pid));
         }
       });
+    }
+    if (config.debug.eliteKey) {
+      let next = 0; // each press: the next trait in data order
+      this.input.keyboard.on('keydown-L', () => this.spawnElite(elites[next++ % elites.length], this.player.x + config.elites.debugOffset, this.player.y));
+    }
+    if (config.debug.eventKey) {
+      // V arms it, then 1-8 starts that event.
+      this.input.keyboard.on('keydown-V', () => { this.eventArmed = true; });
+      ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT'].forEach((key, i) => this.input.keyboard.on(`keydown-${key}`, () => {
+        if (!this.eventArmed || !events[i]) return;
+        this.eventArmed = false;
+        this.startEvent(events[i]);
+      }));
     }
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
     if (config.debug.timeSkipKey) {
@@ -226,6 +248,11 @@ export default class GameScene extends Phaser.Scene {
 
   killEnemy(enemy) {
     enemy.disableBody(true, true);
+    if (enemy.elite) {
+      enemy.elite.onDeath?.(this, enemy);
+      this.dropChest(enemy.x, enemy.y, 1);
+      this.clearElite(enemy);
+    }
     this.run.kills++;
     this.run.killsByType[enemy.stats.id] = (this.run.killsByType[enemy.stats.id] ?? 0) + 1;
     if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, config.tank.killsToCharge);
@@ -254,8 +281,7 @@ export default class GameScene extends Phaser.Scene {
     for (let i = 0; i < b.gemCount; i++) {
       this.dropGem(boss.x + Phaser.Math.FloatBetween(-r, r), boss.y + Phaser.Math.FloatBetween(-r, r), b.gemKind);
     }
-    const chest = this.dropPickup(pickups.find((d) => d.id === 'chest'), boss.x, boss.y, Infinity); // stays until taken
-    if (chest) chest.count = def.chest;
+    this.dropChest(boss.x, boss.y, def.chest);
     playVfx(this, 'bossBoom', boss.x, boss.y);
     this.scene.get('UIScene').showBanner(`${def.name} pokonany`);
     // A boss not killed before the next one's minute may still be on the map.
@@ -263,8 +289,129 @@ export default class GameScene extends Phaser.Scene {
     if (!this.boss) playMusic(this, 'gameplay');
   }
 
-  // A boss chest opens in update(), so never in the middle of a physics step that also opened the level-up cards.
-  openChest(count) { this.run.chestQueue.push(count); }
+  // A chest (bosses, elites) stays until taken; count: upgrades inside.
+  dropChest(x, y, count) {
+    const chest = this.dropPickup(pickups.find((d) => d.id === 'chest'), x, y, Infinity);
+    if (chest) chest.count = count;
+  }
+
+  // Chests and the Żabka shop open in update(), so never in the middle of a physics step that also opened the level-up cards.
+  openChest(count) { this.openScreen('ChestScene', { count }); }
+
+  openScreen(scene, data = {}) { this.run.screenQueue.push({ scene, data }); }
+
+  // Elites (data/elites.js): an enemy just spawned gets more HP, a bigger size, a glow and its trait's name over its head.
+  makeElite(z, trait) {
+    const c = config.elites;
+    z.stats = { ...z.stats }; // its own copy, so a trait can change its speed
+    z.elite = trait;
+    z.eliteMs = 0;
+    z.stolen = 0;
+    z.hp *= c.hpMult;
+    z.setScale(z.scaleX * c.scale);
+    trait.apply?.(z);
+    z.maxHp = z.hp;
+    z.preFX?.setPadding(c.glowPadding);
+    z.preFX?.addGlow(trait.color, c.glowStrength, 0); // WebGL only; the name still marks it on canvas
+    z.eliteLabel = this.add.text(z.x, z.y, trait.name, font(c.labelFontSize, {
+      fontStyle: 'bold', color: `#${trait.color.toString(16).padStart(6, '0')}`, stroke: '#000000', strokeThickness: 3,
+    })).setOrigin(0.5, 1).setDepth(2);
+  }
+
+  clearElite(z) {
+    if (!z.elite) return;
+    z.elite = null;
+    z.eliteLabel.destroy();
+    z.eliteLabel = null;
+    z.preFX?.clear();
+    z.preFX?.setPadding(0);
+  }
+
+  canBeElite(def) { return !def.isBoss && !def.pack && def.behavior !== 'line'; }
+
+  // An elite of a random walking type already in the run, right at x, y (Kontrola biletów, debug).
+  spawnElite(trait, x, y) {
+    const open = enemies.filter((d) => this.canBeElite(d) && this.run.elapsedMs >= d.appearsAtSec * 1000);
+    const z = this.spawnEnemy(Phaser.Utils.Array.GetRandom(open), x, y);
+    if (z) this.makeElite(z, trait);
+  }
+
+  // This run's bosses: one from each slot's pool (config.boss.slots), none twice, not last run's line-up when the pools
+  // allow another. The slot gives HP, minute, chest and protein. The scene object outlives runs, so it keeps lastBosses.
+  drawBosses() {
+    const slots = config.boss.slots;
+    let ids;
+    for (let tries = 0; tries < 20; tries++) {
+      const used = [];
+      ids = slots.map((s) => {
+        const open = s.pool.filter((id) => !used.includes(id));
+        const id = Phaser.Utils.Array.GetRandom(open.length ? open : s.pool);
+        used.push(id);
+        return id;
+      });
+      if (ids.join() !== this.lastBosses?.join()) break;
+    }
+    this.lastBosses = ids;
+    return slots.map((s, i) => ({
+      ...enemies.find((d) => d.id === ids[i]), appearsAtSec: s.atSec, hp: s.hp, chest: s.chest, protein: s.protein,
+    }));
+  }
+
+  // This run's events (data/events.js): ones the last run did not have first, each at a random second that keeps
+  // config.events' gaps to the other events and to the boss slots. An event with no such second left is dropped.
+  scheduleEvents() {
+    const c = config.events, last = this.lastEvents ?? [], bossSecs = config.boss.slots.map((s) => s.atSec);
+    const fresh = Phaser.Utils.Array.Shuffle(events.filter((e) => !last.includes(e.id)));
+    const picked = [...fresh, ...Phaser.Utils.Array.Shuffle(events.filter((e) => last.includes(e.id)))].slice(0, c.perRun);
+    this.lastEvents = picked.map((e) => e.id);
+    const taken = []; // [start, end] in seconds
+    for (const def of picked) {
+      for (let tries = 0; tries < 100; tries++) {
+        const t = Phaser.Math.Between(c.firstSec, c.lastSec), end = t + def.durationSec;
+        if (!bossSecs.every((b) => end <= b - c.bossGapSec || t >= b + c.bossGapSec)) continue;
+        if (!taken.every(([a, b]) => t >= b + c.gapSec || end + c.gapSec <= a)) continue;
+        taken.push([t, end]);
+        this.run.events.push({ def, atMs: t * 1000, started: false });
+        break;
+      }
+    }
+    this.run.events.sort((a, b) => a.atMs - b.atMs);
+  }
+
+  // Banner, start, and a time bar while it lasts. The same event again (debug) ends the running one first.
+  startEvent(def) {
+    const run = this.run, old = run.activeEvents.find((ev) => ev.def === def);
+    if (old) {
+      def.end?.(this);
+      run.activeEvents.splice(run.activeEvents.indexOf(old), 1);
+    }
+    this.scene.get('UIScene').showBanner(def.name.toUpperCase(), def.description);
+    playSfx(this, 'pickup');
+    def.start?.(this);
+    if (def.durationSec > 0) run.activeEvents.push({ def, remainingMs: def.durationSec * 1000, durationMs: def.durationSec * 1000 });
+  }
+
+  // Ends a running event on the next frame (the Żabka shop after a visit).
+  endEvent(id) {
+    const ev = this.run.activeEvents.find((e) => e.def.id === id);
+    if (ev) ev.remainingMs = 0;
+  }
+
+  updateEvents(delta) {
+    const run = this.run;
+    for (const ev of run.events) {
+      if (ev.started || run.elapsedMs < ev.atMs) continue;
+      ev.started = true;
+      this.startEvent(ev.def);
+    }
+    for (const ev of run.activeEvents.slice()) {
+      if (ev.remainingMs > 0) ev.def.update?.(this, delta, ev);
+      ev.remainingMs -= delta;
+      if (ev.remainingMs > 0) continue;
+      ev.def.end?.(this);
+      run.activeEvents.splice(run.activeEvents.indexOf(ev), 1);
+    }
+  }
 
   // Space or a tap on the HUD bar. Ignored while paused, already a tank, or not fully charged.
   activateTank() {
@@ -320,7 +467,7 @@ export default class GameScene extends Phaser.Scene {
   dropPickup(def, x, y, lifetimeSec = config.pickups.lifetimeSec) {
     const p = this.pickups.get(x, y);
     if (!p) return; // pool full: rare drops at a 10-slot cap, losing one is harmless
-    p.setTexture(def.icon ?? 'pickup');
+    p.setTexture(def.icon ?? 'pickup').setAlpha(1); // a pooled sprite may still be mid-blink
     p.body.setSize(); // pooled sprites change icon, so fit the body to this one
     p.enableBody(true, x, y, true, true);
     p.def = def;
@@ -378,8 +525,14 @@ export default class GameScene extends Phaser.Scene {
     if (old.length < 2) return;
     const sum = old.reduce((s, g) => s + g.value, 0), { x, y } = old[0];
     for (const g of old) g.disableBody(true, true);
-    const [kind] = Object.entries(config.xp.gems).filter(([, k]) => k.value <= sum).sort((a, b) => b[1].value - a[1].value)[0];
-    this.dropCollectible(x, y, `gem_${kind}`, sum, false);
+    this.dropGemWorth(x, y, sum);
+  }
+
+  // One gem worth `value` XP, coloured as the most valuable kind not above it (merged gems, a thief elite's loot).
+  dropGemWorth(x, y, value) {
+    const kinds = Object.entries(config.xp.gems).sort((a, b) => b[1].value - a[1].value);
+    const [kind] = kinds.find(([, k]) => k.value <= value) ?? kinds[kinds.length - 1];
+    this.dropCollectible(x, y, `gem_${kind}`, value, false);
   }
 
   collectGem(player, gem) {
@@ -393,7 +546,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     playVfx(this, 'gemPickup', gem.x, gem.y);
-    this.run.xp += gem.value * this.run.player.growth; // Zeszyt w kratkę; XP may be fractional, the HUD rounds it down
+    this.run.xp += gem.value * this.run.player.growth * this.run.xpMult; // Zeszyt w kratkę, Złota godzina; XP may be fractional
     const wasPending = this.run.pendingLevelUps > 0;
     for (let need = xpToNextLevel(this.run.level); this.run.xp >= need; need = xpToNextLevel(this.run.level)) {
       this.run.xp -= need;
@@ -475,6 +628,7 @@ export default class GameScene extends Phaser.Scene {
     }
     const z = this.enemies.get(x, y);
     if (!z) return;
+    this.clearElite(z); // only ever left on a sprite that went away without dying
     // Pooled sprites can come back as any type, so set the look and body every spawn.
     const t = config.textures[def.texture];
     z.setTexture(def.texture).setAngle(0).clearTint();
@@ -488,6 +642,7 @@ export default class GameScene extends Phaser.Scene {
     z.leapMs = 0;
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
     z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000) * this.run.enemyHpMult;
+    z.maxHp = z.hp; // what a vampire elite heals up to
     this.run.spawned++;
     if (def.behavior === 'line') {
       z.startX = x;
@@ -505,6 +660,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Regular spawn: one enemy, or a whole pack for a pack type; the enemy cap holds for every member.
+  // Returns the sprite of a lone enemy.
   spawnPick() {
     const def = this.pickEnemyType();
     if (!def.pack) return this.spawnEnemy(def);
@@ -533,16 +689,23 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     // update() runs after the physics step: a chest picked up in it waits until any level-up cards are picked.
-    if (run.chestQueue.length && run.pendingLevelUps === 0) {
+    if (run.screenQueue.length && run.pendingLevelUps === 0) {
+      const { scene, data } = run.screenQueue.shift();
       this.scene.pause();
-      this.scene.launch('ChestScene', { run, count: run.chestQueue.shift() });
+      this.scene.launch(scene, { run, ...data });
       return;
     }
 
     const { startPerSec, endPerSec, curvePow } = config.spawn;
     run.spawnCooldownMs -= delta;
+    run.eliteMs -= delta;
     if (run.spawnCooldownMs <= 0) {
-      this.spawnPick();
+      // Once eliteMs is up, the next lone walker to spawn is an elite.
+      const z = this.spawnPick();
+      if (z && run.eliteMs <= 0 && this.canBeElite(z.stats)) {
+        run.eliteMs = config.elites.everySec * 1000;
+        this.makeElite(z, Phaser.Utils.Array.GetRandom(elites));
+      }
       run.spawnCooldownMs += 1000 / Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow);
     }
 
@@ -557,6 +720,8 @@ export default class GameScene extends Phaser.Scene {
       run.bossAnnounced = false;
       this.spawnBoss(nextBoss);
     }
+
+    this.updateEvents(delta);
 
     // Now and then a timed pickup lies down by itself somewhere off screen, a few seconds' walk away.
     const ms = config.pickups.mapSpawn;
@@ -622,6 +787,9 @@ export default class GameScene extends Phaser.Scene {
       else if (walker) this.physics.moveToObject(z, this.player, z.stats.speed * (moonwalk ? -1 : 1));
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
       else z.angle += z.stats.spinDegPerSec * delta / 1000;
+      if (!z.elite) continue;
+      if (walker && !frozen && !squats && !moonwalk) z.elite.update?.(this, z, delta);
+      z.eliteLabel.setPosition(z.x, z.y - z.displayHeight / 2 - config.elites.labelGap);
     }
 
     // The scar follows Bartek's head and his size; the tank hides it.
@@ -643,7 +811,7 @@ export default class GameScene extends Phaser.Scene {
       if (!p.active) continue;
       p.ageMs += delta;
       if (p.ageMs >= p.lifetimeMs) p.disableBody(true, true);
-      else p.setAlpha(Math.floor(p.ageMs / pk.blinkMs) % 2 ? pk.blinkAlpha : 1);
+      else if (!p.def.steady) p.setAlpha(Math.floor(p.ageMs / pk.blinkMs) % 2 ? pk.blinkAlpha : 1);
     }
 
     for (const { effect, cfg, image } of this.auras) {

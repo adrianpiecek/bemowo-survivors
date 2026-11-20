@@ -76,6 +76,10 @@ export function createVfxTextures(scene) {
   g.generateTexture('fx_flash', m, m).clear();
   g.fillStyle(0xd4a017).fillRect(0, 0, f.shell * 2, f.shell).fillStyle(0xfff3b0).fillRect(0, 0, f.shell * 2, 1);
   g.generateTexture('fx_shell', f.shell * 2, f.shell).clear();
+  // Lightning bolt: a zigzag from the top to the bottom middle, a wide faint stroke under a thin bright one.
+  const bl = f.bolt * 2, zig = [[0.55, 0], [0.38, 0.3], [0.6, 0.42], [0.4, 0.7], [0.56, 0.78], [0.5, 1]].map(([x, y]) => ({ x: x * bl, y: y * bl }));
+  g.lineStyle(7, 0xffffff, 0.35).strokePoints(zig).lineStyle(3, 0xffffff).strokePoints(zig);
+  tex('fx_bolt', bl);
   g.destroy();
 }
 

@@ -71,7 +71,11 @@ export function newRun() {
     nextBoss: 0, // index of the next boss in order of appearance
     bossAnnounced: false, // the next boss's banner has been shown
     bossProtein: 0, // protein from bosses killed this run, paid out at the end
-    chestQueue: [], // boss chests picked up and not opened yet: upgrades in each
+    screenQueue: [], // screens over the paused run waiting for update(): { scene: 'ChestScene' | 'ShopScene', data }
+    eliteMs: config.elites.everySec * 1000, // time to the next elite
+    events: [], // this run's events (data/events.js): { def, atMs, started }, drawn in GameScene.create
+    activeEvents: [], // events going on now: { def, remainingMs, durationMs } plus the event's own counters
+    xpMult: 1, // Złota godzina
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
