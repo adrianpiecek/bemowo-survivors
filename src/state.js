@@ -47,9 +47,6 @@ export function newRun() {
     tankCharge: 0, // kills toward the tank, 0..config.tank.killsToCharge
     tankMs: 0, // time left as a tank, 0 = Bartek on foot
     scarred: false, // hit by a klapa this run
-    bossAtMs: config.boss.appearsAtSec * 1000, // run time the Golf arrives; the debug B key moves it earlier
-    bossAnnounced: false,
-    bossSpawned: false,
     bossKilled: false,
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble

@@ -37,12 +37,13 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 - Spawn poza ekranem, w pierścieniu wokół gracza. Częstotliwość rośnie z czasem.
 - Krzywa trudności (wersja 3): spawn na sekundę rośnie po krzywej, spokojnie na początku i najmocniej pod koniec. HP zwykłych wrogów rośnie z każdą minutą rundy (boss ma stałe HP). Kolejne poziomy drożeją szybciej niż liniowo. Spawn jest szybszy, niż pistolet nadąża zabijać, więc wokół Bartka zbiera się horda; za to pojedynczy dotyk zwykłego wroga boli mało. Co 45 s pierścień wrogów otacza Bartka, większy z każdą falą. Cel: horda rośnie przez całą rundę (ok. 10-30 wrogów na ekranie w 1.-2. minucie, ponad 100 w drugiej połowie), gracz bez siłowni przeżywa ok. 4-5 minut, a pełna siłownia z dobrymi kartami wygrywa.
-- **Zmiana planu (v2):** wrogowie to warianty Bartka. Zombie to zombie-Bartek, biegacz to Uncanny, a silniejsze zombie to kolejne warianty: Joker (od 3:00) i Homelander (od 5:00). Większy obrazek = silniejszy wróg. Nowi wrogowie w przyszłości to też warianty Bartka. Do tego klapa bagażnika (od 4:00) i boss Golf (8:00). Liczby w `config.enemies` i `config.boss`.
+- **Zmiana planu (v2):** wrogowie to warianty Bartka. Zombie to zombie-Bartek, biegacz to Uncanny, a silniejsze zombie to kolejne warianty: Joker (od 3:00) i Homelander (od 5:00). Większy obrazek = silniejszy wróg. Nowi wrogowie w przyszłości to też warianty Bartka. Do tego klapa bagażnika (od 4:00). Liczby w `config.enemies` i `config.boss`. **Zmiana planu (v3):** boss Golf został usunięty z gry; bossowie to powiększone wersje zwykłych wrogów (krok 26).
+- Wersja 3: Goblin Bartek (od 2:00) przychodzi stadem 3-5 sztuk z jednego punktu pierścienia, szybki i kruchy. Sportakus (od 4:00) idzie powoli, a co kilka sekund, gdy Bartek jest blisko, staje, miga na czerwono i doskakuje tam, gdzie Bartek stał (znacznik celu w miejscu lądowania, kurz przy wybiciu). Ruch szarży (stop, miganie, rzut w zapamiętany punkt) jest w `src/systems/charge.js`, żeby bossowie mogli go użyć ponownie.
 - Limit 250 wrogów na ekranie, żeby gra nie klatkowała.
 
 ### XP i level up
 
-Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. W v2 kryształy to animowane gemy (CC0, `assets/Coin_Gems`) o różnej wartości: każdy typ wroga wypada innym kolorem. Zielony = 1 XP (zombie, biegacz, klapa), niebieski = 3 (Joker), żółty = 5 (Homelander), szary = 10, czerwony = 25 (Golf). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (`Moneda*.png`: czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty z 5 ulepszeń.
+Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. W v2 kryształy to animowane gemy (CC0, `assets/Coin_Gems`) o różnej wartości: każdy typ wroga wypada innym kolorem. Zielony = 1 XP (zombie, biegacz, klapa), niebieski = 3 (Joker), żółty = 5 (Homelander), szary = 10, czerwony = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (`Moneda*.png`: czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty z 5 ulepszeń.
 
 | Ulepszenie | Efekt na poziom | Max poziomów |
 | --- | --- | --- |
@@ -92,7 +93,7 @@ Każdy mem jest podpięty pod istniejący system, żeby nie mnożyć kodu. Do MV
 | Siłownia | Stałe ulepszenia kupowane za białko między rundami | v2 |
 | Unc | Opisy ulepszeń siłowni ("Okulary do czytania: +20% zasięgu", "Rozgrzewka 15 minut") i dymki "Za moich czasów..." | v2 |
 | Czołg | Ultimate ładowany zabójstwami, 10 s rozjeżdżania hordy | v2 |
-| Metal bagażnikowy | Latające klapy bagażnika (3x obrażenia), boss Golf z otwartym bagażnikiem, blizna po trafieniu klapą | v2 |
+| Metal bagażnikowy | Latające klapy bagażnika (3x obrażenia), blizna po trafieniu klapą (boss Golf usunięty w v3) | v2 |
 | Likwidacja rasy | Znajdźka "Ogłoszenie z OLX": rzadko wypada, duży napis LIKWIDACJA RASY przy ogłoszeniu ze zdjęciem gołębia, stado gołębi zabija wszystko na ekranie. Hasło nigdy bez gołębia | v2 |
 | Mały B | Znajdźka "Photoshop": duży napis MAŁY B jak przy LIKWIDACJA, Bartek kurczy się na 15 s (mniejszy hitbox, szybszy, słabsze strzały). Opis: "Nie każdy w Gigantach jest gigantem." | v2 |
 | Pszczoły (B = Bee, Valheim) | Ulepszenie "Ul": pszczoły krążą wokół Bartka (ten sam kod orbity co Kratos). Opis: "Pszczoły są szczęśliwe." Gdy Bartek jest małym B, pszczół jest 2x więcej | v2 |
@@ -134,13 +135,12 @@ Przy każdym level upie każda z 3 kart dostaje losową rzadkość: zwykła, rza
 
 Paczka ma ok. 1300 animowanych efektów w 18 kategoriach (48 MB). Każdy efekt ma `sprite-sheet.png` i `manifest.json` z klatkami, czasami i punktem zaczepienia. `src/systems/vfx.js` ładuje tylko efekty wpisane w `config.vfx` i tnie je według manifestu, więc gra nie pobiera całej paczki.
 
-W grze już są: `impacts/hit-spark` (trafienie pociskiem), `impacts/death-poof` (śmierć wroga), `explosions/big-explosion` (Golf zezłomowany).
+W grze już są: `impacts/hit-spark` (trafienie pociskiem), `impacts/death-poof` (śmierć wroga), `explosions/big-explosion` (śmierć bossa).
 
 Pomysły na później:
 - `ui/level-up` przy level upie, `ui/gem-pickup` przy zbieraniu kryształu, `holy/holy-heal` przy leczeniu z karty Max HP.
 - `scifi/muzzle-flash` przy strzale pistoletu.
 - Czołg: `smoke/dash-dust` spod gąsienic, `holy/shield-bubble` w czasie nietykalności.
-- Golf: `status/target-mark` w punkcie, w który zaraz szarżuje, `smoke/dash-dust` przy szarży, `impacts/metal-clang` przy otwarciu klapy.
 - Klapa: `impacts/metal-clang` przy trafieniu Bartka.
 - Mały B: `arcane/polymorph-poof` przy zmniejszeniu i powrocie.
 - Bartkowanie: `status/stun-stars` przy "Zombie robią przysiady", `status/haste` przy "Moonwalk".

@@ -30,7 +30,7 @@ export default class UIScene extends Phaser.Scene {
     this.killsText = this.add.text(width - m, m, '', font).setOrigin(1, 0);
 
     const bb = u.bossBar;
-    this.bossText = this.add.text(width / 2, bb.y + bb.height / 2, 'GOLF', { fontSize: `${bb.fontSize}px`, fontStyle: 'bold' })
+    this.bossText = this.add.text(width / 2, bb.y + bb.height / 2, 'BOSS', { fontSize: `${bb.fontSize}px`, fontStyle: 'bold' })
       .setOrigin(0.5).setVisible(false);
 
     this.createJoystick();
@@ -107,7 +107,7 @@ export default class UIScene extends Phaser.Scene {
     // +999 so the clock shows 10:00 at the start instead of 9:59.
     this.timeText.setText(formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999));
     this.killsText.setText(`Zabici: ${r.kills}`);
-    // Boss HP bar, top center, only while the Golf is on the map.
+    // Boss HP bar, top center, only while a boss is on the map.
     const boss = this.scene.get('GameScene').boss, bb = config.ui.bossBar;
     const bossOn = !!boss?.active && boss.stats.isBoss; // pooled: the same sprite may be a zombie later
     this.bossText.setVisible(bossOn);

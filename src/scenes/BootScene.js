@@ -9,6 +9,7 @@ export default class BootScene extends Phaser.Scene {
   preload() {
     // Bartek and the Bartek variants that are the enemies.
     for (const key of ['bartek', 'zombie', 'uncanny', 'joker', 'homelander']) this.load.image(key, `./assets/${key}.png`);
+    for (const key of ['goblin', 'sportakus']) this.load.image(key, config.textures[key].file);
     this.load.image('tank', './assets/czołg.png');
     // May be missing: the OLX card falls back to the first pigeon frame.
     this.load.image('golab', config.pickups.olx.photo);
@@ -59,24 +60,6 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(kl.color).fillRect(0, 0, kl.width, kl.height);
     g.lineStyle(kl.borderWidth, kl.borderColor).strokeRect(0, 0, kl.width, kl.height);
     g.generateTexture('klapa', kl.width, kl.height).clear();
-
-    // Golf, closed and with the trunk open. Car body from x = lidLength, front on the right; fractions are only proportions.
-    const gf = t.golf, gw = gf.carLength + gf.lidLength * 2, gh = gf.carWidth + gf.wheelWidth, x0 = gf.lidLength;
-    for (const open of [false, true]) {
-      g.fillStyle(gf.wheelColor);
-      for (const wx of [x0 + gf.carLength * 0.12, x0 + gf.carLength * 0.7]) {
-        g.fillRect(wx, 0, gf.wheelLength, gf.wheelWidth).fillRect(wx, gh - gf.wheelWidth, gf.wheelLength, gf.wheelWidth);
-      }
-      g.fillStyle(gf.color).fillRect(x0, gf.wheelWidth / 2, gf.carLength, gf.carWidth);
-      g.fillStyle(gf.glassColor).fillRect(x0 + gf.carLength * 0.6, gf.wheelWidth, gf.carLength * 0.12, gf.carWidth - gf.wheelWidth);
-      if (open) {
-        g.fillStyle(gf.trunkColor).fillRect(x0, gf.wheelWidth, gf.lidLength, gf.carWidth - gf.wheelWidth);
-        g.fillStyle(gf.lidColor).fillRect(0, gf.wheelWidth / 2, gf.lidLength, gf.carWidth); // lid swung out the back
-      } else {
-        g.fillStyle(gf.lidColor).fillRect(x0, gf.wheelWidth / 2, gf.lidLength, gf.carWidth);
-      }
-      g.generateTexture(open ? 'golfOpen' : 'golf', gw, gh).clear();
-    }
 
     const pk = t.pickup;
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);

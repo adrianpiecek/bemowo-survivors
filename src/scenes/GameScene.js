@@ -4,7 +4,7 @@ import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { createOrbit, updateOrbit } from '../systems/orbit.js';
-import { startGolf, updateGolf } from '../systems/golf.js';
+import { updateLeaper } from '../systems/charge.js';
 import { createVfxPool, playVfx } from '../systems/vfx.js';
 import { playSfx, playMusic } from '../systems/audio.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
@@ -37,7 +37,7 @@ export default class GameScene extends Phaser.Scene {
       maxSize: config.pools.enemies,
     });
     // Only walkers push each other; a flying klapa keeps its line.
-    this.physics.add.collider(this.enemies, this.enemies, null, (a, b) => a.stats.behavior === 'chase' && b.stats.behavior === 'chase');
+    this.physics.add.collider(this.enemies, this.enemies, null, (a, b) => this.isWalker(a) && this.isWalker(b));
     this.physics.add.overlap(this.player, this.enemies, this.onEnemyTouch, null, this);
 
     this.bullets = this.physics.add.group({
@@ -72,12 +72,7 @@ export default class GameScene extends Phaser.Scene {
     this.input.keyboard.addCapture('SPACE');
     this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
     if (config.debug.klapaKey) this.input.keyboard.on('keydown-K', () => this.spawnEnemy(enemies.find((d) => d.id === 'klapa')));
-    if (config.debug.bossKey) {
-      this.input.keyboard.on('keydown-B', () => {
-        this.run.bossAtMs = Math.min(this.run.bossAtMs, this.run.elapsedMs + config.boss.bannerSec * 1000);
-      });
-    }
-    this.boss = null; // the Golf's sprite once it spawns; UIScene reads it for the HP bar
+    this.boss = null; // the boss's sprite while one is on the map; UIScene reads it for the HP bar
     if (config.debug.bartkowanieKey) {
       // N arms it, then 1-8 picks the effect.
       const digits = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT'];
@@ -96,6 +91,13 @@ export default class GameScene extends Phaser.Scene {
           this.dropGem(x + Math.cos(a) * r, y + Math.sin(a) * r, 'green');
         }
         Object.keys(config.coins.kinds).forEach((kind, i) => this.dropCoin(x + 60 + i * 30, y, kind));
+      });
+    }
+    if (config.debug.enemyKey) {
+      this.input.keyboard.on('keydown-Y', () => {
+        const { x, y } = this.player, goblin = enemies.find((d) => d.id === 'goblin');
+        this.spawnPack(goblin, x + 350, y);
+        this.spawnEnemy(enemies.find((d) => d.id === 'sportakus'), x - 350, y);
       });
     }
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
@@ -131,7 +133,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     if (this.time.now < this.run.invulnUntilMs || isEffectActive(this.run, 'bubble')) return;
-    if (enemy.stats.behavior === 'chase' && isEffectActive(this.run, 'freeze')) return; // frozen walkers do not bite
+    if (this.isWalker(enemy) && isEffectActive(this.run, 'freeze')) return; // frozen walkers do not bite
     const pl = this.run.player;
     pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
     playSfx(this, 'playerDamage');
@@ -174,8 +176,8 @@ export default class GameScene extends Phaser.Scene {
     for (let i = 0; i < b.gemCount; i++) {
       this.dropGem(boss.x + Phaser.Math.FloatBetween(-r, r), boss.y + Phaser.Math.FloatBetween(-r, r), b.gemKind);
     }
-    playVfx(this, 'golfBoom', boss.x, boss.y);
-    this.scene.get('UIScene').showBanner('Golf zezłomowany');
+    playVfx(this, 'bossBoom', boss.x, boss.y);
+    this.scene.get('UIScene').showBanner('Boss pokonany');
   }
 
   // Space or a tap on the HUD bar. Ignored while paused, already a tank, or not fully charged.
@@ -350,15 +352,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Without x, y: on the spawn ring, only under spawn.maxEnemies (the boss too, so it always fits).
-  // With x, y (the boss's klapas): right there, using the pool's spare room. Returns the sprite or undefined.
+  // With x, y (packs, debug): right there, using the pool's spare room. Returns the sprite or undefined.
   spawnEnemy(def = this.pickEnemyType(), x, y) {
     if (x === undefined) {
       if (!def.isBoss && this.enemies.countActive(true) >= config.spawn.maxEnemies) return;
-      const { ringMinRadius, ringMaxRadius } = config.spawn;
-      const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
-      const r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
-      x = this.player.x + Math.cos(angle) * r;
-      y = this.player.y + Math.sin(angle) * r;
+      ({ x, y } = this.ringPoint());
     }
     const z = this.enemies.get(x, y);
     if (!z) return;
@@ -370,6 +368,8 @@ export default class GameScene extends Phaser.Scene {
     z.body.setCircle(br, z.width / 2 - br, z.height / 2 - br);
     z.enableBody(true, x, y, true, true);
     z.stats = def;
+    z.charge = null; // a pooled sprite may have died mid-leap
+    z.leapMs = 0;
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
     z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000);
     this.run.spawned++;
@@ -377,10 +377,36 @@ export default class GameScene extends Phaser.Scene {
       z.startX = x;
       z.startY = y;
       this.physics.moveToObject(z, this.player, def.speed); // aimed once, at where Bartek is now
-    } else if (def.behavior === 'boss') {
-      startGolf(z);
     }
     return z;
+  }
+
+  // A random point on the spawn ring around Bartek.
+  ringPoint() {
+    const { ringMinRadius, ringMaxRadius } = config.spawn;
+    const angle = Phaser.Math.FloatBetween(0, Math.PI * 2), r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
+    return { x: this.player.x + Math.cos(angle) * r, y: this.player.y + Math.sin(angle) * r };
+  }
+
+  // Regular spawn: one enemy, or a whole pack for a pack type; the enemy cap holds for every member.
+  spawnPick() {
+    const def = this.pickEnemyType();
+    if (!def.pack) return this.spawnEnemy(def);
+    const { x, y } = this.ringPoint();
+    this.spawnPack(def, x, y);
+  }
+
+  spawnPack(def, x, y) {
+    const n = Phaser.Math.Between(def.packMin, def.packMax), s = def.packSpread;
+    for (let i = 0; i < n && this.enemies.countActive(true) < config.spawn.maxEnemies; i++) {
+      this.spawnEnemy(def, x + Phaser.Math.FloatBetween(-s, s), y + Phaser.Math.FloatBetween(-s, s));
+    }
+  }
+
+  // Walking enemies: they push each other and freeze, squat and moonwalk. A leaper counts only between leaps.
+  isWalker(z) {
+    const b = z.stats.behavior;
+    return b === 'chase' || (b === 'leap' && !z.charge);
   }
 
   update(time, delta) {
@@ -394,21 +420,8 @@ export default class GameScene extends Phaser.Scene {
     const { startPerSec, endPerSec, curvePow } = config.spawn;
     run.spawnCooldownMs -= delta;
     if (run.spawnCooldownMs <= 0) {
-      this.spawnEnemy();
+      this.spawnPick();
       run.spawnCooldownMs += 1000 / Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow);
-    }
-
-    // The Golf: banner first, then it drives in from the spawn ring, once per run.
-    const b = config.boss;
-    if (!run.bossAnnounced && run.elapsedMs >= run.bossAtMs - b.bannerSec * 1000) {
-      run.bossAnnounced = true;
-      this.scene.get('UIScene').showBanner('UWAGA: GOLF NA BEMOWIE', '', b.bannerSec * 1000);
-      playSfx(this, 'boss');
-      playMusic(this, 'boss');
-    }
-    if (!run.bossSpawned && run.elapsedMs >= run.bossAtMs) {
-      run.bossSpawned = true;
-      this.boss = this.spawnEnemy(enemies.find((d) => d.id === 'golf'));
     }
 
     // Now and then a timed pickup lies down by itself somewhere off screen, a few seconds' walk away.
@@ -466,12 +479,13 @@ export default class GameScene extends Phaser.Scene {
     const hopW = Math.PI * 2 * bk.squatHz, hopT = run.elapsedMs / 1000;
     for (const z of this.enemies.getChildren()) {
       if (!z.active) continue;
-      // Freeze: walkers stand still in blue; the boss and flying klapas are not affected.
-      if (z.stats.behavior === 'chase' && (frozen || z.isTinted)) frozen ? z.setTint(freezeTint) : z.clearTint();
-      if (z.stats.behavior === 'chase' && frozen) z.setVelocity(0, 0);
-      else if (z.stats.behavior === 'chase' && squats) z.setVelocity(0, bk.squatAmp * hopW * Math.cos(hopW * hopT + z.x));
-      else if (z.stats.behavior === 'chase') this.physics.moveToObject(z, this.player, z.stats.speed * (moonwalk ? -1 : 1));
-      else if (z.stats.behavior === 'boss') updateGolf(this, z, delta);
+      const walker = this.isWalker(z);
+      // Freeze: walkers stand still in blue; flying klapas and a Sportakus mid-leap are not affected.
+      if (walker && (frozen || z.isTinted)) frozen ? z.setTint(freezeTint) : z.clearTint();
+      if (walker && frozen) z.setVelocity(0, 0);
+      else if (walker && squats) z.setVelocity(0, bk.squatAmp * hopW * Math.cos(hopW * hopT + z.x));
+      else if (z.stats.behavior === 'leap' && !moonwalk) updateLeaper(this, z, delta);
+      else if (walker) this.physics.moveToObject(z, this.player, z.stats.speed * (moonwalk ? -1 : 1));
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
       else z.angle += z.stats.spinDegPerSec * delta / 1000;
     }

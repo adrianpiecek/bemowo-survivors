@@ -9,14 +9,17 @@ export const config = {
     runner: { speed: 160, hp: 4, contactDamage: 6, appearsAtSec: 60, spawnWeight: 0.4 },
     joker: { speed: 90, hp: 30, contactDamage: 12, appearsAtSec: 180, spawnWeight: 0.15 },
     homelander: { speed: 100, hp: 80, contactDamage: 20, appearsAtSec: 300, spawnWeight: 0.08 },
+    // Comes as a pack of packMin-packMax from one point of the spawn ring, packSpread px apart.
+    goblin: { speed: 130, hp: 5, contactDamage: 6, appearsAtSec: 120, spawnWeight: 0.12, packMin: 3, packMax: 5, packSpread: 40 },
+    // Walks; every leapEverySec, with Bartek within leapRange, stops, flashes for warnMs and leaps where he stood.
+    sportakus: { speed: 70, hp: 40, contactDamage: 15, appearsAtSec: 240, spawnWeight: 0.06,
+      leapEverySec: 3, leapRange: 450, warnMs: 700, flashMs: 100, flashColor: 0xff0000, leapSpeed: 650 },
     klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // 2.5x zombie speed
   },
-  // Boss "golf": once a run. Cycle: drive at Bartek, stop and flash red, charge where he stood, open the trunk and fire klapas.
+  // Shared by every boss (none in the game until step 26).
   boss: {
-    appearsAtSec: 480, bannerSec: 2, hp: 1500, speed: 50, contactDamage: 30,
-    driveSec: 4, warnSec: 1, flashMs: 100, flashColor: 0xff0000, chargeSpeed: 650, openSec: 0.8, fanCount: 5, fanDeg: 60,
     olxDamagePct: 0.1, // the OLX flock takes this share of max HP instead of killing it
-    gemCount: 40, gemKind: 'green', gemSpread: 120, proteinBonus: 30, // the rain on top of the Golf's own gem
+    gemCount: 40, gemKind: 'green', gemSpread: 120, proteinBonus: 30, // the rain on top of the boss's own gem
   },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
@@ -56,10 +59,10 @@ export const config = {
     pickupKey: true, // true: the P key drops a random pickup next to Bartek. shortcut: on for testing, set false before deploy
     tankKey: false, // true: the T key fills the tank bar at once
     klapaKey: false, // true: the K key launches a klapa at Bartek
-    bossKey: false, // true: the B key calls the boss now (banner, then the Golf bannerSec later)
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
     balanceOverlay: false, // true: numbers for balancing in the top right (enemies, spawn/s, kills/s, DPS)
     timeSkipKey: false, // true: the J key moves the run clock 60 s forward
+    enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -141,7 +144,7 @@ export const config = {
     },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
-  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for the boss and its klapas
+  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for bosses
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -181,8 +184,10 @@ export const config = {
     tier: 'lit/grid',
     hitSpark: { path: 'impacts/hit-spark', scale: 0.5 }, // bullet hits an enemy
     deathPoof: { path: 'impacts/death-poof', scale: 1 }, // enemy dies
-    golfBoom: { path: 'explosions/big-explosion', scale: 2 }, // the Golf is scrapped
+    bossBoom: { path: 'explosions/big-explosion', scale: 2 }, // a boss dies
     // minGapMs: an effect that fires in bursts plays at most once per this many ms.
+    targetMark: { path: 'status/target-mark', scale: 1.5 }, // where the Sportakus will land
+    dashDust: { path: 'smoke/dash-dust', scale: 1.5 }, // the Sportakus takes off
     gemPickup: { path: 'ui/gem-pickup', scale: 1, minGapMs: 80 },
     coinPickup: { path: 'ui/coin-pickup', scale: 1, minGapMs: 80 },
     starBurst: { path: 'ui/star-burst-pickup', scale: 3 }, // a legendary card appears, any pickup is taken
@@ -199,6 +204,9 @@ export const config = {
     uncanny: { height: 50, bodyRadius: 18 },
     joker: { height: 64, bodyRadius: 24 },
     homelander: { height: 72, bodyRadius: 27 },
+    // Cut out of the original photos (goblin_bartek.png, sportakus.png); a better cut can simply replace these files.
+    goblin: { file: './assets/goblin_bartek_cut.png', height: 52, bodyRadius: 19 },
+    sportakus: { file: './assets/sportakus_cut.png', height: 66, bodyRadius: 24 },
     klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
     bee: { radius: 7, color: 0xffd400, stripeWidth: 3, stripeColor: 0x000000 },
@@ -214,9 +222,6 @@ export const config = {
     pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
     tank: { height: 110, bodyRadius: 45 }, // czołg.png: Bartek in a tank, barrel to the left
-    // Top-down car facing right; the texture has room for the open trunk lid behind it.
-    golf: { carLength: 150, carWidth: 76, wheelLength: 28, wheelWidth: 10, lidLength: 30, bodyRadius: 45,
-      color: 0x2b4f8c, glassColor: 0x9cc3e6, wheelColor: 0x1a1a1a, lidColor: 0x23406f, trunkColor: 0x111111 },
     pigeon: { frames: 3, fps: 10, scale: 2, width: 48, height: 40, flipX: true }, // assets/Pigeons/pigeon1..3.png, 24x20 px, facing left; size after scale; flipX turns it to face the flight
   },
 };
