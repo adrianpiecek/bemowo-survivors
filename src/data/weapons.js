@@ -14,7 +14,7 @@ import { save } from '../state.js';
 //   icon         texture key for the HUD (drawn in BootScene)
 // Damage goes through scene.weaponDamage(base) and cooldowns through scene.weaponCooldown(ms),
 // so the damage and fire rate cards, the gym and timed pickups work on every weapon.
-const p = config.weapons.pistol, sh = config.weapons.shield;
+const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons.gas, lz = config.weapons.laser;
 const count = (n, mult) => Math.ceil(n * mult);
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
 const plural = (n, one, few, many) => (n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
@@ -70,6 +70,99 @@ export const weapons = [
     },
   },
   {
+    id: 'gas',
+    name: 'Gaz rozweselający',
+    icon: 'weapon_gas',
+    levels: gz.levels,
+    maxLevel: gz.levels.length + 1,
+    unlock: {
+      text: `„Dlaczego taki poważny?”: zabij ${gz.unlockJokers} Jokerów w jednej rundzie`,
+      check: (run) => (run.killsByType.joker ?? 0) >= gz.unlockJokers,
+    },
+    description(level, m) {
+      if (level === 1) return 'Chmura gazu spada na wrogów. Kto w środku, ten się śmieje i traci HP.';
+      const b = gz.levels[level - 2], n = count(b.clouds ?? 0, m);
+      return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'chmura', 'chmury', 'chmur')}`,
+        b.radius && `+${Math.round(b.radius * m)} px promienia chmury`, b.durationMs && `+${(b.durationMs * m / 1000).toFixed(1)} s działania`]
+        .filter(Boolean).join(', ');
+    },
+    create(scene, w) {
+      Object.assign(w, { damage: gz.damage, clouds: gz.clouds, radius: gz.radius, durationMs: gz.durationMs, cooldownMs: 0 });
+      w.pool = scene.add.group({ classType: Phaser.GameObjects.Image, defaultKey: 'gas_cloud', maxSize: config.pools.gas });
+    },
+    levelUp(scene, w, m) {
+      const b = gz.levels[w.level - 2];
+      w.damage += (b.damage ?? 0) * m;
+      w.clouds += count(b.clouds ?? 0, m);
+      w.radius += (b.radius ?? 0) * m;
+      w.durationMs += (b.durationMs ?? 0) * m;
+    },
+    update(scene, w, delta) {
+      for (const c of w.pool.getChildren()) if (c.active) updateCloud(scene, w, c, delta);
+      w.cooldownMs -= delta;
+      if (w.cooldownMs > 0) return;
+      const pl = scene.player, near = nearestEnemies(scene, pl.x, pl.y, gz.range).slice(0, gz.pick);
+      if (!near.length) return; // nothing in range: ready again on the next frame
+      Phaser.Utils.Array.Shuffle(near);
+      for (let i = 0; i < w.clouds; i++) {
+        const t = near[i % near.length], c = w.pool.get(t.x, t.y);
+        if (!c) break; // pool full
+        c.setActive(true).setVisible(true).setDepth(0.6).setPosition(t.x, t.y).setDisplaySize(w.radius * 2, w.radius * 2).setAlpha(1);
+        Object.assign(c, { radius: w.radius, totalMs: w.durationMs, remainingMs: w.durationMs, tickMs: 0, laughMs: gz.laughEveryMs * Math.random() });
+      }
+      w.cooldownMs = scene.weaponCooldown(gz.cooldownMs);
+    },
+  },
+  {
+    id: 'laser',
+    name: 'Laser z oczu',
+    icon: 'weapon_laser',
+    levels: lz.levels,
+    maxLevel: lz.levels.length + 1,
+    unlock: {
+      text: '„Wzrok, który zabija”: wygraj rundę, pokonując Wielkiego Homelandera',
+      check: (run, won) => won && run.bossesKilled.includes(lz.unlockBoss),
+    },
+    description(level, m) {
+      if (level === 1) return 'Promień z oczu Bartka przepala wszystkich wrogów na linii.';
+      const b = lz.levels[level - 2], n = count(b.beams ?? 0, m);
+      return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'promień', 'promienie', 'promieni')}`,
+        b.width && `+${Math.round(b.width * m)} px szerokości`, b.range && `+${Math.round(b.range * m)} px zasięgu`].filter(Boolean).join(', ');
+    },
+    create(scene, w) {
+      Object.assign(w, { damage: lz.damage, beams: lz.beams, width: lz.width, range: lz.range, cooldownMs: 0, showMs: 0, angles: [] });
+      w.g = scene.add.graphics().setDepth(1.55);
+    },
+    levelUp(scene, w, m) {
+      const b = lz.levels[w.level - 2];
+      w.damage += (b.damage ?? 0) * m;
+      w.beams += count(b.beams ?? 0, m);
+      w.width += (b.width ?? 0) * m;
+      w.range += (b.range ?? 0) * m;
+    },
+    update(scene, w, delta) {
+      const pl = scene.player, ex = pl.x, ey = pl.y + lz.eyeOffsetY * scene.run.player.scale;
+      drawBeams(w, ex, ey, scene.run.player.scale, delta);
+      w.cooldownMs -= delta;
+      if (w.cooldownMs > 0) return;
+      const targets = nearestEnemies(scene, ex, ey, w.range).slice(0, w.beams);
+      if (!targets.length) return;
+      w.angles = targets.map((t) => Math.atan2(t.y - ey, t.x - ex));
+      for (const a of w.angles) {
+        const dx = Math.cos(a), dy = Math.sin(a);
+        for (const z of scene.enemies.getChildren()) {
+          if (!z.active) continue;
+          // Distance along the beam and off it; the enemy's body counts, so a big one is hit at its edge.
+          const px = z.x - ex, py = z.y - ey, along = px * dx + py * dy;
+          if (along < 0 || along > w.range) continue;
+          if (Math.abs(px * dy - py * dx) <= w.width / 2 + (z.body?.halfWidth ?? 0)) scene.hurtEnemy(z, scene.weaponDamage(w.damage), z.x, z.y, 'laserHit');
+        }
+      }
+      w.showMs = lz.beamMs;
+      w.cooldownMs = scene.weaponCooldown(lz.cooldownMs);
+    },
+  },
+  {
     id: 'shield',
     name: 'Tarcza Kapitana',
     icon: 'captain_shield',
@@ -111,6 +204,59 @@ function placeGun(w, pl) {
   const x = pl.x + Math.cos(w.aim) * p.gun.distance, y = pl.y + p.gun.offsetY + Math.sin(w.aim) * p.gun.distance;
   w.gun.setPosition(x, y).setRotation(w.aim).setFlipY(Math.cos(w.aim) < 0).setVisible(pl.texture.key !== 'tank');
   return { x, y };
+}
+
+// Active enemies within range of (x, y), nearest first.
+function nearestEnemies(scene, x, y, range) {
+  const found = [];
+  for (const z of scene.enemies.getChildren()) {
+    if (!z.active) continue;
+    const dSq = Phaser.Math.Distance.Squared(x, y, z.x, z.y);
+    if (dSq <= range * range) found.push({ z, dSq });
+  }
+  return found.sort((a, b) => a.dSq - b.dSq).map((f) => f.z);
+}
+
+// One gas cloud: turns slowly, hurts everyone inside every tickMs, laughs now and then, fades out at the end.
+function updateCloud(scene, w, c, delta) {
+  c.remainingMs -= delta;
+  if (c.remainingMs <= 0) {
+    c.setActive(false).setVisible(false);
+    return;
+  }
+  c.angle += gz.spinDegPerSec * delta / 1000;
+  c.setAlpha(Math.min(1, c.remainingMs / (c.totalMs * gz.fadeShare)));
+  c.tickMs -= delta;
+  if (c.tickMs <= 0) {
+    c.tickMs += gz.tickMs;
+    for (const z of scene.enemies.getChildren()) {
+      if (z.active && Phaser.Math.Distance.Squared(c.x, c.y, z.x, z.y) <= c.radius * c.radius) {
+        scene.hurtEnemy(z, scene.weaponDamage(w.damage), z.x, z.y, 'gasHit');
+      }
+    }
+  }
+  c.laughMs -= delta;
+  if (c.laughMs <= 0) {
+    c.laughMs += gz.laughEveryMs;
+    playVfx(scene, 'gasLaugh', c.x + Phaser.Math.FloatBetween(-c.radius, c.radius) / 2, c.y - c.radius / 3);
+  }
+}
+
+// Eye laser beams, redrawn every frame while they show: a wide soft glow, the red beam, a white-hot core, glowing eyes.
+// They follow Bartek and fade over beamMs.
+function drawBeams(w, ex, ey, scale, delta) {
+  w.g.clear();
+  if (w.showMs <= 0) return;
+  w.showMs -= delta;
+  const a = Phaser.Math.Clamp(w.showMs / lz.beamMs, 0, 1), gap = lz.eyeGap * scale;
+  for (const ang of w.angles) {
+    const x2 = ex + Math.cos(ang) * w.range, y2 = ey + Math.sin(ang) * w.range;
+    w.g.lineStyle(w.width * 2, lz.glowColor, lz.glowAlpha * a).lineBetween(ex, ey, x2, y2);
+    w.g.lineStyle(w.width, lz.color, a).lineBetween(ex, ey, x2, y2);
+    w.g.lineStyle(w.width * 0.35, 0xffffff, a).lineBetween(ex, ey, x2, y2);
+  }
+  w.g.fillStyle(lz.color, a).fillCircle(ex - gap, ey, w.width * 0.5).fillCircle(ex + gap, ey, w.width * 0.5);
+  w.g.fillStyle(0xffffff, a).fillCircle(ex - gap, ey, w.width * 0.2).fillCircle(ex + gap, ey, w.width * 0.2);
 }
 
 // Shield sprites are made only when Bartek gets one more and are reused for every throw.

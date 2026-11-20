@@ -44,6 +44,8 @@ export function newRun() {
     damageDealt: 0, // by bullets and bees, for the debug overlay
     coinProtein: 0, // protein from coins picked up this run, paid out at the end
     damageTaken: 0, // from enemy touches, for the Captain's shield unlock
+    killsByType: {}, // enemy type id -> kills this run (weapon unlocks)
+    bossesKilled: [], // boss ids killed this run (weapon unlocks)
     pendingLevelUps: 0, // level-ups still waiting for a card pick
     pickupDropMs: {}, // pickup id -> run time of its last drop, for the cooldown
     effects: {}, // timed effects, see systems/effects.js

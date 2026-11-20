@@ -14,7 +14,13 @@ export default class GameOverScene extends Phaser.Scene {
     save.protein += this.earned;
     save.runsPlayed += 1;
     // A weapon whose unlock condition this run met can drop as a card from now on.
-    for (const def of weapons) if (def.unlock && !save.unlocks.includes(def.id) && def.unlock.check(this.run, this.won)) save.unlocks.push(def.id);
+    // One at a time, in list order, so the shield (last) already sees the others unlocked by this same run.
+    this.newUnlocks = [];
+    for (const def of weapons) {
+      if (!def.unlock || save.unlocks.includes(def.id) || !def.unlock.check(this.run, this.won)) continue;
+      save.unlocks.push(def.id);
+      this.newUnlocks.push(def);
+    }
     writeSave(save);
     stopMusic();
   }
@@ -46,6 +52,12 @@ export default class GameOverScene extends Phaser.Scene {
       if (scene === 'GymScene' && save.runsPlayed === 1) {
         this.tweens.add({ targets: btn, scale: u.gymPulse.scale, duration: u.gymPulse.ms, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
+    }
+    // A weapon unlocked by this run: from now on it can drop as a card.
+    if (this.newUnlocks.length) {
+      this.add.text(cx, cy + u.lineGap * 3, `Nowa broń: ${this.newUnlocks.map((d) => d.name).join(', ')}! Może teraz wypaść jako karta.`, {
+        fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, fontStyle: 'bold', color: '#ffc400',
+      }).setOrigin(0.5);
     }
   }
 }

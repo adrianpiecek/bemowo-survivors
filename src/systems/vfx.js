@@ -61,6 +61,12 @@ export function createVfxTextures(scene) {
   const v = f.chevron;
   g.lineStyle(v * 0.5, 0xffffff).beginPath().moveTo(v * 0.25, v * 1.45).lineTo(v, v * 0.6).lineTo(v * 1.75, v * 1.45).strokePath();
   tex('fx_chevron', v * 2);
+  // "HA": the laughing gas's laugh, drawn in lines.
+  const hh = f.ha * 2, lw = hh * 0.55, hw = lw * 2 + hh * 0.3;
+  g.lineStyle(3, 0xffffff).lineBetween(2, 1, 2, hh - 1).lineBetween(2 + lw, 1, 2 + lw, hh - 1).lineBetween(2, hh / 2, 2 + lw, hh / 2);
+  const ax = hw - lw - 2;
+  g.lineBetween(ax, hh - 1, ax + lw / 2, 1).lineBetween(ax + lw / 2, 1, ax + lw, hh - 1).lineBetween(ax + lw * 0.25, hh * 0.62, ax + lw * 0.75, hh * 0.62);
+  g.generateTexture('fx_ha', hw + 2, hh).clear();
   // Muzzle flash, pointing right from its left middle: a yellow spiky cone with a white-hot core.
   const m = f.flash, mh = m / 2;
   g.fillStyle(0xffb300).fillPoints([{ x: 0, y: mh * 0.6 }, { x: m * 0.45, y: 0 }, { x: m * 0.55, y: mh * 0.7 }, { x: m, y: mh },

@@ -56,8 +56,8 @@ export default class GameScene extends Phaser.Scene {
 
     this.gems = this.physics.add.group({ defaultKey: 'gem_green', maxSize: config.pools.gems });
     this.addWeapon(weapons.find((d) => d.id === config.weapons.start));
-    const debugWeapon = weapons.find((d) => d.id === config.debug.giveWeapon && d.id !== config.weapons.start);
-    if (debugWeapon) {
+    const debugIds = [].concat(config.debug.giveWeapon ?? []);
+    for (const debugWeapon of weapons.filter((d) => debugIds.includes(d.id) && d.id !== config.weapons.start)) {
       if (debugWeapon.unlock && !save.unlocks.includes(debugWeapon.id)) {
         save.unlocks.push(debugWeapon.id);
         writeSave(save);
@@ -185,6 +185,7 @@ export default class GameScene extends Phaser.Scene {
   killEnemy(enemy) {
     enemy.disableBody(true, true);
     this.run.kills++;
+    this.run.killsByType[enemy.stats.id] = (this.run.killsByType[enemy.stats.id] ?? 0) + 1;
     if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, config.tank.killsToCharge);
     this.dropGem(enemy.x, enemy.y, enemy.stats.gem);
     if (Math.random() < config.coins.dropChance) this.dropCoin(enemy.x, enemy.y, this.pickCoinKind());
@@ -207,6 +208,7 @@ export default class GameScene extends Phaser.Scene {
     const b = config.boss, r = b.gemSpread, def = boss.stats;
     boss.clearTint();
     this.run.bossProtein += def.protein;
+    this.run.bossesKilled.push(def.id);
     for (let i = 0; i < b.gemCount; i++) {
       this.dropGem(boss.x + Phaser.Math.FloatBetween(-r, r), boss.y + Phaser.Math.FloatBetween(-r, r), b.gemKind);
     }

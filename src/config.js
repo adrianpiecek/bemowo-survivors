@@ -16,6 +16,18 @@ export const config = {
     shield: { damage: 20, bounces: 2, shields: 1, cooldownMs: 1800, range: 380, bounceRange: 300, speed: 650, hitDist: 20,
       size: 34, spinDegPerSec: 900, unlockDamageTaken: 500,
       levels: [{ bounces: 1 }, { damage: 10 }, { shields: 1 }, { bounces: 2 }, { damage: 10 }, { shields: 1 }] },
+    // Laughing gas (Joker): every cooldownMs `clouds` clouds land on random ones of the `pick` nearest enemies within range.
+    // A cloud lasts durationMs and hurts every enemy inside its radius every tickMs; a "HA" rises from it every laughEveryMs.
+    // unlockJokers: Jokers killed in one run to unlock it.
+    gas: { damage: 6, clouds: 1, cooldownMs: 3000, range: 350, pick: 5, radius: 70, durationMs: 3000, tickMs: 500,
+      laughEveryMs: 450, spinDegPerSec: 25, fadeShare: 0.2, unlockJokers: 30,
+      levels: [{ damage: 3 }, { clouds: 1 }, { radius: 15 }, { durationMs: 1000 }, { damage: 4 }, { clouds: 1 }] },
+    // Eye laser (Homelander): every cooldownMs one beam per `beams` toward the nearest enemies within range, from Bartek's
+    // eyes (eyeOffsetY above his middle, eyeGap apart, at normal size). A beam is `range` long and hurts every enemy whose
+    // body is within width/2 of its line. It shows for beamMs. Unlock: kill the boss `unlockBoss` in a won run.
+    laser: { damage: 15, beams: 1, cooldownMs: 2500, range: 520, width: 12, beamMs: 260, eyeOffsetY: -14, eyeGap: 7,
+      color: 0xff1744, glowColor: 0xff8a80, glowAlpha: 0.35, unlockBoss: 'bigHomelander',
+      levels: [{ damage: 8 }, { beams: 1 }, { width: 8 }, { damage: 10 }, { beams: 1 }, { range: 120 }] },
   },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
@@ -90,7 +102,7 @@ export const config = {
     timeSkipKey: false, // true: the J key moves the run clock 60 s forward
     bossKey: false, // true: B, then a digit 1-4, calls that boss (in order of appearance) after its banner
     enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
-    giveWeapon: null, // a weapon id (e.g. 'shield'): unlocked in the save and given at the start of every run
+    giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -173,7 +185,7 @@ export const config = {
     },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
-  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
+  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 12, gas: 12 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -288,6 +300,14 @@ export const config = {
     beeSting: { minGapMs: 30, layers: [ // a bee stings an enemy: yellow sparks and a small ring
       { particles: { texture: 'fx_spark', count: 6, speed: [80, 190], lifeMs: 260, scale: [1, 0], tint: [0xffd400, 0xffffff], add: true } },
       { image: { texture: 'fx_ring', scale: [0.15, 0.7], alpha: [1, 0], ms: 200, tint: 0xffd400 } }] },
+    gasHit: { minGapMs: 60, layers: [ // an enemy coughs in the laughing gas
+      { particles: { texture: 'fx_dot', count: 3, speed: [20, 60], lifeMs: 320, scale: [0.8, 0], tint: [0x9ccc65, 0xce93d8], gravityY: -60 } }] },
+    gasLaugh: { layers: [ // a "HA" rising from a gas cloud
+      { particles: { texture: 'fx_ha', count: 1, speed: [25, 45], angle: -90, spread: 40, lifeMs: 900, scale: [0.9, 1.2], alpha: [1, 0],
+        tint: [0x9ccc65, 0xba68c8], spin: 20, depth: 1.7 } }] },
+    laserHit: { minGapMs: 40, layers: [ // the eye laser burns an enemy
+      { particles: { texture: 'fx_spark', count: 5, speed: [80, 200], lifeMs: 200, scale: [1, 0], tint: [0xff1744, 0xffffff], add: true } },
+      { image: { texture: 'fx_dot', scale: [2.2, 0], alpha: [1, 0], ms: 140, tint: 0xff8a80, add: true } }] },
     // Pistol shot, played at the barrel tip turned at the target; the shell is played with angle +-30 (away from the aim).
     muzzleFlash: { layers: [
       { image: { texture: 'fx_flash', origin: [0, 0.5], scale: [1, 0.6], alpha: [1, 0], ms: 80, ease: 'Linear' } },
@@ -327,12 +347,15 @@ export const config = {
     pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
     // Effect shapes (systems/vfx.js), radius in px (flash: width and height, shell: height, twice as long).
-    fx: { dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9 },
+    fx: { dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9 },
     // The pistol Bartek holds, drawn pointing right: width x height px, held at grip (fraction of the size).
     gun: { width: 28, height: 15, grip: [0.3, 0.5], slide: 0x455a64, slideLight: 0x90a4ae, frame: 0x263238, handle: 0x6d4c41, handleLight: 0x8d6e63 },
     captainShield: { file: './assets/captain_shield.png' }, // 50x50 pixel art, also the shield's HUD icon
     // Drawn weapon icons for the HUD, size x size px.
-    weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41 },
+    weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41,
+      gasColors: [0x9ccc65, 0xba68c8, 0x7cb342], laserColor: 0xff1744, eyeColor: 0xffffff },
+    // Laughing gas cloud, size x size px, shown scaled to its radius: soft green and purple puffs.
+    gasCloud: { size: 128, colors: [0x9ccc65, 0xba68c8, 0x7cb342, 0xce93d8], alpha: 0.28, puffs: 9 },
     tank: { height: 110, bodyRadius: 45 }, // czołg.png: Bartek in a tank, barrel to the left
     pigeon: { frames: 3, fps: 10, scale: 2, width: 48, height: 40, flipX: true }, // assets/Pigeons/pigeon1..3.png, 24x20 px, facing left; size after scale; flipX turns it to face the flight
   },

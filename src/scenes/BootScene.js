@@ -114,6 +114,26 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(wi.gunColor).fillRect(ws * 0.18, ws * 0.3, ws * 0.64, ws * 0.16);
     g.fillStyle(wi.gripColor).fillRect(ws * 0.22, ws * 0.44, ws * 0.17, ws * 0.32);
     g.generateTexture('weapon_pistol', ws, ws).clear();
+    // Laughing gas: three puffs on the frame.
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    g.fillStyle(wi.gasColors[0]).fillCircle(ws * 0.38, ws * 0.58, ws * 0.2);
+    g.fillStyle(wi.gasColors[1]).fillCircle(ws * 0.6, ws * 0.44, ws * 0.2);
+    g.fillStyle(wi.gasColors[2]).fillCircle(ws * 0.66, ws * 0.66, ws * 0.15);
+    g.generateTexture('weapon_gas', ws, ws).clear();
+    // Eye laser: two glowing eyes and a beam.
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    g.lineStyle(ws * 0.12, wi.laserColor).lineBetween(ws * 0.3, ws * 0.38, ws * 0.92, ws * 0.8);
+    g.fillStyle(wi.laserColor).fillCircle(ws * 0.28, ws * 0.36, ws * 0.12).fillCircle(ws * 0.5, ws * 0.36, ws * 0.12);
+    g.fillStyle(wi.eyeColor).fillCircle(ws * 0.28, ws * 0.36, ws * 0.05).fillCircle(ws * 0.5, ws * 0.36, ws * 0.05);
+    g.generateTexture('weapon_laser', ws, ws).clear();
+    // Laughing gas cloud: puffs scattered around the middle, see-through so they stack into a soft cloud.
+    const gz = t.gasCloud, gcs = gz.size, gcc = gcs / 2;
+    for (let i = 0; i < gz.puffs; i++) {
+      const a = (i / gz.puffs) * Math.PI * 2, d = i % 2 ? gcs * 0.2 : gcs * 0.12;
+      g.fillStyle(gz.colors[i % gz.colors.length], gz.alpha).fillCircle(gcc + Math.cos(a) * d, gcc + Math.sin(a) * d, gcs * 0.26);
+    }
+    g.fillStyle(gz.colors[0], gz.alpha).fillCircle(gcc, gcc, gcs * 0.3);
+    g.generateTexture('gas_cloud', gcs, gcs).clear();
 
     const pk = t.pickup;
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);
