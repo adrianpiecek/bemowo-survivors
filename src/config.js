@@ -157,6 +157,9 @@ export const config = {
     storm: { durationSec: 15, everyMs: 400, damage: 30 }, // a bolt into a random enemy on screen; damage goes through weaponDamage
     festyn: { count: 3, minDist: 250, maxDist: 450 }, // map pickups around Bartek
     gemRain: { durationSec: 10, everyMs: 60, radius: 380, kind: 'blue' },
+    // Chorda nadchodzi: for durationSec the spawn rate is spawnMult x and every spawn on the ring (waves too) comes from
+    // one random side, within arcDeg; Bartek still standing at the end gets a chest (one card) chestDist px away.
+    horde: { durationSec: 20, spawnMult: 3, arcDeg: 70, chestDist: 120 },
   },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).

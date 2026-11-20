@@ -288,13 +288,14 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 | Burza | 15 s piorunów w losowych wrogów |
 | Festyn osiedlowy | 3 znajdźki naraz na mapie |
 | Deszcz kryształów | kryształy spadają wokół Bartka |
+| Chorda nadchodzi | przez 20 s 3x więcej wrogów, wszyscy z jednej strony; przetrwanie daje skrzynię |
 
 - **Bossowie.** Pierwsze trzy sloty losują bossa z puli (`config.boss.slots`). Wielki Homelander jako ostatni zostaje stały.
 
 **Jak działa (krok 34):**
 - Elity: liczby w `config.elites`. Co 40 s następny wróg, który pojawia się sam (bez bossów, paczek goblinów i klap), staje się elitą: x5 HP, 1.25x większy, poświata w kolorze cechy (WebGL) i nazwa nad głową. Po śmierci zostawia skrzynię z 1 kartą (od kroku 35b nigdy z ewolucją). Cechy: Szybki +60% prędkości, Pancerny x4 HP (razem x20), Dzielący się: 3 kopie w skali 0.7 z połową HP, Wampir: co sekundę leczy wrogów w promieniu 160 px o 15% ich max HP (bez bossów), Złodziej: idzie do najbliższego kryształu w promieniu 450 px, zabiera te w promieniu 40 px, po śmierci zostawia jeden kryształ wart ich sumę +50%.
 - Wydarzenia: liczby w `config.events`. Runda bierze 3 wydarzenia, najpierw te, których nie było w poprzedniej rundzie. Każde startuje w losowej sekundzie między 0:50 a 9:00, co najmniej 60 s po poprzednim i 30 s od każdego slotu bossa. Wydarzenie z czasem trwania ma pasek pod HUD-em.
-- Liczby wydarzeń: Burza uderza co 400 ms za 30 obrażeń (przez mnożnik obrażeń broni). Deszcz kryształów to niebieski kryształ co 60 ms do 380 px od Bartka. Festyn kładzie 3 różne znajdźki 250-450 px od Bartka.
+- Liczby wydarzeń: Burza uderza co 400 ms za 30 obrażeń (przez mnożnik obrażeń broni). Deszcz kryształów to niebieski kryształ co 60 ms do 380 px od Bartka. Festyn kładzie 3 różne znajdźki 250-450 px od Bartka. Chorda nadchodzi (`config.events.horde`): przez 20 s spawn x3 (mnożony razem z Zakładami z Unc), a każdy punkt na pierścieniu spawnu (też fale i Kontrola biletów) leży w łuku 70° po jednej losowej stronie (`run.hordeAngle`). Na koniec baner „CHORDA ODPARTA!” i skrzynia z 1 kartą (bez ewolucji) 120 px od Bartka.
 - Promocja w Żabce: sklep stoi 500-700 px od Bartka przez 45 s, strzałka HUD-u wskazuje go przed innymi znajdźkami. Wejście otwiera `ShopScene`: 3 karty z rzadkością, cena w białku z monet tej rundy (`run.coinProtein`): bez rzadkości 15, zwykła 8, rzadka 15, epicka 25, legendarna 40. Można kupić ile się da, każdą kartę raz. Wydane białko nie wraca na koniec rundy. Jedna wizyta na promocję.
 - Bossowie: slot daje minutę, HP (1000, 2000, 3000, 4800), skrzynię i białko. Pule: 2:30 Wielki Zombie, Wielki Uncanny albo Wielki Goblin; 4:30 Wielki Sportakus, Wielki Joker albo Wielki Goblin; 6:30 Wielki Joker, Wielki Sportakus albo Wielki Zombie; 9:30 Wielki Homelander. Ten sam boss nie trafia się dwa razy w rundzie, a skład różni się od poprzedniej rundy.
 - Debug: `config.debug.eliteKey` (L: elita obok Bartka, co naciśnięcie kolejna cecha), `config.debug.eventKey` (V, potem 1-8: wydarzenie w kolejności z `events.js`).

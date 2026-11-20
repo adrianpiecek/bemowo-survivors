@@ -76,6 +76,7 @@ export function newRun() {
     events: [], // this run's events (data/events.js): { def, atMs, started }, drawn in GameScene.create
     activeEvents: [], // events going on now: { def, remainingMs, durationMs } plus the event's own counters
     xpMult: 1, // Złota godzina
+    hordeAngle: null, // Chorda nadchodzi: radians, the side every ring spawn comes from while it lasts
     // Zakłady z Unc (data/bets.js), set in GameScene.create:
     betPct: 0, // protein bonus of the run's bets (0.45 = +45%)
     enemySpeedMult: 1, // every enemy's speed

@@ -717,10 +717,10 @@ export default class GameScene extends Phaser.Scene {
     return z;
   }
 
-  // A random point on the spawn ring around Bartek.
+  // A random point on the spawn ring around Bartek (during Chorda nadchodzi only on its side).
   ringPoint() {
-    const { ringMinRadius, ringMaxRadius } = config.spawn;
-    const angle = Phaser.Math.FloatBetween(0, Math.PI * 2), r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
+    const { ringMinRadius, ringMaxRadius } = config.spawn, side = this.run.hordeAngle, half = Phaser.Math.DegToRad(config.events.horde.arcDeg) / 2;
+    const angle = side === null ? Phaser.Math.FloatBetween(0, Math.PI * 2) : side + Phaser.Math.FloatBetween(-half, half), r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
     return { x: this.player.x + Math.cos(angle) * r, y: this.player.y + Math.sin(angle) * r };
   }
 

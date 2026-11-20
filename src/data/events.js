@@ -117,4 +117,19 @@ export const events = [
       });
     },
   },
+  {
+    id: 'horde', name: 'Chorda nadchodzi', durationSec: c.horde.durationSec,
+    description: `${c.horde.spawnMult}x więcej wrogów z jednej strony przez ${c.horde.durationSec} s. Przetrwaj, a dostaniesz skrzynię`,
+    start(scene) {
+      scene.run.hordeAngle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      scene.run.spawnRateMult *= c.horde.spawnMult; // on top of Zakłady z Unc
+    },
+    end(scene) {
+      scene.run.hordeAngle = null;
+      scene.run.spawnRateMult /= c.horde.spawnMult;
+      const { x, y } = around(scene, c.horde.chestDist, c.horde.chestDist);
+      scene.dropChest(x, y, 1, false); // a card, never an evolution: those come from bosses
+      scene.scene.get('UIScene').showBanner('CHORDA ODPARTA!', 'Skrzynia za przetrwanie');
+    },
+  },
 ];
