@@ -67,7 +67,7 @@ export default class GameScene extends Phaser.Scene {
     });
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHit, null, this);
 
-    this.gems = this.physics.add.group({ defaultKey: 'gem_green', maxSize: config.pools.gems });
+    this.gems = this.physics.add.group({ defaultKey: 'gem_blue', maxSize: config.pools.gems });
     // One random starting weapon (debug.startWeapon picks it).
     const startId = config.debug.startWeapon ?? Phaser.Utils.Array.GetRandom(config.weapons.start);
     this.addWeapon(weapons.find((d) => d.id === startId));
@@ -148,7 +148,7 @@ export default class GameScene extends Phaser.Scene {
         const { x, y } = this.player;
         for (let i = 0; i < 250; i++) {
           const a = Phaser.Math.FloatBetween(0, Math.PI * 2), r = Phaser.Math.FloatBetween(150, 600);
-          this.dropGem(x + Math.cos(a) * r, y + Math.sin(a) * r, 'green');
+          this.dropGem(x + Math.cos(a) * r, y + Math.sin(a) * r, 'blue');
         }
         Object.keys(config.coins.kinds).forEach((kind, i) => this.dropCoin(x + 60 + i * 30, y, kind));
         for (let i = 0; i < 10; i++) this.dropCollectible(x + 60 + i * 20, y + 40, 'coin_b', 1, 'b');

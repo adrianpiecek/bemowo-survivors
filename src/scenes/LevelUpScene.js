@@ -7,7 +7,7 @@ import { font, button } from '../systems/ui.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 
-// Level-up cards over the paused GameScene. Under them: Odśwież [R] (new cards), Pomiń [S] (no card, a little HP) and
+// Level-up cards over the paused GameScene. Under them: Odśwież [R] (new cards), Pomiń [P] (no card, a little HP) and
 // Wywal [W, then the card's digit] (the card leaves the pool for the rest of the run and a new one takes its place).
 // Their charges are in run.player. A restart with { choices, rarities } keeps the cards on screen (after a banish).
 export default class LevelUpScene extends Phaser.Scene {
@@ -51,8 +51,8 @@ export default class LevelUpScene extends Phaser.Scene {
     const last = cardCenter(this, n - 1, n), by = last.y + c.height / 2 + db.top + db.height / 2;
     const actions = [
       ['Odśwież', pl.rerolls, 'R', () => this.reroll()],
-      ['Pomiń', pl.skips, 'S', () => this.skip()],
-      ['Wywal', pl.banishes, 'W', () => this.toggleBanish()],
+      ['Pomiń', pl.skips, 'P', () => this.skip()], // not on WASD or the arrows: a player still walking would skip by accident
+      ['Wywal', pl.banishes, 'X', () => this.toggleBanish()],
     ];
     actions.forEach(([label, charges, key, fn], i) => {
       const bx = width / 2 + (i - 1) * (db.width + db.gap);
@@ -69,8 +69,8 @@ export default class LevelUpScene extends Phaser.Scene {
 
   setHint() {
     const db = config.ui.drawButtons;
-    if (this.banishing) this.hint.setText(`Którą kartę wywalić? [1-${this.choices.length}]   [W] anuluj`).setColor(db.banishColor);
-    else this.hint.setText('[R] odśwież   [S] pomiń (+HP)   [W] wywal').setColor(db.hintColor);
+    if (this.banishing) this.hint.setText(`Którą kartę wywalić? [1-${this.choices.length}]   [X] anuluj`).setColor(db.banishColor);
+    else this.hint.setText('[R] odśwież   [P] pomiń (+HP)   [X] wywal').setColor(db.hintColor);
   }
 
   // A card click or digit: picks the card, or banishes it while Wywal is on.

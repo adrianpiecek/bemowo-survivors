@@ -1,22 +1,53 @@
 import { config } from '../config.js';
-import { save } from '../state.js';
+import { save, writeSave } from '../state.js';
+import { setOrientation } from '../systems/layout.js';
 import { playSfx, playMusic } from '../systems/audio.js';
 import { font, button } from '../systems/ui.js';
 
 // Title with the intro. Browsers keep audio locked until the player does something, so the intro only starts
 // after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one,
 // then the music starts and any key or click goes to the gym (straight into a run the very first time).
+// The very first launch asks how the screen is held instead of the start button; that click starts the intro.
 export default class TitleScene extends Phaser.Scene {
   constructor() { super('TitleScene'); }
 
   create() {
     const t = config.ui.title, { width, height } = this.scale;
+    if (!save.orientationSet) {
+      this.askOrientation();
+      return;
+    }
+    if (this.registry.get('titleIntro')) { // just answered: the click already unlocked the audio
+      this.registry.remove('titleIntro');
+      this.intro();
+      return;
+    }
     // A drawn button, pulsing; a click anywhere (or a key) counts, the button only shows where.
     const prompt = button(this, width / 2, height / 2, 'Kliknij, aby zacząć', () => {}, { fontSize: t.promptFontSize });
     this.tweens.add({ targets: prompt, scale: t.pulseScale, duration: t.blinkMs, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.onFirstInput(() => {
       prompt.destroy();
       this.intro();
+    });
+  }
+
+  // "Jak trzymasz ekran?" with Pionowo and Poziomo. The answer is kept in the save; the scene comes back (in the
+  // picked shape) straight into the intro.
+  askOrientation() {
+    const t = config.ui.title, { width, height } = this.scale, cx = width / 2, cy = height / 2;
+    this.add.text(cx, cy - t.orientGapY, 'Jak trzymasz ekran?', font(t.orientFontSize, {
+      fontStyle: 'bold', stroke: '#000000', strokeThickness: t.promptStroke, align: 'center', wordWrap: { width: width - 2 * config.ui.margin } })).setOrigin(0.5);
+    [['Pionowo', 'portrait'], ['Poziomo', 'landscape']].forEach(([label, o], i) => {
+      button(this, cx + (i - 0.5) * (t.orientWidth + t.orientGap), cy, label, () => {
+        if (save.orientationSet) return; // a double click
+        save.orientationSet = true;
+        this.registry.set('titleIntro', true);
+        if (o !== save.orientation) setOrientation(this, o); // saves, resizes the game and restarts this scene
+        else {
+          writeSave(save);
+          this.scene.restart();
+        }
+      }, { width: t.orientWidth, fontSize: t.promptFontSize });
     });
   }
 

@@ -25,14 +25,14 @@ export default class BootScene extends Phaser.Scene {
     this.load.once('complete', () => document.getElementById('loading')?.remove());
   }
 
-  // Green pictures (config.look.outline.sprites) get a dark edge so they show on grass: the picture is redrawn under
-  // the same key, bigger by p px all round, over its silhouette stamped in a disc of radius p. p is in picture px,
-  // so it comes out about spriteWidth px on screen at the sprite's config height.
+  // Enemy pictures and drawn chests and pickups (config.look.outline) get a dark edge so they show on grass: the texture
+  // is redrawn under the same key, bigger by p px all round, over its silhouette stamped in a disc of radius p. For a
+  // picture p is in picture px, so it comes out about spriteWidth px on screen at the sprite's config height.
   outlineSprites() {
     const ol = config.look.outline;
-    for (const key of ol.sprites) {
+    for (const key of [...ol.sprites, ...ol.shapes]) {
       const src = this.textures.get(key).getSourceImage();
-      const p = Math.ceil(ol.spriteWidth * src.height / config.textures[key].height);
+      const p = Math.ceil(ol.sprites.includes(key) ? ol.spriteWidth * src.height / config.textures[key].height : ol.shapeWidth);
       const w = src.width + p * 2, h = src.height + p * 2;
       const sil = document.createElement('canvas');
       sil.width = w;
@@ -47,13 +47,18 @@ export default class BootScene extends Phaser.Scene {
       ring.height = h;
       const rc = ring.getContext('2d');
       for (let dx = -p; dx <= p; dx++) for (let dy = -p; dy <= p; dy++) if (dx * dx + dy * dy <= p * p) rc.drawImage(sil, dx, dy);
+      // The silhouette goes under at alpha, the texture on top, before the old texture is removed: a drawn texture's
+      // canvas goes back to Phaser's pool with it and comes back blank.
+      const out = document.createElement('canvas');
+      out.width = w;
+      out.height = h;
+      const oc = out.getContext('2d');
+      oc.globalAlpha = ol.alpha;
+      oc.drawImage(ring, 0, 0);
+      oc.globalAlpha = 1;
+      oc.drawImage(src, p, p);
       this.textures.remove(key);
-      const tex = this.textures.createCanvas(key, w, h), ctx = tex.getContext();
-      ctx.globalAlpha = ol.alpha;
-      ctx.drawImage(ring, 0, 0);
-      ctx.globalAlpha = 1;
-      ctx.drawImage(src, p, p);
-      tex.refresh();
+      this.textures.createCanvas(key, w, h).draw(0, 0, out);
     }
   }
 
@@ -71,7 +76,6 @@ export default class BootScene extends Phaser.Scene {
     pixel('shotgun');
     createVfxTextures(this);
     createMapTextures(this);
-    this.outlineSprites();
 
     const g = this.add.graphics();
 
@@ -334,6 +338,7 @@ export default class BootScene extends Phaser.Scene {
 
     this.sound.mute = save.muted;
     this.sound.volume = config.audio.masterVolume;
+    this.outlineSprites(); // last: the chests and pickups are drawn above
     this.scene.start('TitleScene');
   }
 

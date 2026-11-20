@@ -8,14 +8,14 @@ import { config } from '../config.js';
 const e = config.enemies;
 
 const regular = [
-  { id: 'zombie', ...e.zombie, behavior: 'chase', isBoss: false, texture: 'zombie', gem: 'green' },
-  { id: 'runner', ...e.runner, behavior: 'chase', isBoss: false, texture: 'uncanny', gem: 'green' },
-  { id: 'joker', ...e.joker, behavior: 'chase', isBoss: false, texture: 'joker', gem: 'blue', deathVfx: 'splatPurple' },
+  { id: 'zombie', ...e.zombie, behavior: 'chase', isBoss: false, texture: 'zombie', gem: 'blue' },
+  { id: 'runner', ...e.runner, behavior: 'chase', isBoss: false, texture: 'uncanny', gem: 'blue' },
+  { id: 'joker', ...e.joker, behavior: 'chase', isBoss: false, texture: 'joker', gem: 'purple', deathVfx: 'splatPurple' },
   { id: 'homelander', ...e.homelander, behavior: 'chase', isBoss: false, texture: 'homelander', gem: 'yellow' },
-  { id: 'goblin', ...e.goblin, behavior: 'chase', isBoss: false, texture: 'goblin', gem: 'green', pack: true, deathVfx: 'splatGreen' },
-  { id: 'sportakus', ...e.sportakus, behavior: 'leap', isBoss: false, texture: 'sportakus', gem: 'blue' },
+  { id: 'goblin', ...e.goblin, behavior: 'chase', isBoss: false, texture: 'goblin', gem: 'blue', pack: true, deathVfx: 'splatGreen' },
+  { id: 'sportakus', ...e.sportakus, behavior: 'leap', isBoss: false, texture: 'sportakus', gem: 'purple' },
   // The first hit by a klapa in a run leaves a scar on Bartek's head.
-  { id: 'klapa', ...e.klapa, behavior: 'line', isBoss: false, texture: 'klapa', gem: 'green', leavesScar: true, touchVfx: 'klapaClang' },
+  { id: 'klapa', ...e.klapa, behavior: 'line', isBoss: false, texture: 'klapa', gem: 'blue', leavesScar: true, touchVfx: 'klapaClang' },
 ];
 
 // Bosses (config.boss.list): their base type, bigger and stronger; behavior, texture and extra numbers come from the base.

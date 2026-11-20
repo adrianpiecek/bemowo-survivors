@@ -100,7 +100,7 @@ export const config = {
   boss: {
     bannerSec: 2,
     olxDamagePct: 0.1, // the OLX flock takes this share of max HP instead of killing it
-    gemCount: 40, gemKind: 'green', gemSpread: 120, // the rain on top of the boss's own gem
+    gemCount: 40, gemKind: 'blue', gemSpread: 120, // the rain on top of the boss's own gem
     // Boss slots in order: atSec when it walks in (banner and boss music bannerSec earlier), hp, chest (upgrades in the
     // chest it drops), protein (paid at the end of the run for the kill). Every run draws one boss from each slot's pool,
     // never one drawn for an earlier slot, and not the same line-up as the run before. Boss HP does not grow with the run time.
@@ -160,7 +160,7 @@ export const config = {
     zabka: { durationSec: 45, minDist: 500, maxDist: 700, cards: 3, prices: { none: 15, common: 8, rare: 15, epic: 25, legendary: 40 } },
     storm: { durationSec: 15, everyMs: 400, damage: 30 }, // a bolt into a random enemy on screen; damage goes through weaponDamage
     festyn: { count: 3, minDist: 250, maxDist: 450 }, // map pickups around Bartek
-    gemRain: { durationSec: 10, everyMs: 60, radius: 380, kind: 'blue' },
+    gemRain: { durationSec: 10, everyMs: 60, radius: 380, kind: 'purple' },
     // Chorda nadchodzi: for durationSec the spawn rate is spawnMult x and every spawn on the ring (waves too) comes from
     // one random side, within arcDeg; Bartek still standing at the end gets a chest (one card) chestDist px away.
     horde: { durationSec: 20, spawnMult: 3, arcDeg: 70, chestDist: 120 },
@@ -190,9 +190,12 @@ export const config = {
   },
   // Characters: a shadow under each (shadowW x its width, shadowFlat as tall, shadowY x its height below its middle),
   // a sway of bobDeg at bobHz while walking, a white flash for hitFlashMs when hit and still alive.
-  // outline: a dark edge so green things stand out on grass. Gems get gemWidth px in their texture; the `sprites`
-  // (loaded pictures) get spriteWidth px on screen, drawn into a copy of the picture in BootScene.
-  look: { outline: { color: 0x102010, alpha: 0.9, gemWidth: 1.5, spriteWidth: 1.5, sprites: ['zombie', 'goblin'] },
+  // outline: a dark edge so things stand out on grass. Gems get gemWidth px in their texture; the `sprites` (enemy
+  // pictures) get spriteWidth px on screen and the `shapes` (drawn chests and pickups) shapeWidth px, both drawn into a
+  // copy of the texture in BootScene.
+  look: { outline: { color: 0x101010, alpha: 0.9, gemWidth: 1.5, spriteWidth: 2.5, shapeWidth: 2.5,
+    sprites: ['zombie', 'uncanny', 'joker', 'homelander', 'goblin', 'sportakus'],
+    shapes: ['chest', 'chest_locked', 'pickup', 'pickup_magnet', 'pickup_freeze', 'pickup_preworkout', 'pickup_bubble', 'pickup_pierogi'] },
     evolutionFlashMs: 400, heavyHitPct: 0.5, critFlashColor: 0xffc400, shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
@@ -214,8 +217,8 @@ export const config = {
   // (flat top, pointed bottom); facets in `dark`, an inner face in `light`, and a white sparkle.
   xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, perLevelSq: 0.6, gemSize: 20,
     gems: {
-      green: { value: 1, sides: 4, stretch: 1.3, color: 0x43a047, dark: 0x1b5e20, light: 0xa5d6a7 },
-      blue: { value: 3, sides: 6, stretch: 1.1, color: 0x1e88e5, dark: 0x0d47a1, light: 0x90caf9 },
+      blue: { value: 1, sides: 4, stretch: 1.3, color: 0x1e88e5, dark: 0x0d47a1, light: 0x90caf9 },
+      purple: { value: 3, sides: 6, stretch: 1.1, color: 0x8e24aa, dark: 0x4a148c, light: 0xe1bee7 },
       yellow: { value: 5, sides: 5, stretch: 1, color: 0xfdd835, dark: 0xf57f17, light: 0xfff9c4 },
       grey: { value: 10, sides: 8, stretch: 1, color: 0x90a4ae, dark: 0x37474f, light: 0xeceff1 },
       red: { value: 25, cut: true, color: 0xe53935, dark: 0x7f0000, light: 0xffcdd2 },
@@ -240,7 +243,7 @@ export const config = {
   // Locked chests on the map (systems/map.js): at most one per block, with `chance`, on the sidewalk, placed anew every
   // run. Walking into one with enough B coins opens it for an item (data/items.js); each chest opened this run raises
   // the price of all: round(basePrice x growth^opened). Over each: the price and a B coin, white if affordable, else red.
-  worldChests: { chance: 0.35, basePrice: 5, growth: 1.3, touchRadius: 34, labelY: 44, labelFontSize: 20, labelIconSize: 20,
+  worldChests: { chance: 0.35, basePrice: 5, growth: 1.3, touchRadius: 40, labelY: 52, labelFontSize: 20, labelIconSize: 20,
     labelGap: 4, labelDepth: 5, affordColor: '#ffffff', poorColor: '#ff5252' },
   // Items (data/items.js): small run-long gains from chests, no slots, no stack limit.
   items: {
@@ -415,7 +418,7 @@ export const config = {
       // Passive icons (passive_<id>).
       tub: 0xeceff1, coffee: 0x8d6e63, cup: 0xfff8e1, shoe: 0x1e88e5, gainer: 0x6d4c41, backpack: 0x388e3c, ticket: 0xffd54f,
       ticketStripe: 0xd32f2f, pass: 0xff7043, soup: 0xffca28, bowl: 0xfafafa, jacket: 0x546e7a, jacketLine: 0x37474f,
-      clover: 0x43a047, cloverDark: 0x1b5e20, page: 0xfafafa, grid: 0x90caf9, sack: 0xa1887f, sackDark: 0x5d4037, gem: 0x43a047,
+      clover: 0x43a047, cloverDark: 0x1b5e20, page: 0xfafafa, grid: 0x90caf9, sack: 0xa1887f, sackDark: 0x5d4037, gem: 0x1e88e5,
       // Item icons (item_<id>).
       syringe: 0xe3f2fd, steroid: 0xe53935, barWrap: 0x6a1b9a, barChoc: 0x6d4c41, can: 0x00c853, canDark: 0x1b5e20,
       sock: 0xfafafa, sockStripe: 0xd32f2f, glove: 0x263238, gloveStrap: 0xff7043, scratch: 0xfff176, scratchFoil: 0x9e9e9e,
@@ -469,7 +472,9 @@ export const config = {
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: '"NotJam", Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 520, survivorsY: 660, dropMs: 450, gapMs: 600,
-      shakeMs: 250, shakeIntensity: 0.02, pressBottom: 160, blinkMs: 600, pulseScale: 1.08, promptStroke: 6 },
+      shakeMs: 250, shakeIntensity: 0.02, pressBottom: 160, blinkMs: 600, pulseScale: 1.08, promptStroke: 6,
+      // First launch: "Jak trzymasz ekran?" over two buttons orientWidth px wide, orientGap apart, orientGapY under it.
+      orientFontSize: 40, orientWidth: 260, orientGap: 30, orientGapY: 90 },
     bossBar: { y: 170, width: 600, height: 24, fontSize: 16, color: 0xd03030 }, // under the HUD panel and the stat pills; the effect rows go under it
     // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
     chest: { titleY: 190, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
@@ -656,13 +661,13 @@ export const config = {
     // Żabka shop (event): a white wall, a striped green awning, a door and two windows.
     zabkaShop: { width: 88, height: 74, awningHeight: 20, stripes: 6, wall: 0xf5f5f5, awning: 0x2e7d32, stripe: 0xffffff,
       door: 0x1b5e20, window: 0x81d4fa, border: 0x212121 },
-    chest: { width: 44, height: 34, lidHeight: 12, color: 0x8d5524, lidColor: 0x6d3f17, bandColor: 0xffc400, bandWidth: 5, lockSize: 10,
+    chest: { width: 54, height: 42, lidHeight: 15, color: 0x8d5524, lidColor: 0x6d3f17, bandColor: 0xffc400, bandWidth: 6, lockSize: 12,
       chainColor: 0x90a4ae, padlockColor: 0x9e9e9e },
     klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
     // Bee facing right (it turns along its orbit): striped body, two wings, a stinger at the back.
     bee: { width: 24, height: 20, color: 0xffd400, stripeColor: 0x1b1b1b, wingColor: 0xffffff, wingAlpha: 0.75 },
-    pickup: { size: 22, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },
+    pickup: { size: 28, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },
     // Drawn auras around Bartek while a pickup's effect lasts. front: drawn over him, else under.
     // The aura pulses between 1 and pulseScale every pulseMs and turns spinDegPerSec.
     // vfx (optional): a config.vfx id played every everyMs at a random point up to spread px around Bartek.
@@ -673,7 +678,7 @@ export const config = {
         pulseScale: 1.08, pulseMs: 300, spinDegPerSec: 0, vfx: { id: 'pumpRise', everyMs: 110, spread: 34 } },
     },
     // Drawn icons of the timed pickups, size x size px.
-    pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
+    pickupIcons: { size: 36, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
     // Effect shapes (systems/vfx.js), radius in px (flash: width and height, shell: height, twice as long).
     fx: { blob: 14, streak: 16, dizzy: 16, leaf: 6, dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9,
@@ -682,7 +687,7 @@ export const config = {
     gun: { width: 28, height: 15, grip: [0.3, 0.5], slide: 0x455a64, slideLight: 0x90a4ae, frame: 0x263238, handle: 0x6d4c41, handleLight: 0x8d6e63 },
     captainShield: { file: './assets/captain_shield.png' }, // 50x50 pixel art, also the shield's HUD icon
     // 64x64 pixel art, barrel to the right, also the shotgun's HUD icon: drawn at `scale`, held at `grip`, fires from tipX.
-    shotgun: { file: './assets/Shotgun.png', scale: 0.7, grip: [0.34, 0.47], tipX: 0.92 },
+    shotgun: { file: './assets/Shotgun.png', scale: 1, grip: [0.34, 0.47], tipX: 0.92 },
     // The dwarf's axe (drawn): a handle and a double blade with light edges; `size` square.
     axe: { size: 36, handle: 0x6d4c41, head: 0x90a4ae, edge: 0xeceff1, outline: 0x263238 },
     // Drawn weapon icons for the HUD, size x size px.
