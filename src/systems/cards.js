@@ -84,4 +84,10 @@ export function applyUpgrade(run, scene, up, rarity) {
   run.upgrades[up.id] = (run.upgrades[up.id] ?? 0) + 1;
 }
 
+// Middle of card i of n on the level up and chest screens: side by side in landscape (card.row), stacked in portrait.
+export function cardCenter(scene, i, n) {
+  const c = config.ui.card, { width, height } = scene.scale, off = i - (n - 1) / 2;
+  return c.row ? { x: width / 2 + off * (c.width + c.gap), y: height / 2 } : { x: width / 2, y: height / 2 + off * (c.height + c.gap) };
+}
+
 export const rarityHex = (rarity) => `#${rarity.color.toString(16).padStart(6, '0')}`;

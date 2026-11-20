@@ -13,10 +13,18 @@
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: none; }
     /* Own container: with <body> as parent Phaser ignores CSS on iOS and guesses the height from window.orientation. */
     #game { width: 100%; height: 100%; height: 100dvh; }
+    /* Shown from the first moment (before Phaser itself loads) until BootScene has loaded everything; BootScene fills the bar. */
+    #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      color: #ffc400; font: bold 20px "Trebuchet MS", Arial, sans-serif; pointer-events: none; }
+    #loading .spin { width: 56px; height: 56px; border: 6px solid #333; border-top-color: #ffc400; border-radius: 50%; animation: spin 0.9s linear infinite; }
+    #loading .bar { width: 220px; height: 10px; background: #333; border-radius: 5px; overflow: hidden; }
+    #loading .fill { width: 0; height: 100%; background: #ffc400; transition: width 0.15s; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
   <div id="game"></div>
+  <div id="loading"><div class="spin"></div><div>Ładowanie…</div><div class="bar"><div class="fill"></div></div></div>
   <script src="./lib/phaser.min.js"></script>
   <script type="module" src="./src/main.js"></script>
 </body>

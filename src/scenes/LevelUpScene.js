@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { fallbackUpgrade } from '../data/upgrades.js';
-import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex } from '../systems/cards.js';
+import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -26,8 +26,7 @@ export default class LevelUpScene extends Phaser.Scene {
 
     const n = this.choices.length;
     this.choices.forEach((up, i) => {
-      // Portrait: the cards stack top to bottom; the rarity name sits in the gap above each.
-      const x = width / 2, y = height / 2 + (i - (n - 1) / 2) * (c.height + c.gap);
+      const { x, y } = cardCenter(this, i, n); // the rarity name sits in the gap above each card
       const top = y - c.height / 2, bottom = y + c.height / 2;
       const level = up.levelText ? `${up.levelText}\n` // weapon cards: "NOWA BROŃ" or the level they reach
         : !Number.isFinite(up.maxStack) ? '' : `${taken[up.id] ?? 0}/${up.maxStack}\n`; // no counter without a limit (heal, Bartkowanie)

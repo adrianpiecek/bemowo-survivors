@@ -3,6 +3,7 @@ import { xpToNextLevel, formatTime } from '../state.js';
 import { isEffectActive } from '../systems/effects.js';
 import { pickups } from '../data/pickups.js';
 import { font, drawPanel, drawBar } from '../systems/ui.js';
+import { openSettings } from './SettingsScene.js';
 
 // HUD on its own layer above GameScene. It reads `run` every frame, so GameScene never has to notify it.
 // Static panels are drawn once into this.panels; bars and anything that changes are redrawn into this.bars every frame.
@@ -48,6 +49,12 @@ export default class UIScene extends Phaser.Scene {
     this.add.image(ckX + h.padding + ck.iconSize / 2, m + ck.height / 2, 'icon_clock').setDisplaySize(ck.iconSize, ck.iconSize);
     this.timeText = this.add.text(ckX + ck.width - h.padding, m + ck.height / 2, '', font(ck.fontSize, { fontStyle: 'bold', ...outline }))
       .setOrigin(1, 0.5);
+    // Pause button left of the clock: opens the settings over the paused run (phones have no Esc).
+    const pb = u.settings.pauseButton, pbX = ckX - pb.gap - pb.size;
+    drawPanel(this.panels, pbX, m, pb.size, pb.size);
+    this.add.image(pbX + pb.size / 2, m + pb.size / 2, 'icon_pause').setDisplaySize(pb.iconSize, pb.iconSize);
+    this.add.zone(pbX, m, pb.size, pb.size).setOrigin(0).setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => openSettings(this.scene.get('GameScene')));
     const st = h.stat, stX = width - m - st.width, statTop = m + ck.height + st.gap;
     const stat = (row, icon) => {
       const y = statTop + row * (st.height + st.gap);

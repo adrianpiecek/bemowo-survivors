@@ -3,6 +3,7 @@ import { gymUpgrades } from '../data/gym.js';
 import { save, writeSave, gymLevel } from '../state.js';
 import { playMusic, playSfx } from '../systems/audio.js';
 import { font, panel, drawPanel, button } from '../systems/ui.js';
+import { openSettings } from './SettingsScene.js';
 
 // Between runs: spend protein on permanent upgrades, then start the next run.
 // A purchase restarts the scene with { bought, cost }, so the new pip pops and the cost floats up from the protein.
@@ -12,16 +13,23 @@ export default class GymScene extends Phaser.Scene {
   create(data = {}) {
     const u = config.ui, gs = u.gymScreen, m = u.margin;
     const { width, height } = this.scale;
-    const cx = width / 2, x0 = (width - gs.rowWidth) / 2;
+    // Rows in gs.columns columns (landscape: two), filled left to right.
+    const totalW = gs.columns * gs.rowWidth + (gs.columns - 1) * gs.columnGap;
+    const cx = width / 2, x0 = (width - totalW) / 2;
     const free = config.debug.freeProtein;
     const outline = { stroke: '#000000', strokeThickness: 5 };
     playMusic(this, 'gym');
 
     // Title on the left, protein on the right: the narrow screen has no room for both in the middle.
-    this.add.text(x0, gs.titleY, 'Siłownia', font(gs.titleFontSize, { fontStyle: 'bold', color: '#ffc400', ...outline }));
+    const title = this.add.text(x0, gs.titleY, 'Siłownia', font(gs.titleFontSize, { fontStyle: 'bold', color: '#ffc400', ...outline }));
+    // Settings (volume) next to the title; Esc opens them too.
+    const gear = config.ui.settings.gearSize;
+    this.add.image(title.x + title.width + gs.padding + gear / 2, title.y + title.height / 2, 'icon_gear').setDisplaySize(gear, gear)
+      .setInteractive({ useHandCursor: true }).on('pointerdown', () => openSettings(this));
+    this.input.keyboard.on('keydown-ESC', () => openSettings(this));
 
     // Protein in a pill, top right.
-    const pr = gs.protein, prX = x0 + gs.rowWidth - pr.width, prY = gs.titleY + (gs.titleFontSize * 1.2 - pr.height) / 2;
+    const pr = gs.protein, prX = x0 + totalW - pr.width, prY = gs.titleY + (gs.titleFontSize * 1.2 - pr.height) / 2;
     panel(this, prX, prY, pr.width, pr.height);
     this.add.image(prX + gs.padding + pr.iconSize / 2, prY + pr.height / 2, 'coin_gold').setDisplaySize(pr.iconSize, pr.iconSize);
     const proteinText = this.add.text(prX + pr.width - gs.padding, prY + pr.height / 2, `${save.protein}${free ? ' (debug)' : ''}`,
@@ -30,7 +38,8 @@ export default class GymScene extends Phaser.Scene {
 
     const gymMaxLevel = Math.max(...gymUpgrades.map((up) => up.maxLevel));
     gymUpgrades.forEach((up, i) => {
-      const y = gs.top + i * (gs.rowHeight + gs.rowGap), mid = y + gs.rowHeight / 2;
+      const x0 = (width - totalW) / 2 + (i % gs.columns) * (gs.rowWidth + gs.columnGap); // this row's left edge
+      const y = gs.top + Math.floor(i / gs.columns) * (gs.rowHeight + gs.rowGap), mid = y + gs.rowHeight / 2;
       const level = gymLevel(up);
       const maxed = level >= up.maxLevel;
       const cost = maxed ? 0 : up.costs[level];
@@ -83,7 +92,7 @@ export default class GymScene extends Phaser.Scene {
     }
 
     // Under the rows: Bartek with a speech bubble (a random quote) and a Bartkowanie definition; the start button at the bottom.
-    const rowsBottom = gs.top + gymUpgrades.length * (gs.rowHeight + gs.rowGap);
+    const rowsBottom = gs.top + Math.ceil(gymUpgrades.length / gs.columns) * (gs.rowHeight + gs.rowGap);
     const bartek = this.add.image(x0, rowsBottom + gs.sectionGap, 'bartek').setOrigin(0, 0);
     bartek.setScale(gs.bartekHeight / bartek.height);
     const bx = x0 + bartek.displayWidth + gs.quoteGap + gs.tail, by = bartek.y;
@@ -98,10 +107,11 @@ export default class GymScene extends Phaser.Scene {
     }));
 
     const go = () => this.scene.start('GameScene');
-    button(this, cx, height - gs.bottom - gs.goHeight / 2, 'Na Bemowo!', go, {
+    const goX = gs.goRight ? x0 + totalW - gs.goWidth / 2 : cx;
+    button(this, goX, height - gs.bottom - gs.goHeight / 2, 'Na Bemowo!', go, {
       width: gs.goWidth, height: gs.goHeight, fontSize: gs.goFontSize,
     });
-    this.add.text(cx, height - gs.bottom - gs.goHeight - gs.pipGap, '[Enter]', font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
+    this.add.text(goX, height - gs.bottom - gs.goHeight - gs.pipGap, '[Enter]', font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
     this.input.keyboard.once('keydown-ENTER', go);
   }
 

@@ -9,6 +9,7 @@ import { updateLeaper } from '../systems/charge.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx, playMusic } from '../systems/audio.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
+import { openSettings } from './SettingsScene.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -82,6 +83,7 @@ export default class GameScene extends Phaser.Scene {
       });
     }
 
+    this.input.keyboard.on('keydown-ESC', () => openSettings(this)); // pause; the HUD has a button for it too
     this.input.keyboard.addCapture('SPACE');
     this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
     if (config.debug.klapaKey) this.input.keyboard.on('keydown-K', () => this.spawnEnemy(enemies.find((d) => d.id === 'klapa')));

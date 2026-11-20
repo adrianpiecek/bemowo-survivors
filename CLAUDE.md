@@ -44,6 +44,7 @@ src/scenes/UIScene.js
 src/scenes/LevelUpScene.js
 src/scenes/GameOverScene.js
 src/scenes/GymScene.js   (od kroku 11)
+src/scenes/SettingsScene.js pauza i głośność
 src/scenes/ChestScene.js (od kroku 26, skrzynia po bossie)
 src/scenes/TitleScene.js (od kroku 19)
 assets/audio/            (od kroku 19)

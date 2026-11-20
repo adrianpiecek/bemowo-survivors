@@ -17,6 +17,10 @@ export default class BootScene extends Phaser.Scene {
     for (let i = 1; i <= config.textures.pigeon.frames; i++) this.load.image(`pigeon${i}`, `./assets/Pigeons/pigeon${i}.png`);
     this.load.font(config.ui.fontKey, config.ui.fontFile, 'truetype'); // ready before any scene makes text
     preloadAudio(this);
+    // The page's loading screen (index.html): its bar follows the files, and it goes once they are all in.
+    const fill = document.querySelector('#loading .fill');
+    this.load.on('progress', (p) => { if (fill) fill.style.width = `${Math.round(p * 100)}%`; });
+    this.load.once('complete', () => document.getElementById('loading')?.remove());
   }
 
   create() {
@@ -251,6 +255,18 @@ export default class BootScene extends Phaser.Scene {
     // Rozgrzewka: a stopwatch.
     clock(ic.accent);
     g.generateTexture('gym_warmup', s, s).clear();
+
+    // Pause: two white bars. Settings: a gear (teeth around a ring with a hole).
+    g.fillStyle(0xffffff).fillRoundedRect(s * 0.24, s * 0.18, s * 0.18, s * 0.64, s * 0.04).fillRoundedRect(s * 0.58, s * 0.18, s * 0.18, s * 0.64, s * 0.04);
+    g.generateTexture('icon_pause', s, s).clear();
+    g.fillStyle(ic.metal);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2, tooth = s * 0.09;
+      g.fillCircle(c + Math.cos(a) * s * 0.36, c + Math.sin(a) * s * 0.36, tooth);
+    }
+    g.fillCircle(c, c, s * 0.34).fillStyle(ic.metalDark).fillCircle(c, c, s * 0.13);
+    g.lineStyle(2, ic.metalDark).strokeCircle(c, c, s * 0.34);
+    g.generateTexture('icon_gear', s, s).clear();
 
     this.drawPassiveIcons(g);
   }

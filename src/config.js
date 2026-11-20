@@ -1,5 +1,5 @@
 export const config = {
-  game: { width: 720, height: 1280, background: '#000000' }, // portrait everywhere: phones fill the screen, desktops get side bars
+  game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
   // Weapons (data/weapons.js). Bartek starts with `start` and carries up to maxSlots; new ones and levels come as cards.
   weapons: {
@@ -216,7 +216,7 @@ export const config = {
   ],
   upgrade: { fallbackHeal: 20 }, // the heal card when nothing else is left to draw
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
-    dimAlpha: 0.6, card: { count: 3, width: 600, height: 210, gap: 44, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
+    dimAlpha: 0.6, card: { count: 3, row: false, width: 600, height: 210, gap: 44, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
       rarityBorderWidth: 5, rarityFontSize: 22 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
     // Every text uses this font: Not Jam Mono Clean 16 (CC0, assets/font), loaded in BootScene under fontKey. The system
@@ -243,6 +243,12 @@ export const config = {
       levelFontSize: 15, hpColor: 0xe53935, xpColor: 0x3a8dff, tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65, levelColor: 0x1565c0,
       // Top center clock pill and the top right stats (kills, protein from coins).
       clock: { width: 150, height: 46, fontSize: 30, iconSize: 26 }, stat: { width: 140, height: 38, fontSize: 22, iconSize: 26, gap: 8 } },
+    // Settings / pause screen (SettingsScene): a panel with a row per volume (label, -, bar, +, percent) and a back button.
+    // step: how much one press of - or + changes a volume. pauseButton: the HUD's square pause button left of the clock;
+    // gearSize: the gym's settings button next to its title.
+    settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
+      valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
+      barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 56 },
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
     // Arrow at the screen edge toward the nearest pickup lying off screen.
@@ -270,13 +276,31 @@ export const config = {
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
-    gymScreen: { titleY: 40, titleFontSize: 56, top: 140, rowWidth: 680, rowHeight: 128, rowGap: 12, padding: 14, iconSize: 56,
+    gymScreen: { titleY: 40, titleFontSize: 56, top: 140, columns: 1, columnGap: 0, goRight: false, rowWidth: 680, rowHeight: 128, rowGap: 12, padding: 14, iconSize: 56,
       nameFontSize: 24, descFontSize: 16, descGap: 6, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipColor: 0xffc400, pipEmpty: 0x37474f,
       costGap: 24, costFontSize: 22, costIconSize: 24, shortFontSize: 16, shortColor: '#ff8a80', maxColor: '#ffc400',
       buyWidth: 140, buyHeight: 50, buyFontSize: 22, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
       protein: { width: 200, height: 50, fontSize: 28, iconSize: 32 },
       bartekHeight: 120, quoteFontSize: 20, quoteWidth: 460, quoteGap: 16, tail: 14, definitionColor: '#b0bec5', definitionFontSize: 16,
       sectionGap: 40, bottom: 40, goWidth: 400, goHeight: 80, goFontSize: 34 },
+  },
+  // Screen layouts. The values above are portrait; `landscape` overrides the ones that depend on the screen's shape
+  // (systems/layout.js merges it in at start and when the player switches in the settings, save.orientation).
+  // card.row: cards side by side instead of stacked. gymScreen.columns: upgrade rows in that many columns; goRight: the
+  // start button bottom right instead of centered.
+  layouts: {
+    landscape: {
+      game: { width: 1280, height: 720 },
+      ui: {
+        card: { row: true, width: 260, height: 320, gap: 40, nameFontSize: 22, textFontSize: 18, rarityFontSize: 18 },
+        title: { bemowoY: 250, survivorsY: 410, pressBottom: 90 },
+        bossBar: { y: 76 },
+        chest: { titleY: 110 },
+        banner: { y: 150 },
+        gymScreen: { titleY: 22, top: 104, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, rowHeight: 128, sectionGap: 20,
+          bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30 },
+      },
+    },
   },
   // Effects drawn in code (systems/vfx.js), textures fx_* from textures.fx. minGapMs: an effect that fires in bursts
   // plays at most once per this many ms. Each layer is

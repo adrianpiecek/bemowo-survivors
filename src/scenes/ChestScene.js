@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { upgrades, fallbackUpgrade } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
-import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex } from '../systems/cards.js';
+import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
 
@@ -32,7 +32,7 @@ export default class ChestScene extends Phaser.Scene {
     let stopped = 0;
 
     prizes.forEach((up, i) => {
-      const x = width / 2, y = height / 2 + (i - (n - 1) / 2) * (c.height + c.gap), top = y - c.height / 2; // stacked, as on level up
+      const { x, y } = cardCenter(this, i, n), top = y - c.height / 2; // laid out as on level up
       const wrap = { align: 'center', wordWrap: { width: c.width - 2 * u.margin } };
       const card = this.add.rectangle(x, y, c.width, c.height, c.color).setStrokeStyle(c.borderWidth, c.borderColor);
       const name = this.add.text(x, top + u.margin, '', { fontFamily: config.ui.font, fontSize: `${c.nameFontSize}px`, ...wrap }).setOrigin(0.5, 0);
