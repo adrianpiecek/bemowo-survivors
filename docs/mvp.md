@@ -66,6 +66,8 @@ Pasywki (`src/data/passives.js`, liczby w `config.passives`): karty z rzadkości
 | Koniczyna z trawnika | +10% szczęścia (rzadsze karty, więcej monet) | 5 | 10 złotych monet łącznie |
 | Zeszyt w kratkę | +8% XP | 5 | 30 poziom w rundzie |
 | Wór na kryształy | +20% zasięgu przyciągania | 5 | od startu |
+| Książka Davida Gogginsa | +5% szansy na trafienie krytyczne | 5 | od startu |
+| Płyta Limp Bizkit | +25% obrażeń krytycznych | 5 | od startu |
 
 ### Znajdźki czasowe (wersja 3)
 
@@ -193,6 +195,8 @@ Gracz bierze wszystko po kolei, więc buildy się nie różnią.
 | Koniczyna z trawnika | szczęście: rzadsze karty, więcej monet | +10% | 5 | zbierz 10 złotych monet (łącznie) |
 | Zeszyt w kratkę | zysk XP | +8% | 5 | dojdź do 30 poziomu |
 | Wór na kryształy | zasięg przyciągania | +20% | 5 | od startu |
+| Książka Davida Gogginsa | szansa na krytyka | +5 pkt proc. | 5 | od startu |
+| Płyta Limp Bizkit | obrażenia krytyczne | +25 pkt proc. | 5 | od startu |
 
 Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unlocks`, tak jak u broni.
 
@@ -367,6 +371,13 @@ Zgłoszenia: topór za mocny, czołg przydatny tylko na początku, siłownię da
 - **Ambient:** co 350 ms liść dryfuje nisko nad ziemią gdzieś na ekranie (efekt `ambientLeaf`, kształt `fx_leaf`).
 - Szara kratka (`ground`) zniknęła.
 - **Wydajność:** czas kroku gry przy 250 wrogach mierzony tak samo przed zmianą i po niej. Przed: ok. 22-33 ms, po: ok. 23-28 ms (panel przeglądarki ukryty, więc liczony czas kroku, nie FPS). Różnica mieści się w szumie.
+
+### 10. Trafienia krytyczne
+
+- Każde trafienie dowolnej broni (wspólne `hurtEnemy`) może być krytyczne. Bazowo 5% szansy i x1,5 obrażeń (`config.player.critChance`, `critMult`).
+- Krytyk to złoty wybuch iskier z pierścieniem (efekt `critHit`) i złoty zamiast białego błysk wroga.
+- Pasywki: Książka Davida Gogginsa (+5 pkt proc. szansy na poziom) i Płyta Limp Bizkit (+0,25 do mnożnika na poziom). Na maksie: 30% szansy i x2,75.
+- Nakładka balansu pokazuje szansę i mnożnik („kryt”).
 
 ### Później (po kroku 37 z mapą)
 

@@ -463,5 +463,17 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.gem).fillPoints([{ x: c, y: s * 0.46 }, { x: s * 0.62, y: s * 0.62 }, { x: c, y: s * 0.8 }, { x: s * 0.38, y: s * 0.62 }], true);
     g.fillStyle(0xffffff).fillRect(s * 0.46, s * 0.56, s * 0.04, s * 0.04);
     done('bag');
+    // Książka Davida Gogginsa: a black book with white pages and a gold title bar.
+    g.fillStyle(ic.bookPage).fillRect(s * 0.24, s * 0.12, s * 0.6, s * 0.8);
+    g.fillStyle(ic.book).fillRoundedRect(s * 0.16, s * 0.08, s * 0.6, s * 0.8, s * 0.04).lineStyle(2, o).strokeRoundedRect(s * 0.16, s * 0.08, s * 0.6, s * 0.8, s * 0.04);
+    g.fillStyle(ic.bookTitle).fillRect(s * 0.24, s * 0.22, s * 0.44, s * 0.1).fillRect(s * 0.3, s * 0.38, s * 0.32, s * 0.05);
+    g.fillStyle(0xffffff).fillRect(s * 0.3, s * 0.48, s * 0.32, s * 0.04);
+    done('goggins');
+    // Płyta Limp Bizkit: a CD with a shine and a red label.
+    g.fillStyle(ic.disc).fillCircle(c, c, s * 0.44).lineStyle(2, o).strokeCircle(c, c, s * 0.44);
+    g.lineStyle(s * 0.06, ic.discShine, 0.8).beginPath().arc(c, c, s * 0.32, -2.4, -1.4).strokePath();
+    g.fillStyle(ic.discLabel).fillCircle(c, c, s * 0.18);
+    g.fillStyle(o).fillCircle(c, c, s * 0.05);
+    done('limp');
   }
 }

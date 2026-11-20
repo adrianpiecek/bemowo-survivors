@@ -1,6 +1,7 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
-  player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
+  // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
+  player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
   // Weapons (data/weapons.js). Bartek starts with one random weapon from `start` and carries up to startSlots (the gym's
   // Kabura adds more); new ones and levels come as cards.
   weapons: {
@@ -79,6 +80,8 @@ export const config = {
     clover: { luckPct: 0.1, maxLevel: 5, unlockGoldCoins: 10 },
     notebook: { xpPct: 0.08, maxLevel: 5, unlockLevel: 30 },
     bag: { magnetPct: 0.2, maxLevel: 5 },
+    goggins: { critChance: 0.05, maxLevel: 5 }, // flat share of hits added per level
+    limp: { critMult: 0.25, maxLevel: 5 }, // added to the crit multiplier per level
   },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
@@ -187,7 +190,7 @@ export const config = {
   },
   // Characters: a shadow under each (shadowW x its width, shadowFlat as tall, shadowY x its height below its middle),
   // a sway of bobDeg at bobHz while walking, a white flash for hitFlashMs when hit and still alive.
-  look: { shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
+  look: { critFlashColor: 0xffc400, shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
@@ -387,6 +390,7 @@ export const config = {
       tub: 0xeceff1, coffee: 0x8d6e63, cup: 0xfff8e1, shoe: 0x1e88e5, gainer: 0x6d4c41, backpack: 0x388e3c, ticket: 0xffd54f,
       ticketStripe: 0xd32f2f, pass: 0xff7043, soup: 0xffca28, bowl: 0xfafafa, jacket: 0x546e7a, jacketLine: 0x37474f,
       clover: 0x43a047, cloverDark: 0x1b5e20, page: 0xfafafa, grid: 0x90caf9, sack: 0xa1887f, sackDark: 0x5d4037, gem: 0x43a047,
+      book: 0x212121, bookPage: 0xfafafa, bookTitle: 0xffc400, disc: 0x263238, discShine: 0x90a4ae, discLabel: 0xd32f2f,
       planRing: 0xd32f2f },
     // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.
     hud: { width: 330, padding: 10, rowHeight: 30, iconSize: 26, barWidth: 270, barHeight: 20, barGap: 8, barFontSize: 15,
@@ -478,6 +482,9 @@ export const config = {
     hitSpark: { layers: [ // bullet hits an enemy
       { particles: { texture: 'fx_spark', count: 5, speed: [60, 170], lifeMs: 220, scale: [0.8, 0], tint: [0xffffff, 0xffe082], add: true } },
       { image: { texture: 'fx_dot', scale: [1.5, 0.3], alpha: [0.9, 0], ms: 100, tint: 0xfff3b0, add: true } }] },
+    critHit: { layers: [ // a critical hit, played on top of the weapon's own hit effect
+      { particles: { texture: 'fx_spark', count: 10, speed: [120, 300], lifeMs: 300, scale: [1.3, 0], tint: [0xffd54f, 0xff6f00], add: true } },
+      { image: { texture: 'fx_ring', scale: [0.3, 1.6], alpha: [0.9, 0], ms: 200, tint: 0xffc400, add: true } }] },
     deathPoof: { layers: [ // enemy dies: grey puffs and green bits falling
       { particles: { texture: 'fx_puff', count: 7, speed: [25, 80], lifeMs: 450, scale: [0.5, 1.2], alpha: [0.7, 0], tint: [0xbdbdbd, 0x9e9e9e] } },
       { particles: { texture: 'fx_dot', count: 6, speed: [80, 180], lifeMs: 420, scale: [0.9, 0], tint: [0x9ccc65, 0x689f38], gravityY: 350 } }] },

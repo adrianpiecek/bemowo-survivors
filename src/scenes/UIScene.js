@@ -286,7 +286,7 @@ export default class UIScene extends Phaser.Scene {
       // Passive stats: what every weapon reads through GameScene's weapon* helpers.
       `obrażenia ${x(pl.damageMult)}   odnowienie ${x(pl.cooldownMult)}   obszar ${x(pl.area)}   czas ${x(pl.duration)}`,
       `ilość +${pl.amount}   pancerz ${pl.armor}   regen ${pl.regen.toFixed(1)}/s   szczęście ${x(pl.luck)}`,
-      `XP ${x(pl.growth)}   magnes ${pl.magnetRadius.toFixed(0)} px   prędkość ${pl.speed.toFixed(0)}`,
+      `kryt ${Math.round(pl.critChance * 100)}% x${pl.critMult.toFixed(2)}   XP ${x(pl.growth)}   magnes ${pl.magnetRadius.toFixed(0)} px   prędkość ${pl.speed.toFixed(0)}`,
       // Hidden pressure: its value, what it does now, the last sample (share of max HP lost in the window, crowd) and the bonus.
       `presja ${r.pressure.toFixed(2)} (spawn x${(1 + r.pressure * config.dda.spawnBonus).toFixed(2)}, HP x${(1 + r.pressure * config.dda.hpBonus).toFixed(2)})`
         + `${r.ddaGraceMs > 0 ? '  [po karcie]' : ''}`,

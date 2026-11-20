@@ -17,6 +17,8 @@ function startingStats() {
     armor: 0, // taken off every enemy touch (a touch still hurts at least 1)
     regen: 0, // HP per second
     luck: 1, // rarer cards come up more often, coins drop more often
+    critChance: config.player.critChance, // share of hits that crit
+    critMult: config.player.critMult, // a crit's damage multiplier
     growth: 1, // XP from gems
     range: config.weapons.pistol.range, // pistol range (the "Okulary" gym upgrade)
     bulletSpeed: config.weapons.pistol.bulletSpeed,

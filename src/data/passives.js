@@ -79,6 +79,16 @@ export const passives = [
     apply(pl, level, m) { addShare(pl, 'growth', c.notebook.xpPct * m); },
   },
   {
+    id: 'goggins', name: 'Książka Davida Gogginsa', icon: 'passive_goggins', maxLevel: c.goggins.maxLevel, unlock: null,
+    description: (level, m) => `+${pct(c.goggins.critChance * m)} szansy na trafienie krytyczne`,
+    apply(pl, level, m) { pl.critChance += c.goggins.critChance * m; },
+  },
+  {
+    id: 'limp', name: 'Płyta Limp Bizkit', icon: 'passive_limp', maxLevel: c.limp.maxLevel, unlock: null,
+    description: (level, m) => `+${pct(c.limp.critMult * m)} obrażeń krytycznych`,
+    apply(pl, level, m) { pl.critMult += c.limp.critMult * m; },
+  },
+  {
     id: 'bag', name: 'Wór na kryształy', icon: 'passive_bag', maxLevel: c.bag.maxLevel, unlock: null,
     description: (level, m) => `+${pct(c.bag.magnetPct * m)} zasięgu przyciągania kryształów`,
     apply(pl, level, m) { addShare(pl, 'magnetRadius', c.bag.magnetPct * m); },

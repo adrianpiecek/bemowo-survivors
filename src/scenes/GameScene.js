@@ -247,12 +247,19 @@ export default class GameScene extends Phaser.Scene {
 
   // Shared by bullets and orbits: damage, a hit effect where it hit (vfx id, default a spark), death at 0 HP.
   // Returns true when this hit killed it.
+  // Every hit can crit (run.player.critChance): critMult times the damage, a golden burst and flash.
   hurtEnemy(enemy, damage, x, y, vfx = 'hitSpark') {
     playVfx(this, vfx, x, y);
+    const pl = this.run.player, crit = Math.random() < pl.critChance;
+    if (crit) {
+      damage *= pl.critMult;
+      playVfx(this, 'critHit', x, y);
+    }
     this.run.damageDealt += Math.min(damage, enemy.hp);
     enemy.hp -= damage;
     if (enemy.hp > 0) {
-      enemy.flashMs = config.look.hitFlashMs; // a white flash, run in the enemy loop
+      enemy.flashMs = config.look.hitFlashMs; // a white (gold on a crit) flash, run in the enemy loop
+      enemy.flashColor = crit ? config.look.critFlashColor : config.look.hitFlashColor;
       return false;
     }
     this.killEnemy(enemy);
@@ -876,7 +883,7 @@ export default class GameScene extends Phaser.Scene {
       // Sportakus mid-leap are not affected).
       if (z.flashMs > 0) {
         z.flashMs -= delta;
-        if (z.flashMs > 0) z.setTintFill(lk.hitFlashColor);
+        if (z.flashMs > 0) z.setTintFill(z.flashColor);
         else z.clearTint();
       } else if (walker && (frozen || z.isTinted)) frozen ? z.setTint(freezeTint) : z.clearTint();
       if (walker && frozen) z.setVelocity(0, 0);
