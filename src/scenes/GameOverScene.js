@@ -9,6 +9,7 @@ export default class GameOverScene extends Phaser.Scene {
     this.won = data.won;
     this.earned = proteinForRun(this.run, this.won);
     save.protein += this.earned;
+    save.runsPlayed += 1;
     writeSave(save);
   }
 
@@ -31,12 +32,16 @@ export default class GameOverScene extends Phaser.Scene {
     // GameScene.create() calls newRun(), so restarting it gives a clean run.
     const buttons = [['Siłownia', 'GymScene', -u.buttonOffsetX], ['Jeszcze raz', 'GameScene', u.buttonOffsetX]];
     for (const [label, scene, dx] of buttons) {
-      this.add.text(cx + dx, cy + u.lineGap * 2, label, {
+      const btn = this.add.text(cx + dx, cy + u.lineGap * 2, label, {
         fontSize: `${u.buttonFontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: u.buttonPadding, y: u.buttonPadding },
       })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => this.scene.start(scene));
+      // After the very first run (which skipped the gym) the gym button pulses, so the player finds where protein goes.
+      if (scene === 'GymScene' && save.runsPlayed === 1) {
+        this.tweens.add({ targets: btn, scale: u.gymPulse.scale, duration: u.gymPulse.ms, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      }
     }
   }
 }

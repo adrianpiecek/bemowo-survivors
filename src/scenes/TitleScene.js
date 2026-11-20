@@ -1,9 +1,10 @@
 import { config } from '../config.js';
+import { save } from '../state.js';
 import { playSfx, startMusic } from '../systems/audio.js';
 
 // Title with the intro. Browsers keep audio locked until the player does something, so the intro only starts
 // after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one,
-// then the music starts and any key or click goes to the gym.
+// then the music starts and any key or click goes to the gym (straight into a run the very first time).
 export default class TitleScene extends Phaser.Scene {
   constructor() { super('TitleScene'); }
 
@@ -65,6 +66,6 @@ export default class TitleScene extends Phaser.Scene {
     const press = this.add.text(width / 2, height - t.pressBottom, 'Naciśnij dowolny klawisz', { fontSize: `${t.promptFontSize}px` })
       .setOrigin(0.5);
     this.tweens.add({ targets: press, alpha: 0, duration: t.blinkMs, yoyo: true, repeat: -1 });
-    this.onFirstInput(() => this.scene.start('GymScene'));
+    this.onFirstInput(() => this.scene.start(save.runsPlayed ? 'GymScene' : 'GameScene'));
   }
 }

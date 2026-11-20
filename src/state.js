@@ -77,7 +77,7 @@ const SAVE_KEY = 'bemowo-survivors-save-v1';
 const SAVE_VERSION = 1;
 
 function freshSave() {
-  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false };
+  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, runsPlayed: 0 };
 }
 
 // Unreadable save (corrupt JSON, private mode, blocked storage) gives a fresh one, never an error.
@@ -95,6 +95,9 @@ export function loadSave() {
   if (isObject(d.gym)) s.gym = d.gym;
   if (Array.isArray(d.unlocks)) s.unlocks = d.unlocks;
   if (typeof d.muted === 'boolean') s.muted = d.muted;
+  if (Number.isInteger(d.runsPlayed) && d.runsPlayed >= 0) s.runsPlayed = d.runsPlayed;
+  // A save from before the counter that already has progress has clearly played a run.
+  else if (s.protein > 0 || Object.keys(s.gym).length) s.runsPlayed = 1;
   return s;
 }
 

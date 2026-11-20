@@ -118,6 +118,7 @@ export const config = {
     banner: { y: 84, fontSize: 64, strokeThickness: 8, durationMs: 1500, subFontSize: 24, subStrokeThickness: 5 },
     olxCard: { width: 420, height: 440, padding: 24, photoSize: 200, titleFontSize: 34, textFontSize: 20, bigFontSize: 38 },
     buttonOffsetX: 160, // two buttons side by side sit this far left and right of center
+    gymPulse: { scale: 1.12, ms: 500 }, // game over gym button after the first run
     gymScreen: { titleY: 50, proteinY: 110, top: 170, rowHeight: 80, nameX: 120, levelX: 820, costX: 930, buyX: 1090,
       descFontSize: 16, quoteBottom: 110, definitionGap: 8, definitionColor: '#bbbbbb', disabledColor: '#777777', disabledBg: '#333333' },
   },

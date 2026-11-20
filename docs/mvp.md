@@ -55,6 +55,7 @@ Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkieg
 
 - Licznik 10:00. Przeżyjesz, to wygrałeś.
 - Śmierć daje ekran końca ze statystykami (czas, zabici, level) i przycisk "Jeszcze raz".
+- Pierwsze uruchomienie (licznik `save.runsPlayed` równy 0) prowadzi z intro prosto do rundy, bez siłowni. Po pierwszej rundzie przycisk "Siłownia" na ekranie końca pulsuje, a od drugiej rundy intro prowadzi do siłowni.
 - HUD: pasek HP, pasek XP, level, czas, liczba zabitych.
 
 ### Memy w MVP (sam tekst, zero kosztu)
