@@ -6,6 +6,7 @@ import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { createOrbit, updateOrbit } from '../systems/orbit.js';
 import { startGolf, updateGolf } from '../systems/golf.js';
 import { createVfxPool, playVfx } from '../systems/vfx.js';
+import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -68,6 +69,16 @@ export default class GameScene extends Phaser.Scene {
       });
     }
     this.boss = null; // the Golf's sprite once it spawns; UIScene reads it for the HP bar
+    if (config.debug.bartkowanieKey) {
+      // N arms it, then 1-8 picks the effect.
+      const digits = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT'];
+      this.input.keyboard.on('keydown-N', () => { this.bartkowanieArmed = true; });
+      digits.forEach((key, i) => this.input.keyboard.on(`keydown-${key}`, () => {
+        if (!this.bartkowanieArmed) return;
+        this.bartkowanieArmed = false;
+        doBartkowanie(this, bartkowanie[i]);
+      }));
+    }
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
 
     this.scene.launch('UIScene', { run: this.run });
@@ -152,6 +163,12 @@ export default class GameScene extends Phaser.Scene {
     this.player.setTexture('bartek').setFlipX(false).body.setSize(); // no args: body back to the frame size
     // A short grace period, so the horde around the tank does not bite on the very first frame.
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
+  }
+
+  // Bartkowanie effect 5: three spins and nothing else.
+  spinPlayer() {
+    const b = config.bartkowanie;
+    this.tweens.add({ targets: this.player, angle: 360 * b.spins, duration: b.spinMs, onComplete: () => this.player.setAngle(0) });
   }
 
   // Every enemy inside the camera view dies; the ones off screen live. A boss only loses a share of its max HP.
@@ -350,9 +367,14 @@ export default class GameScene extends Phaser.Scene {
 
     // A klapa leaves once it is as far past its start as the spawn ring is wide; it gives no kill.
     const lineRange = config.spawn.ringMaxRadius * 2;
+    // Bartkowanie: during squats walkers stand and hop (vertical speed is the derivative of a sine, so no drift);
+    // during the moonwalk they walk away from Bartek.
+    const bk = config.bartkowanie, squats = isEffectActive(run, 'squats'), moonwalk = isEffectActive(run, 'moonwalk');
+    const hopW = Math.PI * 2 * bk.squatHz, hopT = run.elapsedMs / 1000;
     for (const z of this.enemies.getChildren()) {
       if (!z.active) continue;
-      if (z.stats.behavior === 'chase') this.physics.moveToObject(z, this.player, z.stats.speed);
+      if (z.stats.behavior === 'chase' && squats) z.setVelocity(0, bk.squatAmp * hopW * Math.cos(hopW * hopT + z.x));
+      else if (z.stats.behavior === 'chase') this.physics.moveToObject(z, this.player, z.stats.speed * (moonwalk ? -1 : 1));
       else if (z.stats.behavior === 'boss') updateGolf(this, z, delta);
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
       else z.angle += z.stats.spinDegPerSec * delta / 1000;

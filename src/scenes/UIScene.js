@@ -1,5 +1,6 @@
 import { config } from '../config.js';
 import { xpToNextLevel, formatTime } from '../state.js';
+import { isEffectActive } from '../systems/effects.js';
 
 // HUD on its own layer above GameScene. It reads `run` every frame, so GameScene never has to notify it.
 export default class UIScene extends Phaser.Scene {
@@ -13,6 +14,9 @@ export default class UIScene extends Phaser.Scene {
     const font = { fontSize: `${u.hudFontSize}px` };
     const barFont = { fontSize: `${h.barFontSize}px` };
 
+    // Bartkowanie "Żółty sweter mocy": the whole screen goes yellow, under the HUD.
+    const bk = config.bartkowanie;
+    this.yellow = this.add.rectangle(0, 0, width, height, bk.yellowColor, bk.yellowAlpha).setOrigin(0).setVisible(false);
     this.bars = this.add.graphics();
     this.hpText = this.add.text(m + h.barWidth / 2, m + h.barHeight / 2, '', barFont).setOrigin(0.5);
     const xpY = m + h.barHeight + h.barGap;
@@ -60,6 +64,7 @@ export default class UIScene extends Phaser.Scene {
     const xpNeed = xpToNextLevel(r.level);
     const xpY = m + h.barHeight + h.barGap;
 
+    this.yellow.setVisible(isEffectActive(r, 'yellowSweater'));
     this.bars.clear();
     this.drawBar(m, h.hpColor, pl.hp / pl.maxHp);
     this.drawBar(xpY, h.xpColor, r.xp / xpNeed);

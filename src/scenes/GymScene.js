@@ -42,6 +42,9 @@ export default class GymScene extends Phaser.Scene {
     this.add.text(cx, height - gs.quoteBottom, `Bartek: "${quote}"`, {
       fontSize: `${b.fontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: b.padding, y: b.padding },
     }).setOrigin(0.5, 1);
+    this.add.text(cx, height - gs.quoteBottom + gs.definitionGap, Phaser.Utils.Array.GetRandom(config.bartkowanie.definitions), {
+      fontSize: `${gs.descFontSize}px`, fontStyle: 'italic', color: gs.definitionColor,
+    }).setOrigin(0.5, 0);
 
     this.add.text(cx, height - u.margin, 'Na Bemowo!', {
       fontSize: `${u.buttonFontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: u.buttonPadding, y: u.buttonPadding },

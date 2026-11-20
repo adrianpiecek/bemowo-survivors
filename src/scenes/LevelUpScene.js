@@ -18,13 +18,22 @@ export default class LevelUpScene extends Phaser.Scene {
 
     const taken = this.run.upgrades;
     const available = upgrades.filter((up) => (taken[up.id] ?? 0) < up.maxStack);
-    this.choices = available.length ? Phaser.Utils.Array.Shuffle([...available]).slice(0, c.count) : [fallbackUpgrade];
+    // Cards are drawn by weight (default 1), without repeats. Short of cards, the heal fills in.
+    const pool = [...available], weight = (up) => up.weight ?? 1;
+    this.choices = [];
+    while (this.choices.length < c.count && pool.length) {
+      let roll = Math.random() * pool.reduce((sum, up) => sum + weight(up), 0);
+      const i = pool.findIndex((up) => (roll -= weight(up)) < 0);
+      this.choices.push(pool.splice(i < 0 ? pool.length - 1 : i, 1)[0]);
+    }
+    if (this.choices.length < c.count) this.choices.push(fallbackUpgrade);
 
     const n = this.choices.length;
     this.choices.forEach((up, i) => {
       const x = width / 2 + (i - (n - 1) / 2) * (c.width + c.gap);
       const y = height / 2, top = y - c.height / 2, bottom = y + c.height / 2;
-      const level = up === fallbackUpgrade ? '' : `${taken[up.id] ?? 0}/${up.maxStack}\n`;
+      const level = !Number.isFinite(up.maxStack) ? '' : // no counter without a limit (heal, Bartkowanie)
+`${taken[up.id] ?? 0}/${up.maxStack}\n`;
 
       this.add.rectangle(x, y, c.width, c.height, c.color)
         .setStrokeStyle(c.borderWidth, c.borderColor)
@@ -46,7 +55,7 @@ export default class LevelUpScene extends Phaser.Scene {
     if (this.picked) return; // a click and a key press can land in the same frame
     this.picked = true;
     const up = this.choices[index];
-    up.apply(this.run.player);
+    up.apply(this.run.player, this.scene.get('GameScene')); // most upgrades only need the player
     this.run.upgrades[up.id] = (this.run.upgrades[up.id] ?? 0) + 1;
     this.run.pendingLevelUps--;
     if (this.run.pendingLevelUps > 0) {

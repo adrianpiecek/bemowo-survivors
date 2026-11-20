@@ -39,6 +39,7 @@ export const config = {
     tankKey: false, // true: the T key fills the tank bar at once
     klapaKey: false, // true: the K key launches a klapa at Bartek
     bossKey: false, // true: the B key calls the boss now (banner, then the Golf bannerSec later)
+    bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
   },
   // Ultimate: charged by kills, Space (or a tap on its bar) turns Bartek into a tank.
   tank: { killsToCharge: 100, durationSec: 10, bossDamagePerSec: 50, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200 },
@@ -72,6 +73,19 @@ export const config = {
   // While Bartek is a small B there are smallMult times more, on the smaller smallRadius.
   bees: { firstLevel: 2, perLevel: 1, damage: 4, hitCooldownMs: 500, radius: 70, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
     smallMult: 2, smallRadius: 42 },
+  // "Bartkowanie" card: a random effect from data/bartkowanie.js on every pick, no stack limit.
+  bartkowanie: {
+    weight: 0.5, durationSec: 5, damagePct: 0.2, allStatsPct: 0.01, protein: 5,
+    spins: 3, spinMs: 1500, squatAmp: 8, squatHz: 3, // squats: enemies hop squatAmp px up and down squatHz times a second
+    yellowColor: 0xffd400, yellowAlpha: 0.25,
+    definitions: [ // shown in the gym under Bartek's bubble
+      'Bartkowanie (czas.): czynność, której nikt nie widział, ale wszyscy o niej słyszeli.',
+      'Bartkowanie: robienie przysiadów w kolejce w Żabce.',
+      'Bartkowanie: tłumaczenie zombie przepisów ruchu drogowego.',
+      'Bartkowanie: noszenie żółtego swetra w lipcu.',
+      'Bartkowanie: przegrywanie z klapą bagażnika, z godnością.',
+    ],
+  },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for the boss and its klapas
   upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, extraBullets: 1, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
@@ -87,7 +101,7 @@ export const config = {
     olxCard: { width: 420, height: 440, padding: 24, photoSize: 200, titleFontSize: 34, textFontSize: 20, bigFontSize: 38 },
     buttonOffsetX: 160, // two buttons side by side sit this far left and right of center
     gymScreen: { titleY: 50, proteinY: 110, top: 170, rowHeight: 80, nameX: 120, levelX: 820, costX: 930, buyX: 1090,
-      descFontSize: 16, quoteBottom: 110, disabledColor: '#777777', disabledBg: '#333333' },
+      descFontSize: 16, quoteBottom: 110, definitionGap: 8, definitionColor: '#bbbbbb', disabledColor: '#777777', disabledBg: '#333333' },
   },
   // Animated effects from assets/effects (CC0). Only these are loaded; frames and timing come from each manifest.json.
   vfx: {

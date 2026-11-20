@@ -55,7 +55,7 @@ Nowy plik tylko wtedy, gdy zadanie tego wymaga. Jedna scena na plik.
 ## Zasady twarde
 
 1. **Liczby tylko w `src/config.js`.** Żadnych magicznych liczb w scenach: HP, prędkości, cooldowny, krzywa XP, spawn, limity.
-2. **Ulepszenia jako dane.** Każde ulepszenie to obiekt `{ id, name, description, maxStack, apply(player) }` w `src/data/upgrades.js`. Dodanie ulepszenia nie może wymagać zmiany kodu scen.
+2. **Ulepszenia jako dane.** Każde ulepszenie to obiekt `{ id, name, description, maxStack, apply(player) }` w `src/data/upgrades.js` (opcjonalnie `weight`, domyślnie 1; `apply` dostaje też GameScene jako drugi argument, gdy potrzebuje sceny). Dodanie ulepszenia nie może wymagać zmiany kodu scen.
 3. **Stan rundy osobno od zapisu.** Wszystko, co resetuje się co rundę, siedzi w `run`. Trwałe postępy (białko, siłownia, odblokowania) siedzą w `save`, zapisywanym w localStorage przez `loadSave()` i `writeSave()` z `src/state.js`. Każdy dostęp do localStorage w try/catch. Statystyki rundy liczone są zawsze w tej kolejności: wartości z `config.js`, potem bonusy z siłowni, potem ulepszenia z bieżącej rundy.
 4. **Pooling.** Pociski, wrogowie i kryształy XP to `Phaser.Physics.Arcade.Group` z `maxSize`. Używaj ponownie obiektów (`get`, `setActive`, `setVisible`), nie twórz i nie niszcz ich w każdej klatce.
 5. **Ruch zależny od czasu.** Wszystko, co się porusza lub odlicza, korzysta z `delta` albo z fizyki Arcade, nigdy z liczby klatek.
