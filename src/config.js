@@ -1,10 +1,10 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
-  // Weapons (data/weapons.js). Bartek starts with one random weapon from `start` and carries up to maxSlots; new ones
-  // and levels come as cards.
+  // Weapons (data/weapons.js). Bartek starts with one random weapon from `start` and carries up to startSlots (the gym's
+  // Kabura adds more); new ones and levels come as cards.
   weapons: {
-    maxSlots: 4,
+    startSlots: 3,
     start: ['pistol', 'shotgun', 'shield'],
     // Evolutions (data/weapons.js, `evolution`): a weapon at its max level plus its passive in a slot evolves from the
     // next chest. Each weapon's `evolution` numbers below.
@@ -57,15 +57,16 @@ export const config = {
     // Dwarf's axe: `axes` axes circle Bartek (systems/orbit.js) at degPerSec, `radius` away, spinning; an axe hurts an enemy
     // at most once per hitCooldownMs. Any hit turns them all back the other way (not again for flipGapMs, so a crowd
     // does not make them shake in place).
-    axe: { damage: 14, axes: 1, radius: 85, degPerSec: 230, size: 36, spinDegPerSec: 720, hitCooldownMs: 400, flipGapMs: 150,
-      levels: [{ damage: 6 }, { axes: 1 }, { radius: 20 }, { damage: 8 }, { axes: 1 }, { damage: 8 }],
+    // Playtests: too strong at 14 damage every 400 ms (levels 6/8/8, evolution 1.4x faster).
+    axe: { damage: 8, axes: 1, radius: 85, degPerSec: 230, size: 36, spinDegPerSec: 720, hitCooldownMs: 550, flipGapMs: 150,
+      levels: [{ damage: 3 }, { axes: 1 }, { radius: 20 }, { damage: 4 }, { axes: 1 }, { damage: 4 }],
       // Młyn krasnoluda: axesMult x axes, speedMult x as fast, radiusMult x as far out.
-      evolution: { axesMult: 2, speedMult: 1.4, radiusMult: 1.3 } },
+      evolution: { axesMult: 2, speedMult: 1.2, radiusMult: 1.3 } },
   },
-  // Passives (data/passives.js): items that raise one stat each level, up to maxSlots at once. The numbers are one level
+  // Passives (data/passives.js): items that raise one stat each level, up to startSlots at once (the gym's Plecak adds more). The numbers are one level
   // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
   passives: {
-    maxSlots: 4,
+    startSlots: 3,
     creatine: { damagePct: 0.1, maxLevel: 5 },
     coffee: { cooldownPct: 0.08, maxLevel: 5 },
     shoes: { speedPct: 0.08, maxLevel: 5 },
@@ -229,7 +230,9 @@ export const config = {
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
   // Ultimate: charged by kills, Space (or a tap on its bar) turns Bartek into a tank.
-  tank: { killsToCharge: 100, durationSec: 10, bossDamagePerSec: 50, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200 },
+  // Tank: a boss it touches loses bossDamagePct of its max HP a second (so it helps against late bosses too); on the way
+  // in it crushes every walking enemy within crushRadius px.
+  tank: { killsToCharge: 100, durationSec: 10, bossDamagePct: 0.05, crushRadius: 260, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200 },
   // Rare drops from killed enemies. Each pickup's own numbers sit under its id.
   pickups: {
     lifetimeSec: 20,
@@ -251,12 +254,15 @@ export const config = {
   },
   // Permanent upgrades bought with protein. Percentages multiply with the in-run upgrades.
   gym: {
-    chest: { damagePct: 0.1, maxLevel: 5, costs: [10, 25, 50, 100, 200] },
-    legs: { speedPct: 0.05, maxLevel: 5, costs: [10, 25, 50, 100, 200] },
-    back: { maxHp: 10, maxLevel: 5, costs: [10, 25, 50, 100, 200] },
-    glasses: { rangePct: 0.1, maxLevel: 3, costs: [20, 60, 150] },
+    // Playtests: everything was bought in about an hour (1735 protein in all); now about 11 000.
+    chest: { damagePct: 0.1, maxLevel: 8, costs: [10, 25, 50, 100, 200, 400, 700, 1000] },
+    legs: { speedPct: 0.05, maxLevel: 8, costs: [10, 25, 50, 100, 200, 400, 700, 1000] },
+    back: { maxHp: 10, maxLevel: 8, costs: [10, 25, 50, 100, 200, 400, 700, 1000] },
+    glasses: { rangePct: 0.1, maxLevel: 5, costs: [20, 60, 150, 300, 500] },
     warmup: { durationSec: 60, speedPct: -0.2, damagePct: 0.3, maxLevel: 1, costs: [80] },
-    plan: { rerolls: 1, banishes: 1, maxLevel: 3, costs: [30, 80, 160] }, // Plan dnia: more level-up rerolls and banishes
+    plan: { rerolls: 1, banishes: 1, maxLevel: 5, costs: [30, 80, 160, 300, 500] }, // Plan dnia: more level-up rerolls and banishes
+    weaponSlot: { maxLevel: 2, costs: [250, 600] }, // Kabura: +1 weapon slot a level
+    passiveSlot: { maxLevel: 2, costs: [200, 500] }, // Plecak: +1 passive slot a level
     quotes: [
       'Za moich czasów zombie były grzeczniejsze.',
       'Najpierw rozgrzewka. Piętnaście minut. Nie dyskutujemy.',
@@ -279,7 +285,9 @@ export const config = {
   },
   // Sounds. A missing file is skipped, the game runs on without it. events: game event -> file key.
   // minGapMs: a sound that fires in bursts (hits, gems) plays at most once per this many ms.
+  // masterVolume: every sound and the music (the settings sliders go on top); playtests found the game too loud at 1.
   audio: {
+    masterVolume: 0.4,
     files: {
       clang: { file: './assets/sounds/title_hit.wav', volume: 0.8 },
       // shortcut: music is WAV (~10 MB together), slow on a phone's first load; convert to OGG/MP3 before deploy.
@@ -382,7 +390,7 @@ export const config = {
     shop: { titleFontSize: 56, titleColor: '#76ff03', poorColor: '#ff8a80', boughtColor: '#9e9e9e', boughtAlpha: 0.45, shakePx: 6, shakeMs: 50 },
     // Active timed effects under the HUD panel: icon, name, a bar of the time left.
     effectHud: { width: 230, height: 38, iconSize: 28, barHeight: 6, gap: 6, fontSize: 15, color: 0xffcc00 },
-    // Weapon slots, bottom left (maxSlots, empty ones dimmed): icon with a level badge in its corner.
+    // Weapon slots, bottom left (run.player.weaponSlots, empty ones dimmed): icon with a level badge in its corner.
     // The passive slots are a second row of the same slots right above them.
     // readyColor: a pulsing frame on a weapon ready to evolve and on the passive it needs (readyPulseMs a beat).
     weaponHud: { size: 52, iconSize: 40, gap: 8, fontSize: 15, badgeRadius: 11, emptyAlpha: 0.35, readyColor: 0xffc400, readyWidth: 3, readyPulseMs: 500 },
@@ -404,7 +412,8 @@ export const config = {
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
-    gymScreen: { titleY: 40, titleFontSize: 56, top: 140, columns: 1, columnGap: 0, goRight: false, rowWidth: 680, rowHeight: 128, rowGap: 12, padding: 14, iconSize: 56,
+    // Bartek with his quote under the rows only shows when it fits above the start button.
+    gymScreen: { titleY: 40, titleFontSize: 56, top: 128, columns: 1, columnGap: 0, goRight: false, rowWidth: 680, rowHeight: 112, rowGap: 8, padding: 12, iconSize: 56,
       nameFontSize: 24, descFontSize: 16, descGap: 6, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipColor: 0xffc400, pipEmpty: 0x37474f,
       costGap: 24, costFontSize: 22, costIconSize: 24, shortFontSize: 16, shortColor: '#ff8a80', maxColor: '#ffc400',
       buyWidth: 140, buyHeight: 50, buyFontSize: 22, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
@@ -428,8 +437,8 @@ export const config = {
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,
           stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },
         banner: { y: 150 },
-        gymScreen: { titleY: 22, top: 104, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, rowHeight: 128, sectionGap: 20,
-          bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30 },
+        gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
+          bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30, top: 96, rowHeight: 112, rowGap: 8, bartekHeight: 90 },
       },
     },
   },

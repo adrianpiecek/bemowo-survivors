@@ -120,7 +120,7 @@ Nazwa i logo Gigantów Programowania oraz cudze postacie zostają tylko w wersji
 
 **Zmiana planu:** postacią grywalną jest zawsze zwykły Bartek (`bartek.png`). Zamiast postaci zmieniają się bronie, a warianty Bartka (Joker, Homelander, Uncanny i kolejne) są wrogami, nie postaciami. Lista poniżej to teraz lista broni; nazwa z kolumny "Inspiracja" zostaje jako nazwa broni albo opis karty. Bronie robisz w tej kolejności. (Od kroku 35c Tarcza Kapitana nie ma warunku odblokowania.)
 
-**Zmiana planu (v3): bronie z kart, nie wybór przed rundą.** Jak w gatunku: Bartek zaczyna z jedną bronią (od kroku 35c losowo: Pistolet, Shotgun albo Tarcza Kapitana) i nosi do 4 broni naraz (`config.weapons.maxSlots`). Nowa broń wypada jako karta przy level upie ("NOWA BROŃ"), a kolejne poziomy broni też jako karty z rzadkością (rzadsza karta = większy skok). Karta Obrażenia i Szybkostrzelność, siłownia i znajdźki działają na wszystkie bronie. Która broń w ogóle może wypaść, decyduje jej warunek odblokowania: sprawdzany na końcu rundy i zapisany na stałe w `save.unlocks`. Siłownia nie ma wyboru broni. Bronie to dane w `src/data/weapons.js`; HUD pokazuje w lewym dolnym rogu ikonki posiadanych broni z poziomem.
+**Zmiana planu (v3): bronie z kart, nie wybór przed rundą.** Jak w gatunku: Bartek zaczyna z jedną bronią (od kroku 35c losowo: Pistolet, Shotgun albo Tarcza Kapitana) i nosi do 3 broni naraz, a Kabura z siłowni dokłada 2 kolejne sloty (`config.weapons.startSlots`, `run.player.weaponSlots`; od kroku 35d). Nowa broń wypada jako karta przy level upie ("NOWA BROŃ"), a kolejne poziomy broni też jako karty z rzadkością (rzadsza karta = większy skok). Karta Obrażenia i Szybkostrzelność, siłownia i znajdźki działają na wszystkie bronie. Która broń w ogóle może wypaść, decyduje jej warunek odblokowania: sprawdzany na końcu rundy i zapisany na stałe w `save.unlocks`. Siłownia nie ma wyboru broni. Bronie to dane w `src/data/weapons.js`; HUD pokazuje w lewym dolnym rogu ikonki posiadanych broni z poziomem.
 
 | # | Inspiracja | Broń / mechanika | Typ |
 | --- | --- | --- | --- |
@@ -162,7 +162,7 @@ Gracz bierze wszystko po kolei, więc buildy się nie różnią.
 
 ### 1. Pasywki ze slotami (krok 30, z VS i Brotato)
 
-- **Pasywki zamiast kart statystyk.** Karty Obrażenia, Szybkostrzelność, Szybkość ruchu i Max HP znikają. W ich miejsce przychodzą **pasywki**: przedmioty z nazwą-memem, poziomami (karty z rzadkością, jak bronie) i limitem **4 slotów** (`config.passives.maxSlots`).
+- **Pasywki zamiast kart statystyk.** Karty Obrażenia, Szybkostrzelność, Szybkość ruchu i Max HP znikają. W ich miejsce przychodzą **pasywki**: przedmioty z nazwą-memem, poziomami (karty z rzadkością, jak bronie) i limitem **3 slotów**, a Plecak z siłowni dokłada 2 kolejne (`config.passives.startSlots`, `run.player.passiveSlots`; od kroku 35d, wcześniej 4).
 - **Pula jest większa niż sloty**, więc trzeba wybierać. Po zapełnieniu slotów karty nowych pasywek przestają wypadać i zostają tylko poziomy posiadanych.
 - **Nowe statystyki gracza** (jak w VS):
   - obszar: wielkość pocisków, chmur, promieni i tarcz;
@@ -341,12 +341,36 @@ Problem: z nowymi brońmi i ewolucjami po ~2 minutach gra robiła się za łatwa
   - **Nagroda:** średnia presja z rundy × 30% dochodzi do białka (np. +15% przy średniej 0.5). Gracz widzi ją tylko na ekranie końca gry: „Bemowo się zbroiło +X%”. Sama presja jest ukryta.
   - Debug: `config.debug.forcePressure` (liczba) trzyma presję na stałe. Nakładka balansu (`debug.balanceOverlay`) pokazuje presję, mnożniki, utratę HP w oknie, tłok, premię i mnożnik dotyku.
 
+### 8. Poprawki po playtestach (krok 35d)
+
+Zgłoszenia: topór za mocny, czołg przydatny tylko na początku, siłownię da się wymaksować w godzinę, gra za głośna. Nowe mapy i ozdoby ulic idą w kroku 37 i dalej (dzielnice).
+
+- **Topór krasnoluda słabszy:** 8 obrażeń (było 14), ten sam wróg najwyżej co 0,55 s (było 0,4 s), poziomy +3/+4/+4 obrażeń (było +6/+8/+8). Młyn krasnoluda kręci się 1.2x szybciej (było 1.4x).
+- **Czołg na całą rundę:** boss, którego dotyka, traci 5% swojego max HP na sekundę (było stałe 50/s, przy ostatnim bossie to 240/s). Przy wejściu do czołgu wszyscy zwykli wrogowie w promieniu 260 px giną od razu (`config.tank.crushRadius`, efekt `bossBoom`). Te zabójstwa nie ładują następnego czołgu.
+- **Siłownia na dłużej** (razem ok. 11 000 białka zamiast 1735):
+  - Klata, Nogi, Plecy do poziomu 8 (koszty 10, 25, 50, 100, 200, 400, 700, 1000);
+  - Okulary i Plan dnia do poziomu 5;
+  - **Kabura:** +1 slot broni na poziom, 2 poziomy (250, 600);
+  - **Plecak:** +1 slot pasywek na poziom, 2 poziomy (200, 500).
+- Sloty: na start 3 broni i 3 pasywek. Przy pełnych slotach karty nowych broni i pasywek nie wypadają, ewolucje działają dalej. HUD rysuje tyle slotów, ile Bartek ma.
+- Ekran siłowni: rzędy niższe (112 px), Bartek z cytatem pokazuje się tylko, gdy mieści się nad przyciskiem startu. W pionie przy 8 rzędach się nie mieści, w poziomie tak.
+- **Głośność:** `config.audio.masterVolume` 0.4 mnoży wszystkie dźwięki i muzykę (globalna głośność Phasera). Dotyczy też istniejących zapisów; suwaki w ustawieniach działają w tym zakresie.
+
 ### Później (po kroku 37 z mapą)
 
 - **Dzielnice** (z map z VS): Bemowo, Jelonki, Górce, z inną paletą ulic, innym miksem wrogów i inną pulą wydarzeń. Odblokowywane wygranymi.
 - **Wyzwanie dnia:** ten sam seed dla wszystkich danego dnia.
 
 ## Plan na później
+
+### Ikonki na kartach (pomysł)
+
+- Sloty z siłowni są już zrobione (krok 35d, sekcja 8).
+- **Ikonki na kartach:** karta level upu, skrzyni i Żabki pokazuje ikonkę broni albo pasywki (te same tekstury co w HUD).
+- Już działa i ma tak zostać:
+  - przy pełnych slotach broni nie wypadają karty nowych broni, tylko poziomy posiadanych;
+  - to samo z pasywkami;
+  - ewolucje są nadal możliwe.
 
 ### Rzadkość ulepszeń
 

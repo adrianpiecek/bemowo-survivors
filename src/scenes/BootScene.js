@@ -279,6 +279,7 @@ export default class BootScene extends Phaser.Scene {
     g.destroy();
 
     this.sound.mute = save.muted;
+    this.sound.volume = config.audio.masterVolume;
     this.scene.start('TitleScene');
   }
 
@@ -350,6 +351,23 @@ export default class BootScene extends Phaser.Scene {
     for (let r = 0; r < 3; r++) for (let k = 0; k < 4; k++) g.fillRect(s * (0.2 + k * 0.16), s * (0.42 + r * 0.15), s * 0.1, s * 0.09);
     g.lineStyle(s * 0.05, ic.planRing).strokeCircle(s * 0.41, s * 0.61, s * 0.1);
     g.generateTexture('gym_plan', s, s).clear();
+
+    // Kabura: a brown holster with a pistol grip sticking out.
+    g.fillStyle(ic.metalDark).fillRect(s * 0.46, s * 0.08, s * 0.16, s * 0.34).fillRect(s * 0.4, s * 0.08, s * 0.3, s * 0.12);
+    g.fillStyle(ic.coffee).fillPoints([{ x: s * 0.28, y: s * 0.3 }, { x: s * 0.78, y: s * 0.3 }, { x: s * 0.7, y: s * 0.92 },
+      { x: s * 0.42, y: s * 0.92 }], true);
+    g.lineStyle(s * 0.04, ic.outline).strokePoints([{ x: s * 0.28, y: s * 0.3 }, { x: s * 0.78, y: s * 0.3 }, { x: s * 0.7, y: s * 0.92 },
+      { x: s * 0.42, y: s * 0.92 }], true);
+    g.fillStyle(ic.accent).fillCircle(s * 0.53, s * 0.42, s * 0.05);
+    g.generateTexture('gym_weapon_slot', s, s).clear();
+
+    // Plecak: a green backpack with a pocket and a strap on top.
+    g.lineStyle(s * 0.07, ic.outline).strokeEllipse(c, s * 0.2, s * 0.3, s * 0.22);
+    g.fillStyle(ic.backpack).fillRoundedRect(s * 0.18, s * 0.22, s * 0.64, s * 0.7, s * 0.14);
+    g.fillStyle(0x000000, 0.25).fillRoundedRect(s * 0.28, s * 0.56, s * 0.44, s * 0.28, s * 0.06);
+    g.lineStyle(s * 0.04, ic.outline).strokeRoundedRect(s * 0.18, s * 0.22, s * 0.64, s * 0.7, s * 0.14);
+    g.fillStyle(ic.accent).fillRect(c - s * 0.04, s * 0.52, s * 0.08, s * 0.08);
+    g.generateTexture('gym_passive_slot', s, s).clear();
 
     // Pause: two white bars. Settings: a gear (teeth around a ring with a hole).
     g.fillStyle(0xffffff).fillRoundedRect(s * 0.24, s * 0.18, s * 0.18, s * 0.64, s * 0.04).fillRoundedRect(s * 0.58, s * 0.18, s * 0.18, s * 0.64, s * 0.04);

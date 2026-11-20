@@ -24,6 +24,8 @@ function startingStats() {
     warmupMs: 0,
     warmupSpeedMult: 1,
     afterWarmupDamageMult: 1,
+    weaponSlots: config.weapons.startSlots, // the gym's Kabura adds more
+    passiveSlots: config.passives.startSlots, // the gym's Plecak adds more
     // Level-up draw control charges left this run (Odśwież, Pomiń, Wywal).
     rerolls: config.draw.rerolls,
     skips: config.draw.skips,

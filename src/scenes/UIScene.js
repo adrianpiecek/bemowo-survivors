@@ -215,7 +215,9 @@ export default class UIScene extends Phaser.Scene {
   // a carried item shows its icon and a level badge over its corner. Redrawn only when an item or a level changes.
   updateWeaponHud() {
     const wh = config.ui.weaponHud, m = config.ui.margin, bottom = this.scale.height - m - wh.size;
-    const rows = [[this.run.weapons, config.weapons.maxSlots, bottom], [this.run.passives, config.passives.maxSlots, bottom - wh.size - wh.gap]];
+    // Debug weapons may be more than the slots: then every one still shows.
+    const pl = this.run.player, rows = [[this.run.weapons, Math.max(pl.weaponSlots, this.run.weapons.length), bottom],
+      [this.run.passives, Math.max(pl.passiveSlots, this.run.passives.length), bottom - wh.size - wh.gap]];
     const ready = this.run.weapons.filter((w) => evolutionReady(this.run, w));
     const sig = rows.map(([items]) => items.map((it) => `${it.level}${it.evolved ? 'e' : ''}`).join()).join('|') + `|${ready.length}`;
     if (sig === this.weaponSig) return;

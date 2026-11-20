@@ -212,7 +212,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.run.tankMs > 0) {
       if (!enemy.active) return;
       // A boss only takes damage over time; overlaps fire once per fixed physics step.
-      if (enemy.stats.isBoss) enemy.hp -= config.tank.bossDamagePerSec / this.physics.world.fps;
+      if (enemy.stats.isBoss) enemy.hp -= enemy.maxHp * config.tank.bossDamagePct / this.physics.world.fps;
       if (!enemy.stats.isBoss || enemy.hp <= 0) this.killEnemy(enemy);
       return;
     }
@@ -483,6 +483,11 @@ export default class GameScene extends Phaser.Scene {
     const r = config.textures.tank.bodyRadius / this.tankScale; // body sizes are in texture px, before scale
     this.player.setTexture('tank').body.setCircle(r, this.player.width / 2 - r, this.player.height / 2 - r);
     run.bubbleMs = config.ui.bubble.durationMs;
+    // Crushes the walkers around on the way in (tankMs is already set, so these kills do not charge the next tank).
+    for (const z of this.enemies.getChildren()) {
+      if (z.active && !z.stats.isBoss && Phaser.Math.Distance.Between(z.x, z.y, this.player.x, this.player.y) <= t.crushRadius) this.killEnemy(z);
+    }
+    playVfx(this, 'bossBoom', this.player.x, this.player.y);
     playSfx(this, 'tank');
     playSfx(this, 'muchacho');
     this.cameras.main.shake(t.shakeMs, t.shakeIntensity);

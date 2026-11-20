@@ -5,7 +5,7 @@ import { isEffectActive } from '../systems/effects.js';
 import { createOrbit, updateOrbit } from '../systems/orbit.js';
 
 // Weapons. run.weapons holds the ones Bartek carries as { def, level } plus whatever state the weapon keeps there.
-// A new weapon and each next level come as level-up cards (systems/cards.js); Bartek carries up to config.weapons.maxSlots.
+// A new weapon and each next level come as level-up cards (systems/cards.js); Bartek carries up to run.player.weaponSlots.
 //   levels       config list: what each level after the first adds (maxLevel = levels.length + 1)
 //   description  (level, mult): card text for reaching that level; level 1 is the "NOWA BROŃ" card
 //   create(scene, w)          once, when Bartek gets the weapon

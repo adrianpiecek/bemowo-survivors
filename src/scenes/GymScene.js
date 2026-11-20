@@ -95,6 +95,15 @@ export default class GymScene extends Phaser.Scene {
 
     // Under the rows: Bartek with a speech bubble (a random quote) and a Bartkowanie definition; the start button at the bottom.
     const rowsBottom = gs.top + Math.ceil(gymUpgrades.length / gs.columns) * (gs.rowHeight + gs.rowGap);
+    // Landscape keeps the start button on the right, so Bartek only has to stay above the bottom edge there.
+    const room = height - gs.bottom - (gs.goRight ? 0 : gs.goHeight + gs.sectionGap);
+    if (rowsBottom + gs.sectionGap + gs.bartekHeight <= room) this.addQuote(x0, rowsBottom);
+    this.addGoButtons(x0, totalW, cx);
+  }
+
+  // Bartek with a speech bubble (a random quote) and a Bartkowanie definition, under the rows.
+  addQuote(x0, rowsBottom) {
+    const gs = config.ui.gymScreen;
     const bartek = this.add.image(x0, rowsBottom + gs.sectionGap, 'bartek').setOrigin(0, 0);
     bartek.setScale(gs.bartekHeight / bartek.height);
     const bx = x0 + bartek.displayWidth + gs.quoteGap + gs.tail, by = bartek.y;
@@ -107,6 +116,10 @@ export default class GymScene extends Phaser.Scene {
     this.add.text(bx, by + bh + gs.padding, Phaser.Utils.Array.GetRandom(config.bartkowanie.definitions), font(gs.definitionFontSize, {
       fontStyle: 'italic', color: gs.definitionColor, wordWrap: { width: gs.quoteWidth + gs.padding * 2 },
     }));
+  }
+
+  addGoButtons(x0, totalW, cx) {
+    const gs = config.ui.gymScreen, u = config.ui, { height } = this.scale;
 
     // "Na Bemowo!" at the bottom; after the first win "Zakłady z Unc" (with the bonus picked) left of it, the pair centred
     // (portrait) or on the right (landscape).

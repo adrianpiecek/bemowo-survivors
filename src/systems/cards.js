@@ -64,7 +64,7 @@ function weaponCards(run) {
       apply(player, scene, m) { scene.levelUpWeapon(w, m); },
     });
   }
-  if (run.weapons.length >= config.weapons.maxSlots) return cards;
+  if (run.weapons.length >= run.player.weaponSlots) return cards;
   for (const def of weapons) {
     if (run.weapons.some((w) => w.def === def) || !isUnlocked(def)) continue;
     cards.push({
@@ -86,7 +86,7 @@ export function passiveCards(run) {
     apply(player, scene, m) { scene.gainPassive(def, m); },
   });
   const cards = run.passives.filter((p) => p.level < p.def.maxLevel).map((p) => card(p.def, p.level + 1, `Poziom ${p.level} → ${p.level + 1}`));
-  if (run.passives.length >= config.passives.maxSlots) return cards;
+  if (run.passives.length >= run.player.passiveSlots) return cards;
   for (const def of passives) {
     if (!run.passives.some((p) => p.def === def) && isUnlocked(def)) cards.push(card(def, 1, 'NOWA PASYWKA'));
   }

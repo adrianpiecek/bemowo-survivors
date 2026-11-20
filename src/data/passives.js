@@ -3,7 +3,7 @@ import { save } from '../state.js';
 
 // Passives: items that each raise one of Bartek's stats (run.player) for the run. run.passives holds the ones he carries
 // as { def, level }. A new one and each next level come as level-up cards with a rarity (systems/cards.js); Bartek carries
-// up to config.passives.maxSlots, after that only levels of the ones he has can drop.
+// up to run.player.passiveSlots, after that only levels of the ones he has can drop.
 //   description(level, mult)    card text for reaching that level (every level gives the same)
 //   apply(player, level, mult)  adds one level's gain; mult is the card's rarity multiplier
 //   unlock   null: can always drop; else { text, check(run, won) }: checked at the end of a run, after save.stats got this
