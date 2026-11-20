@@ -233,6 +233,7 @@ export default class GameScene extends Phaser.Scene {
     const pl = this.run.player, damage = Math.max(1, Math.round(enemy.stats.contactDamage * grow) - pl.armor);
     pl.hp = Math.max(0, pl.hp - damage);
     this.run.damageTaken += damage;
+    if (enemy.stats.touchVfx) playVfx(this, enemy.stats.touchVfx, this.player.x, this.player.y);
     playSfx(this, 'playerDamage');
     if (enemy.stats.leavesScar) this.run.scarred = true;
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
@@ -263,7 +264,7 @@ export default class GameScene extends Phaser.Scene {
     if (crit) {
       damage *= pl.critMult;
       playVfx(this, 'critHit', x, y);
-    }
+    } else if (damage >= enemy.maxHp * config.look.heavyHitPct) playVfx(this, 'heavyHit', x, y);
     const dealt = Math.min(damage, enemy.hp), src = this.damageSource;
     this.run.damageDealt += dealt;
     if (src) this.run.weaponDamage[src.def.id] = (this.run.weaponDamage[src.def.id] ?? 0) + dealt;
@@ -276,6 +277,21 @@ export default class GameScene extends Phaser.Scene {
     }
     this.killEnemy(enemy);
     return true;
+  }
+
+  // Zombie robią przysiady: stars circle over some heads; Moonwalk: some walkers leave streaks toward Bartek.
+  // Every fxEveryMs, fxPerTick random walkers on screen.
+  updateBartkowanieFx(delta, squats) {
+    const bk = config.bartkowanie;
+    this.bartkFxMs = (this.bartkFxMs ?? 0) + delta;
+    if (this.bartkFxMs < bk.fxEveryMs) return;
+    this.bartkFxMs = 0;
+    const view = this.cameras.main.worldView;
+    const shown = this.enemies.getChildren().filter((z) => z.active && this.isWalker(z) && view.contains(z.x, z.y));
+    for (const z of Phaser.Utils.Array.Shuffle(shown).slice(0, bk.fxPerTick)) {
+      if (squats) playVfx(this, 'squatStars', z.x, z.y - z.displayHeight / 2);
+      else playVfx(this, 'moonwalkTrail', z.x, z.y, Phaser.Math.RadToDeg(Phaser.Math.Angle.Between(z.x, z.y, this.player.x, this.player.y)));
+    }
   }
 
   // A number rising over a hit, from the pool; none when the whole pool is in the air.
@@ -319,6 +335,7 @@ export default class GameScene extends Phaser.Scene {
     if (Math.random() < config.coins.dropChance * this.run.player.luck) this.dropCoin(enemy.x, enemy.y, this.pickCoinKind());
     if (Math.random() < config.coins.b.dropChance * this.run.player.luck) this.dropCollectible(enemy.x + config.coins.size, enemy.y, 'coin_b', 1, 'b');
     playVfx(this, 'deathPoof', enemy.x, enemy.y);
+    if (enemy.stats.deathVfx) playVfx(this, enemy.stats.deathVfx, enemy.x, enemy.y);
     this.maybeDropPickup(enemy.x, enemy.y);
     if (enemy.stats.isBoss) this.bossKilled(enemy);
   }
@@ -398,6 +415,7 @@ export default class GameScene extends Phaser.Scene {
     z.setScale(z.scaleX * c.scale);
     for (const t of traits) t.apply?.(z);
     z.maxHp = z.hp;
+    playVfx(this, 'eliteSpawn', z.x, z.y);
     z.preFX?.setPadding(c.glowPadding);
     for (const t of traits) z.preFX?.addGlow(t.color, c.glowStrength, 0); // WebGL only; the name still marks it on canvas
     z.eliteLabel = this.add.text(z.x, z.y, traits.map((t) => t.name).join(' + '), font(c.labelFontSize, {
@@ -521,6 +539,7 @@ export default class GameScene extends Phaser.Scene {
     }
     this.scene.get('UIScene').showBanner(def.name.toUpperCase(), def.description);
     playSfx(this, 'pickup');
+    playVfx(this, 'eventStart', this.player.x, this.player.y);
     def.start?.(this);
     if (def.durationSec > 0) run.activeEvents.push({ def, remainingMs: def.durationSec * 1000, durationMs: def.durationSec * 1000 });
   }
@@ -568,8 +587,9 @@ export default class GameScene extends Phaser.Scene {
 
   endTank() {
     this.player.setTexture('bartek').setFlipX(false).body.setSize(); // no args: body back to the frame size
-    // A short grace period, so the horde around the tank does not bite on the very first frame.
+    // A short grace period, so the horde around the tank does not bite on the very first frame; a bubble shows it.
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
+    playVfx(this, 'tankBubble', this.player.x, this.player.y);
   }
 
   // Bartkowanie effect 5: three spins and nothing else.
@@ -704,9 +724,11 @@ export default class GameScene extends Phaser.Scene {
       this.run.bubbleMs = config.ui.bubble.durationMs;
       playSfx(this, 'levelUp');
       playSfx(this, 'muchacho');
+      const cam = this.cameras.main; // the run pauses now, so the flash plays over the cards, at Bartek on screen
+      const flashAt = { x: (this.player.x - cam.worldView.x) * cam.zoom, y: (this.player.y - cam.worldView.y) * cam.zoom };
       this.updateBubble();
       this.scene.pause();
-      this.scene.launch('LevelUpScene', { run: this.run });
+      this.scene.launch('LevelUpScene', { run: this.run, flashAt });
     }
   }
 
@@ -728,7 +750,8 @@ export default class GameScene extends Phaser.Scene {
     w.evolved = true;
     evo.evolve?.(this, w);
     if (!this.run.evolutions.includes(evo.id)) this.run.evolutions.push(evo.id);
-    playVfx(this, 'starBurst', this.player.x, this.player.y);
+    playVfx(this, 'evolution', this.player.x, this.player.y);
+    this.cameras.main.flash(config.look.evolutionFlashMs, 255, 220, 120);
     this.scene.get('UIScene').showBanner(`EWOLUCJA: ${evo.name}`, evo.description);
   }
 
@@ -753,6 +776,7 @@ export default class GameScene extends Phaser.Scene {
     if (!p) this.run.passives.push(p = { def, level: 0 });
     p.level++;
     def.apply(this.run.player, p.level, mult);
+    if (def.vfx) playVfx(this, def.vfx, this.player.x, this.player.y); // plays once the cards close
   }
 
   updateBubble() {
@@ -911,11 +935,22 @@ export default class GameScene extends Phaser.Scene {
     if (run.tankMs > 0) {
       run.tankMs = Math.max(0, run.tankMs - delta);
       if (this.moveDir.x) this.player.setFlipX(this.moveDir.x > 0); // the image's barrel points left
+      this.tankDustMs = (this.tankDustMs ?? 0) + delta;
+      if (this.moveDir.lengthSq() > 0 && this.tankDustMs >= config.tank.dustEveryMs) {
+        this.tankDustMs = 0;
+        const back = this.moveDir.angle() + Math.PI, d = config.tank.dustBack;
+        playVfx(this, 'tankDust', this.player.x + Math.cos(back) * d, this.player.y + Math.sin(back) * d, Phaser.Math.RadToDeg(back));
+      }
       if (run.tankMs === 0) this.endTank();
     }
 
     const { blinkMs, blinkAlpha } = config.player;
-    if (updateEffects(run, delta).length) run.flashMs = config.effects.endFlashMs;
+    const ended = updateEffects(run, delta);
+    if (ended.length) run.flashMs = config.effects.endFlashMs;
+    for (const id of ended) {
+      const vfx = pickups.find((d) => d.effect === id)?.endVfx; // Mały B grows back in a puff
+      if (vfx) playVfx(this, vfx, this.player.x, this.player.y);
+    }
     run.flashMs = Math.max(0, run.flashMs - delta);
     // The Arcade body follows the sprite's scale.
     const scale = (run.tankMs > 0 ? this.tankScale : this.baseScale) * pl.scale;
@@ -967,6 +1002,7 @@ export default class GameScene extends Phaser.Scene {
     }
     this.updatePressure(delta, crowd);
     this.updateDamageNumbers(delta);
+    if (squats || moonwalk) this.updateBartkowanieFx(delta, squats);
     this.playerShadow.setPosition(this.player.x, this.player.y + this.player.displayHeight * lk.shadowY)
       .setDisplaySize(this.player.displayWidth * lk.shadowW, this.player.displayWidth * lk.shadowW * lk.shadowFlat);
     this.map.update(delta);

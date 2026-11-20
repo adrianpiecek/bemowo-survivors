@@ -33,7 +33,7 @@ export const items = [
     apply(pl) { addShare(pl, 'luck', c.scratch.luckPct); },
   },
   {
-    id: 'plaster', name: 'Plaster', icon: 'item_plaster', description: `+${c.plaster.maxHp} max HP i leczenie o tyle samo`,
+    id: 'plaster', name: 'Plaster', icon: 'item_plaster', vfx: 'maxHpUp', description: `+${c.plaster.maxHp} max HP i leczenie o tyle samo`,
     apply(pl) {
       pl.maxHp += c.plaster.maxHp;
       pl.hp = Math.min(pl.maxHp, pl.hp + c.plaster.maxHp);

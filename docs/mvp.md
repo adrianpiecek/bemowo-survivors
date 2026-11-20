@@ -409,6 +409,10 @@ Zgłoszenia: topór za mocny, czołg przydatny tylko na początku, siłownię da
 - **Liczby obrażeń** nad trafionym wrogiem: pula 40 tekstów, unoszą się i znikają w 650 ms, krytyk złoty i większy. Gdy cała pula jest w powietrzu, trafienie nie pokazuje liczby. Wyłącza je `config.ui.damageNumbers.enabled: false`.
 - Na telefonie (szerokość 375) karty, pauza i ekran końca mieszczą się w ekranie (gra skaluje się `Scale.FIT`).
 
+### 13. Więcej efektów (krok 38)
+
+Same efekty, bez nowych mechanik. Wszystkie są wpisami w `config.vfx` (lista w sekcji Efekty w „Plan na później”), nowe kształty `fx_blob` (plama), `fx_streak` (smuga) i `fx_dizzy` (krąg gwiazdek). Dane mówią, kto ma jaki efekt: wróg ma `deathVfx` (Joker, Goblin: plama) i `touchVfx` (klapa: iskry z metalu), pasywka i przedmiot mają `vfx` (Gainer, Plaster: leczenie), znajdźka ma `vfx` i `endVfx` (Mały B: kłąb dymu na początku i na końcu). Emiter cząsteczek trzyma najwyżej `config.pools.vfxParticles` (200) naraz, kształty mają pulę `config.pools.vfx` (60), więc pełna horda nie przepełnia efektów.
+
 ### Później (po kroku 37 z mapą)
 
 - **Dzielnice** (z map z VS): Bemowo, Jelonki, Górce, z inną paletą ulic, innym miksem wrogów i inną pulą wydarzeń. Odblokowywane wygranymi.
@@ -432,16 +436,17 @@ Przy każdym level upie każda z 3 kart dostaje losową rzadkość: zwykła, rza
 
 Efekty nie są z pikselowych paczek (bez kontekstu wyglądały słabo). `src/systems/vfx.js` rysuje w `BootScene` małe białe kształty `fx_*` (kropka, iskra, kłąb dymu, pierścień, celownik, gwiazdka, promienie, plus, płatek śniegu, błysk z lufy, łuska), a każdy efekt w `config.vfx` to kilka warstw: wybuch cząsteczek (liczba, prędkość, czas, skala, kolor, grawitacja, kierunek) albo jeden kształt, który rośnie lub maleje i znika. `playVfx(scene, id, x, y, kąt)` działa w każdej scenie.
 
-W grze są: `hitSpark` (trafienie), `deathPoof` (śmierć wroga), `bossBoom` (śmierć bossa), `targetMark` i `dashDust` (doskok Sportakusa), `gemPickup`, `coinPickup`, `starBurst` (legendarna karta, znajdźka), `vacuumPull` (magnes), `frostNova` (zimny prysznic), `holyHeal` (pierogi), `metalClang` (tarcza), `chestOpen` (skrzynia), `muzzleFlash` i `shell` (pistolet).
+W grze są: `hitSpark` (trafienie), `deathPoof` (śmierć wroga), `bossBoom` (śmierć bossa), `targetMark` i `dashDust` (doskok Sportakusa), `gemPickup`, `coinPickup`, `starBurst` (legendarna karta, znajdźka), `vacuumPull` (magnes), `frostNova` (zimny prysznic), `holyHeal` (pierogi), `metalClang` (tarcza), `chestOpen` (skrzynia), `muzzleFlash` i `shell` (pistolet), `critHit` (krytyk), `lightning` (Burza).
 
-Pomysły na później (krok 38), wszystkie rysowane tak samo:
-- Błysk przy level upie, leczenie przy karcie Max HP.
-- Czołg: kurz spod gąsienic, bańka w czasie nietykalności.
-- Klapa: iskry z metalu przy trafieniu Bartka.
-- Mały B: kłąb dymu przy zmniejszeniu i powrocie.
-- Bartkowanie: krążące gwiazdki przy "Zombie robią przysiady", smugi przy "Moonwalk".
-- Mocne trafienie: większe iskry; śmierć wybranych wrogów: plama.
-- Ekran wygranej: fajerwerki.
+Dodane w kroku 38:
+- `levelUp`: błysk nad Bartkiem przy level upie (gra w `LevelUpScene` nad kartami, bo runda stoi). `maxHpUp`: leczenie przy Gainerze i Plastrze.
+- Czołg: `tankDust` (kurz spod gąsienic, za czołgiem, co `tank.dustEveryMs`), `tankBubble` (bańka, gdy czołg znika i Bartek jest chwilę nietykalny).
+- `klapaClang`: iskry z metalu, gdy klapa trafi Bartka.
+- `smokePuff`: kłąb dymu, gdy Mały B się zmniejsza i wraca.
+- Bartkowanie: `squatStars` (gwiazdki krążą nad głowami przy „Zombie robią przysiady”), `moonwalkTrail` (smugi za idącymi tyłem przy „Moonwalk”), kilka losowych wrogów na ekranie co `bartkowanie.fxEveryMs`.
+- `heavyHit`: większe iskry, gdy jedno trafienie zabiera co najmniej `look.heavyHitPct` (połowę) życia wroga. `splatGreen` i `splatPurple`: plama na ziemi po Goblinie i Jokerze.
+- `evolution`: duży błysk ekranu i promienie przy ewolucji broni, nazwa nowej broni w banerze. `eliteSpawn`: elita się pojawia. `eventStart`: wydarzenie się zaczyna.
+- `firework`: fajerwerki na ekranie wygranej, co `ui.fireworkEveryMs`, za panelem.
 
 ## Architektura
 

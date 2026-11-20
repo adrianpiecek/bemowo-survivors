@@ -21,6 +21,24 @@ export function createVfxTextures(scene) {
 
   g.fillStyle(0xffffff).fillCircle(f.dot, f.dot, f.dot);
   tex('fx_dot', f.dot * 2);
+  // Blob: a splat, a body with drops around it.
+  const b = f.blob;
+  g.fillStyle(0xffffff).fillCircle(b, b, b * 0.55);
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 + 0.4, d = b * (0.55 + (i % 3) * 0.12);
+    g.fillCircle(b + Math.cos(a) * d, b + Math.sin(a) * d, b * (0.12 + (i % 2) * 0.1));
+  }
+  tex('fx_blob', b * 2);
+  // Streak: a long thin oval, pointing along the x axis.
+  g.fillStyle(0xffffff).fillEllipse(f.streak, f.streak, f.streak * 2, f.streak * 0.25);
+  tex('fx_streak', f.streak * 2);
+  // Dizzy: three small stars on a ring (spun around over a head).
+  const dz = f.dizzy;
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2;
+    g.fillStyle(0xffffff).fillPoints(star(dz + Math.cos(a) * dz * 0.65, dz + Math.sin(a) * dz * 0.35, 5, dz * 0.3, dz * 0.13), true);
+  }
+  tex('fx_dizzy', dz * 2);
   // Leaf: a long oval with a darker vein.
   g.fillStyle(0xffffff).fillEllipse(f.leaf, f.leaf, f.leaf * 2, f.leaf).lineStyle(1, 0x000000, 0.35).lineBetween(1, f.leaf, f.leaf * 2 - 1, f.leaf);
   tex('fx_leaf', f.leaf * 2);
@@ -110,6 +128,7 @@ function emitterFor(scene, key, pt) {
       gravityY: pt.gravityY ?? 0,
       rotate: pt.spin ? { min: -pt.spin, max: pt.spin } : 0,
       blendMode: pt.add ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL,
+      maxParticles: config.pools.vfxParticles, // a full emitter skips new bursts instead of growing
     }).setDepth(pt.depth ?? 1.6);
   }
   return c.emitters[key];

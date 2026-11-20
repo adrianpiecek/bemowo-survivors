@@ -44,7 +44,10 @@ export default class ChestScene extends Phaser.Scene {
       this.time.delayedCall(ch.spinMs + i * ch.stopGapMs, () => {
         spin.remove();
         const rarity = this.items ? null : rollRarity(up, this.run);
-        if (this.items) giveItem(this.run, up);
+        if (this.items) {
+          giveItem(this.run, up);
+          if (up.vfx) playVfx(gs, up.vfx, gs.player.x, gs.player.y); // plays once the run resumes
+        }
         else applyUpgrade(this.run, gs, up, rarity);
         card.fill(up, rarity); // an evolution gets a gold frame and its own label in place of a rarity
         if (up.evolution || rarity?.id === 'legendary') playVfx(this, 'starBurst', card.x, card.y - c.height / 2);

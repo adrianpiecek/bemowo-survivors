@@ -190,7 +190,7 @@ export const config = {
   },
   // Characters: a shadow under each (shadowW x its width, shadowFlat as tall, shadowY x its height below its middle),
   // a sway of bobDeg at bobHz while walking, a white flash for hitFlashMs when hit and still alive.
-  look: { critFlashColor: 0xffc400, shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
+  look: { evolutionFlashMs: 400, heavyHitPct: 0.5, critFlashColor: 0xffc400, shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
@@ -275,7 +275,9 @@ export const config = {
   // Ultimate: charged by kills, Space (or a tap on its bar) turns Bartek into a tank.
   // Tank: a boss it touches loses bossDamagePct of its max HP a second (so it helps against late bosses too); on the way
   // in it crushes every walking enemy within crushRadius px.
-  tank: { killsToCharge: 100, durationSec: 10, bossDamagePct: 0.05, crushRadius: 260, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200 },
+  // dustEveryMs, dustBack: dust from the tracks while it drives, dustBack px behind it.
+  tank: { killsToCharge: 100, durationSec: 10, bossDamagePct: 0.05, crushRadius: 260, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200,
+    dustEveryMs: 90, dustBack: 40 },
   // Rare drops from killed enemies. Each pickup's own numbers sit under its id.
   pickups: {
     lifetimeSec: 20,
@@ -317,6 +319,7 @@ export const config = {
   bartkowanie: {
     weight: 0.5, durationSec: 5, damagePct: 0.2, allStatsPct: 0.01, protein: 5,
     spins: 3, spinMs: 1500, squatAmp: 8, squatHz: 3, // squats: enemies hop squatAmp px up and down squatHz times a second
+    fxEveryMs: 200, fxPerTick: 3, // squats and moonwalk: every fxEveryMs that many walkers on screen get stars or a trail
     yellowColor: 0xffd400, yellowAlpha: 0.25,
     definitions: [ // shown in the gym under Bartek's bubble
       'Bartkowanie (czas.): czynność, której nikt nie widział, ale wszyscy o niej słyszeli.',
@@ -355,7 +358,8 @@ export const config = {
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   // enemies: spawn.maxEnemies + room for bosses, the school trip and split elites; pickups: room for boss and elite chests
-  pools: { bullets: 160, enemies: 320, gems: 300, pickups: 20, vfx: 60, bees: 20, gas: 12, axes: 12 },
+  // vfxParticles: the most particles one effect layer keeps alive at once (a full horde cannot pile them up).
+  pools: { bullets: 160, enemies: 320, gems: 300, pickups: 20, vfx: 60, vfxParticles: 200, bees: 20, gas: 12, axes: 12 },
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -429,6 +433,7 @@ export const config = {
     // bigger. When all are in the air a hit shows none. enabled: false turns them off.
     damageNumbers: { enabled: true, pool: 40, fontSize: 18, critFontSize: 26, color: '#ffffff', critColor: '#ffc400', stroke: 4,
       riseY: 36, ms: 650, jitterX: 12, depth: 4 },
+    fireworkEveryMs: 350, // a won run's end screen: a firework this often
     // End screen (GameOverScene): the title from `top`, a panel with the run's numbers and every weapon's damage (icon,
     // name, a bar against the best one, the number), the buttons under it, then what the run unlocked.
     gameOver: { top: 110, gap: 18, panelWidth: 600, padding: 18, fontSize: 22, rowHeight: 32, headerColor: '#ffc400', labelColor: '#b0bec5',
@@ -518,6 +523,49 @@ export const config = {
     critHit: { layers: [ // a critical hit, played on top of the weapon's own hit effect
       { particles: { texture: 'fx_spark', count: 10, speed: [120, 300], lifeMs: 300, scale: [1.3, 0], tint: [0xffd54f, 0xff6f00], add: true } },
       { image: { texture: 'fx_ring', scale: [0.3, 1.6], alpha: [0.9, 0], ms: 200, tint: 0xffc400, add: true } }] },
+    heavyHit: { minGapMs: 30, layers: [ // a hit worth half the enemy's max HP or more
+      { particles: { texture: 'fx_spark', count: 9, speed: [150, 340], lifeMs: 260, scale: [1.4, 0], tint: [0xffffff, 0xffe082, 0xff8f00], add: true } },
+      { image: { texture: 'fx_dot', scale: [3, 0.4], alpha: [1, 0], ms: 130, tint: 0xfff3b0, add: true } }] },
+    // Splats left on the street by some enemies (enemies.js deathVfx), lying under everyone and fading.
+    splatGreen: { layers: [
+      { particles: { texture: 'fx_blob', count: 1, speed: [0, 0], lifeMs: 1800, scale: [1, 1.15], alpha: [0.85, 0], tint: [0x689f38, 0x7cb342], spin: 180, depth: -0.4 } }] },
+    splatPurple: { layers: [
+      { particles: { texture: 'fx_blob', count: 1, speed: [0, 0], lifeMs: 1800, scale: [1.2, 1.35], alpha: [0.85, 0], tint: [0x7b1fa2, 0x43a047], spin: 180, depth: -0.4 } }] },
+    levelUp: { layers: [ // a level up, played in LevelUpScene over the cards, where Bartek is on screen
+      { image: { texture: 'fx_rays', scale: [0.3, 2.4], alpha: [1, 0], ms: 700, tint: 0x40c4ff, add: true, spinDeg: 60 } },
+      { image: { texture: 'fx_ring', scale: [0.3, 3], alpha: [1, 0], ms: 500, tint: 0xffffff, add: true } },
+      { particles: { texture: 'fx_star', count: 12, speed: [120, 260], lifeMs: 700, scale: [0.8, 0], tint: [0x40c4ff, 0xffffff], spin: 180 } }] },
+    maxHpUp: { layers: [ // Gainer, Plaster: max HP up and a heal
+      { image: { texture: 'fx_ring', scale: [0.4, 2], alpha: [0.9, 0], ms: 450, tint: 0xff5252 } },
+      { particles: { texture: 'fx_plus', count: 10, speed: [30, 90], angle: -90, spread: 140, gravityY: -120, lifeMs: 800, scale: [1, 0.3], tint: [0xff5252, 0x69f0ae] } }] },
+    tankDust: { minGapMs: 40, layers: [ // dust from the tank's tracks, thrown backwards
+      { particles: { texture: 'fx_puff', count: 2, speed: [20, 60], spread: 50, lifeMs: 500, scale: [0.5, 1.3], alpha: [0.6, 0], tint: [0xbcaaa4, 0x8d6e63], depth: 0.5 } }] },
+    tankBubble: { layers: [ // the tank ends: a bubble for the short invulnerability
+      { image: { texture: 'fx_ring', scale: [1.4, 2.2], alpha: [0.9, 0], ms: 500, tint: 0x81d4fa, add: true } },
+      { particles: { texture: 'fx_dot', count: 10, speed: [60, 140], lifeMs: 400, scale: [0.8, 0], tint: [0xe1f5fe, 0x81d4fa], add: true } }] },
+    klapaClang: { layers: [ // a klapa hits Bartek: metal sparks
+      { particles: { texture: 'fx_spark', count: 14, speed: [160, 380], lifeMs: 300, scale: [1.2, 0], tint: [0xffffff, 0xb0bec5, 0xffb300], add: true } },
+      { image: { texture: 'fx_star', scale: [2.2, 0.3], alpha: [1, 0], ms: 180, add: true, spinDeg: 60 } }] },
+    smokePuff: { layers: [ // Mały B: Bartek shrinks and grows back in a puff
+      { particles: { texture: 'fx_puff', count: 14, speed: [40, 130], lifeMs: 600, scale: [0.8, 2], alpha: [0.8, 0], tint: [0xeeeeee, 0xbdbdbd, 0xce93d8] } },
+      { particles: { texture: 'fx_star', count: 6, speed: [80, 160], lifeMs: 450, scale: [0.6, 0], tint: 0xffffff, spin: 180 } }] },
+    squatStars: { layers: [ // Zombie robią przysiady: stars circling over a head
+      { image: { texture: 'fx_dizzy', scale: [1, 1], alpha: [1, 0], ms: 600, tint: 0xffeb3b, spinDeg: 360, ease: 'Linear' } }] },
+    moonwalkTrail: { layers: [ // Moonwalk: streaks left behind a walker going backwards (angle: toward Bartek)
+      { image: { texture: 'fx_streak', origin: [0, 0.5], scale: [1.6, 0.8], alpha: [0.9, 0], ms: 400, tint: 0xd1c4e9, add: true } }] },
+    evolution: { layers: [ // a weapon evolves: a big gold flash on Bartek
+      { image: { texture: 'fx_rays', scale: [0.5, 5], alpha: [1, 0], ms: 1100, tint: 0xffc400, add: true, spinDeg: 90 } },
+      { image: { texture: 'fx_ring', scale: [0.3, 7], alpha: [1, 0], ms: 800, tint: 0xffffff, add: true } },
+      { particles: { texture: 'fx_star', count: 24, speed: [150, 380], lifeMs: 900, scale: [1, 0], tint: [0xffc400, 0xffffff, 0xff6d00], spin: 180 } }] },
+    eliteSpawn: { layers: [ // an elite appears: a purple ring pulling in, sparks out
+      { image: { texture: 'fx_ring', scale: [4, 1], alpha: [0, 1], ms: 450, tint: 0xe040fb, add: true, ease: 'Cubic.easeIn' } },
+      { particles: { texture: 'fx_spark', count: 10, speed: [80, 200], lifeMs: 500, scale: [1, 0], tint: [0xe040fb, 0xffffff], add: true } }] },
+    eventStart: { layers: [ // a round event starts: a wave from Bartek over the screen
+      { image: { texture: 'fx_ring', scale: [0.5, 14], alpha: [0.9, 0], ms: 900, tint: 0xffc400 } },
+      { image: { texture: 'fx_rays', scale: [0.4, 3], alpha: [0.8, 0], ms: 700, tint: 0xffe082, add: true, spinDeg: 45 } }] },
+    firework: { layers: [ // a won run's end screen
+      { particles: { texture: 'fx_dot', count: 28, speed: [120, 260], gravityY: 140, lifeMs: 1100, scale: [1, 0], tint: [0xff5252, 0xffeb3b, 0x40c4ff, 0x69f0ae, 0xe040fb, 0xffffff], add: true, depth: -1 } },
+      { image: { texture: 'fx_ring', scale: [0.2, 2.5], alpha: [1, 0], ms: 400, tint: 0xffffff, add: true, depth: -1 } }] },
     deathPoof: { layers: [ // enemy dies: grey puffs and green bits falling
       { particles: { texture: 'fx_puff', count: 7, speed: [25, 80], lifeMs: 450, scale: [0.5, 1.2], alpha: [0.7, 0], tint: [0xbdbdbd, 0x9e9e9e] } },
       { particles: { texture: 'fx_dot', count: 6, speed: [80, 180], lifeMs: 420, scale: [0.9, 0], tint: [0x9ccc65, 0x689f38], gravityY: 350 } }] },
@@ -623,7 +671,7 @@ export const config = {
     pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
     // Effect shapes (systems/vfx.js), radius in px (flash: width and height, shell: height, twice as long).
-    fx: { leaf: 6, dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9,
+    fx: { blob: 14, streak: 16, dizzy: 16, leaf: 6, dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9,
       bolt: 64 }, // bolt: a zigzag down the middle of a bolt*2 square
     // The pistol Bartek holds, drawn pointing right: width x height px, held at grip (fraction of the size).
     gun: { width: 28, height: 15, grip: [0.3, 0.5], slide: 0x455a64, slideLight: 0x90a4ae, frame: 0x263238, handle: 0x6d4c41, handleLight: 0x8d6e63 },

@@ -31,7 +31,7 @@ export const passives = [
     apply(pl, level, m) { addShare(pl, 'speed', c.shoes.speedPct * m); },
   },
   {
-    id: 'gainer', name: 'Gainer', icon: 'passive_gainer', maxLevel: c.gainer.maxLevel, unlock: null,
+    id: 'gainer', name: 'Gainer', icon: 'passive_gainer', maxLevel: c.gainer.maxLevel, unlock: null, vfx: 'maxHpUp',
     description: (level, m) => `+${Math.round(c.gainer.maxHp * m)} max HP i leczenie o tyle samo`,
     apply(pl, level, m) {
       const hp = Math.round(c.gainer.maxHp * m);

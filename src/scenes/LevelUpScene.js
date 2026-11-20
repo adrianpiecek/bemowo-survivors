@@ -18,6 +18,7 @@ export default class LevelUpScene extends Phaser.Scene {
     this.rarities = data.rarities;
     this.picked = false;
     this.banishing = false;
+    this.flashAt = data.flashAt; // a fresh level up: the flash over Bartek
   }
 
   create() {
@@ -42,6 +43,8 @@ export default class LevelUpScene extends Phaser.Scene {
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.choose(i));
       return makeCard(this, i, n, () => this.choose(i)).fill(up, rarity, `${level}[${i + 1}]`);
     });
+
+    if (this.flashAt) playVfx(this, 'levelUp', this.flashAt.x, this.flashAt.y);
 
     // The three draw buttons in a row under the lowest card, each with its charges left; greyed out at zero.
     const last = cardCenter(this, n - 1, n), by = last.y + c.height / 2 + db.top + db.height / 2;

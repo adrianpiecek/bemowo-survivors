@@ -43,6 +43,8 @@ export const pickups = [
     dropChance: ps.dropChance,
     cooldownSec: ps.cooldownSec,
     effect: 'smallB',
+    vfx: 'smokePuff', // shrinking; endVfx when he grows back
+    endVfx: 'smokePuff',
     apply(scene) { addEffect(scene.run, smallB); },
   },
   {

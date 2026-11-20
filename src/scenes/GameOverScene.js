@@ -7,6 +7,7 @@ import { plans } from '../data/plans.js';
 import { startRun } from './PlanScene.js';
 import { unlockedByBets } from '../data/bets.js';
 import { button, font, drawPanel, drawBar } from '../systems/ui.js';
+import { playVfx } from '../systems/vfx.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
@@ -46,6 +47,11 @@ export default class GameOverScene extends Phaser.Scene {
   create() {
     const u = config.ui, go = u.gameOver, r = this.run, cx = this.scale.width / 2;
     let y = go.top;
+    if (this.won) { // fireworks all over the screen, behind the text
+      const { width, height } = this.scale;
+      this.time.addEvent({ delay: u.fireworkEveryMs, loop: true,
+        callback: () => playVfx(this, 'firework', Phaser.Math.Between(0, width), Phaser.Math.Between(0, height)) });
+    }
 
     const [title, subtitle] = this.won ? ['Przetrwałeś!', 'Bemowo jest bezpieczne. Na razie.']
       : this.quit ? ['Koniec rundy', 'Bartek poszedł do domu.']

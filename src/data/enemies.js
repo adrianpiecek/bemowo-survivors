@@ -10,12 +10,12 @@ const e = config.enemies;
 const regular = [
   { id: 'zombie', ...e.zombie, behavior: 'chase', isBoss: false, texture: 'zombie', gem: 'green' },
   { id: 'runner', ...e.runner, behavior: 'chase', isBoss: false, texture: 'uncanny', gem: 'green' },
-  { id: 'joker', ...e.joker, behavior: 'chase', isBoss: false, texture: 'joker', gem: 'blue' },
+  { id: 'joker', ...e.joker, behavior: 'chase', isBoss: false, texture: 'joker', gem: 'blue', deathVfx: 'splatPurple' },
   { id: 'homelander', ...e.homelander, behavior: 'chase', isBoss: false, texture: 'homelander', gem: 'yellow' },
-  { id: 'goblin', ...e.goblin, behavior: 'chase', isBoss: false, texture: 'goblin', gem: 'green', pack: true },
+  { id: 'goblin', ...e.goblin, behavior: 'chase', isBoss: false, texture: 'goblin', gem: 'green', pack: true, deathVfx: 'splatGreen' },
   { id: 'sportakus', ...e.sportakus, behavior: 'leap', isBoss: false, texture: 'sportakus', gem: 'blue' },
   // The first hit by a klapa in a run leaves a scar on Bartek's head.
-  { id: 'klapa', ...e.klapa, behavior: 'line', isBoss: false, texture: 'klapa', gem: 'green', leavesScar: true },
+  { id: 'klapa', ...e.klapa, behavior: 'line', isBoss: false, texture: 'klapa', gem: 'green', leavesScar: true, touchVfx: 'klapaClang' },
 ];
 
 // Bosses (config.boss.list): their base type, bigger and stronger; behavior, texture and extra numbers come from the base.
