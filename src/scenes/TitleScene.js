@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { save } from '../state.js';
-import { playSfx, startMusic } from '../systems/audio.js';
+import { playSfx, playMusic } from '../systems/audio.js';
 
 // Title with the intro. Browsers keep audio locked until the player does something, so the intro only starts
 // after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one,
@@ -62,7 +62,7 @@ export default class TitleScene extends Phaser.Scene {
 
   ready() {
     const t = config.ui.title, { width, height } = this.scale;
-    startMusic(this);
+    playMusic(this, 'boss');
     const press = this.add.text(width / 2, height - t.pressBottom, 'Naciśnij dowolny klawisz', { fontSize: `${t.promptFontSize}px` })
       .setOrigin(0.5);
     this.tweens.add({ targets: press, alpha: 0, duration: t.blinkMs, yoyo: true, repeat: -1 });

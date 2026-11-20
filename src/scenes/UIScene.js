@@ -34,6 +34,21 @@ export default class UIScene extends Phaser.Scene {
 
     this.createJoystick();
 
+    const tb = u.tankButton;
+    this.tankButton = this.add.container(width - tb.margin - tb.radius, height - tb.margin - tb.radius, [
+      this.add.circle(0, 0, tb.radius, tb.color, tb.alpha).setStrokeStyle(3, 0xffffff),
+      this.add.text(0, 0, 'CZOŁG!', { fontSize: `${tb.fontSize}px`, fontStyle: 'bold' }).setOrigin(0.5),
+    ]).setSize(tb.radius * 2, tb.radius * 2).setVisible(false)
+      .setInteractive(new Phaser.Geom.Circle(tb.radius, tb.radius, tb.radius), Phaser.Geom.Circle.Contains)
+      .on('pointerdown', () => this.scene.get('GameScene').activateTank());
+
+    this.balanceText = null; // the scene object outlives restarts, so never keep last run's text
+    if (config.debug.balanceOverlay) {
+      this.balanceText = this.add.text(width - m, m + u.hudFontSize + h.barGap, '', { fontSize: `${h.barFontSize}px`, align: 'right' })
+        .setOrigin(1, 0).setDepth(2);
+      this.balanceSamples = []; // one per second of run time: { t, spawned, kills, dmg }
+    }
+
     const bn = u.banner;
     this.banner = this.add.text(width / 2, bn.y, '', {
       fontSize: `${bn.fontSize}px`, fontStyle: 'bold', color: '#ffffff', stroke: '#000000', strokeThickness: bn.strokeThickness,
@@ -89,8 +104,29 @@ export default class UIScene extends Phaser.Scene {
       this.bars.fillStyle(h.barBg).fillRect(x, bb.y, bb.width, bb.height);
       this.bars.fillStyle(bb.color).fillRect(x, bb.y, bb.width * Phaser.Math.Clamp(boss.hp / boss.stats.hp, 0, 1), bb.height);
     }
+    this.tankButton.setVisible(full && r.tankMs <= 0);
+    if (this.balanceText) this.updateBalance();
     this.tankText.setText(r.tankMs > 0 ? `CZOŁG ${Math.ceil(r.tankMs / 1000)} s`
       : full ? 'CZOŁG GOTOWY!' : `Czołg ${r.tankCharge}/${t.killsToCharge}`);
+  }
+
+  // Debug: rates over the last balanceWindowSec of run time, from a sample taken every second.
+  updateBalance() {
+    const r = this.run, s = this.balanceSamples, win = config.ui.balanceWindowSec;
+    if (!s.length || r.elapsedMs - s[s.length - 1].t >= 1000) {
+      s.push({ t: r.elapsedMs, spawned: r.spawned, kills: r.kills, dmg: r.damageDealt });
+      while (s.length > win + 1) s.shift();
+    }
+    const a = s[0], b = s[s.length - 1], sec = Math.max(1, (b.t - a.t) / 1000);
+    const per = (k) => ((b[k] - a[k]) / sec).toFixed(1);
+    const pl = r.player, gs = this.scene.get('GameScene');
+    const dpsMax = pl.bulletDamage * pl.bulletsPerShot * 1000 / pl.fireRateMs;
+    this.balanceText.setText([
+      `wrogowie ${gs.enemies.countActive(true)}`,
+      `spawn/s ${per('spawned')}   zabici/s ${per('kills')}`,
+      `DPS ${per('dmg')} (pistolet max ${dpsMax.toFixed(0)})`,
+      `HP zombie x${(1 + config.spawn.hpPerMinutePct * r.elapsedMs / 60000).toFixed(2)}`,
+    ].join('\n'));
   }
 
   // Floating joystick for touch screens: it appears where the finger lands. Mouse clicks are ignored.
@@ -100,8 +136,8 @@ export default class UIScene extends Phaser.Scene {
     const knob = this.add.circle(0, 0, j.knobRadius, j.color, j.knobAlpha).setVisible(false);
     let active = null;
 
-    this.input.on('pointerdown', (p) => {
-      if (!p.wasTouch || active) return;
+    this.input.on('pointerdown', (p, over) => {
+      if (!p.wasTouch || active || over.length) return; // a tap on a button is not a joystick
       // On a phone there is no Space: a tap on the tank bar starts the tank instead of the joystick.
       if (this.tankBar.contains(p.x, p.y)) {
         this.scene.get('GameScene').activateTank();

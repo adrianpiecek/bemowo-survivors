@@ -36,6 +36,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 | Biegacz | 2x szybszy | 4 | 15 | 1:00 |
 
 - Spawn poza ekranem, w pierścieniu wokół gracza. Częstotliwość rośnie z czasem.
+- Krzywa trudności (wersja 3): spawn na sekundę rośnie po krzywej, spokojnie na początku i najmocniej pod koniec. HP zwykłych wrogów rośnie z każdą minutą rundy (boss ma stałe HP). Kolejne poziomy drożeją szybciej niż liniowo. Cel: pierwsza minuta bez ulepszeń to 10-25 wrogów na ekranie, a minuty 8-10 są najtrudniejsze także z dobrymi kartami.
 - **Zmiana planu (v2):** wrogowie to warianty Bartka. Zombie to zombie-Bartek, biegacz to Uncanny, a silniejsze zombie to kolejne warianty: Joker (od 3:00) i Homelander (od 5:00). Większy obrazek = silniejszy wróg. Nowi wrogowie w przyszłości to też warianty Bartka. Do tego klapa bagażnika (od 4:00) i boss Golf (8:00). Liczby w `config.enemies` i `config.boss`.
 - Limit 250 wrogów na ekranie, żeby gra nie klatkowała.
 
@@ -123,7 +124,7 @@ Warunki odblokowania broni też są memami, np. aura Uncanny za przetrwanie 60 s
 
 ### Rzadkość ulepszeń
 
-Przy każdym level upie każda z 3 kart dostaje losową rzadkość: zwykła, rzadka, epicka albo legendarna. Rzadkość mnoży siłę efektu (np. 1x, 1,5x, 2x, 3x) i ma swój kolor ramki karty. Szansa na rzadsze karty rośnie z poziomem. Rzadkości, ich szanse i mnożniki są w `config.js`, a ulepszenia dalej są danymi: `apply(player, mult)` dostaje mnożnik rzadkości. Pasuje do pola `weight` z kroku 18 (Bartkowanie), ale to osobna rzecz: `weight` decyduje, która karta wypada, a rzadkość decyduje, jak mocna jest.
+Przy każdym level upie każda z 3 kart dostaje losową rzadkość: zwykła, rzadka, epicka albo legendarna. Rzadkość mnoży siłę efektu (np. 1x, 1,5x, 2x, 3x) i ma swój kolor ramki karty. Szansa na rzadsze karty rośnie z poziomem. Rzadkości, ich szanse i mnożniki są w `config.js`, a ulepszenia dalej są danymi: `apply(player, scene, mult)` dostaje mnożnik rzadkości jako trzeci argument, a `description` może być funkcją `(mult) => tekst`. Karty bez liczb (Bartkowanie) mają `rarity: false` i są zawsze zwykłe. Zrobione w kroku 22. Pasuje do pola `weight` z kroku 18 (Bartkowanie), ale to osobna rzecz: `weight` decyduje, która karta wypada, a rzadkość decyduje, jak mocna jest.
 
 ### Efekty (CC0, `assets/effects`)
 

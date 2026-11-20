@@ -1,5 +1,6 @@
 import { config } from '../config.js';
 import { formatTime, proteinForRun, save, writeSave } from '../state.js';
+import { stopMusic } from '../systems/audio.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
@@ -11,6 +12,7 @@ export default class GameOverScene extends Phaser.Scene {
     save.protein += this.earned;
     save.runsPlayed += 1;
     writeSave(save);
+    stopMusic();
   }
 
   create() {

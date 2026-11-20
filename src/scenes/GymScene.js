@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { gymUpgrades } from '../data/gym.js';
 import { save, writeSave, gymLevel } from '../state.js';
+import { playMusic } from '../systems/audio.js';
 
 // Between runs: spend protein on permanent upgrades, then start the next run.
 export default class GymScene extends Phaser.Scene {
@@ -11,6 +12,7 @@ export default class GymScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const cx = width / 2;
     const free = config.debug.freeProtein;
+    playMusic(this, 'gym');
 
     this.add.text(cx, gs.titleY, 'Siłownia', { fontSize: `${u.titleFontSize}px` }).setOrigin(0.5, 0);
     this.add.text(cx, gs.proteinY, `Białko: ${save.protein}${free ? ' (debug: za darmo)' : ''}`, { fontSize: `${u.hudFontSize}px` })

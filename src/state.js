@@ -36,6 +36,8 @@ export function newRun() {
     fireCooldownMs: 0,
     spawnCooldownMs: 0,
     wave: 0, // waves spawned so far
+    spawned: 0, // enemies spawned, for the debug overlay
+    damageDealt: 0, // by bullets and bees, for the debug overlay
     pendingLevelUps: 0, // level-ups still waiting for a card pick
     pickupDropMs: {}, // pickup id -> run time of its last drop, for the cooldown
     effects: {}, // timed effects, see systems/effects.js
@@ -56,7 +58,8 @@ export function newRun() {
 
 // XP needed to go from `level` to the next one.
 export function xpToNextLevel(level) {
-  return config.xp.baseToLevel + config.xp.perLevel * (level - 1);
+  const x = config.xp, n = level - 1;
+  return Math.round(x.baseToLevel + x.perLevel * n + x.perLevelSq * n * n);
 }
 
 // 'm:ss' for a time in ms, rounded down to whole seconds.

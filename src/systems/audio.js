@@ -20,11 +20,32 @@ export function playSfx(scene, event) {
   scene.sound.play(key, { volume: a.volume });
 }
 
-// Looping music; started once, it keeps playing across scenes.
-export function startMusic(scene) {
-  const a = config.audio.files.music;
-  if (!scene.cache.audio.exists('music') || scene.sound.get('music')?.isPlaying) return;
-  scene.sound.add('music', { loop: true, volume: a.volume }).play();
+let music = null; // { name, sounds } of the track playing now
+
+// Switches to a track from config.audio.music; the same track keeps playing. The loop is scheduled
+// (WebAudio delay) for the exact moment the intro ends, so the two join without a gap.
+export function playMusic(scene, name) {
+  if (music?.name === name) return;
+  stopMusic();
+  const track = config.audio.music[name], files = config.audio.files, sounds = [];
+  let delay = 0;
+  if (track.intro && scene.cache.audio.exists(track.intro)) {
+    const intro = scene.sound.add(track.intro, { volume: files[track.intro].volume });
+    intro.play();
+    sounds.push(intro);
+    delay = intro.duration;
+  }
+  if (scene.cache.audio.exists(track.loop)) {
+    const loop = scene.sound.add(track.loop, { loop: true, volume: files[track.loop].volume });
+    loop.play({ delay });
+    sounds.push(loop);
+  }
+  music = { name, sounds };
+}
+
+export function stopMusic() {
+  music?.sounds.forEach((s) => s.destroy());
+  music = null;
 }
 
 // M key: mute or unmute everything, remembered in the save.

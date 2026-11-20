@@ -5,47 +5,51 @@ import { bartkowanie, doBartkowanie } from './bartkowanie.js';
 // Percentage upgrades add a share of the run's starting value (player.base, after the gym),
 // so every level gives the same boost and gym and run percentages multiply.
 // Fire rate is the exception: it divides the cooldown, which raises shots per second by the given share each level.
-// Optional: weight (how often the card is drawn, default 1); apply also gets GameScene as a second argument.
+// Rarity: apply(player, scene, mult) and description(mult) get the card's rarity multiplier (config.rarity);
+// counts (bullets, bees) round up. A card with `rarity: false` has no numbers to multiply and is always common.
+// Optional: weight (how often the card is drawn, default 1).
 const u = config.upgrade;
 const pct = (x) => `${Math.round(x * 100)}%`;
+const count = (n, mult) => Math.ceil(n * mult);
 
 export const upgrades = [
   {
     id: 'damage',
     name: 'Obrażenia',
-    description: `+${pct(u.damagePct)} obrażeń pocisku`,
+    description: (m) => `+${pct(u.damagePct * m)} obrażeń pocisku`,
     maxStack: u.maxStack,
-    apply(player) { player.bulletDamage += player.base.bulletDamage * u.damagePct; },
+    apply(player, scene, m = 1) { player.bulletDamage += player.base.bulletDamage * u.damagePct * m; },
   },
   {
     id: 'fireRate',
     name: 'Szybkostrzelność',
-    description: `+${pct(u.fireRatePct)} strzałów na sekundę`,
+    description: (m) => `+${pct(u.fireRatePct * m)} strzałów na sekundę`,
     maxStack: u.maxStack,
-    apply(player) { player.fireRateMs /= 1 + u.fireRatePct; },
+    apply(player, scene, m = 1) { player.fireRateMs /= 1 + u.fireRatePct * m; },
   },
   {
     id: 'extraBullet',
     name: 'Dodatkowy pocisk',
-    description: `+${u.extraBullets} pocisk na strzał, w kolejnego najbliższego zombie`,
-    maxStack: u.maxStack,
-    apply(player) { player.bulletsPerShot += u.extraBullets; },
+    description: (m) => `+${count(u.extraBullets, m)} ${count(u.extraBullets, m) > 1 ? 'pociski' : 'pocisk'} na strzał, w kolejne najbliższe zombie`,
+    maxStack: u.extraBulletMaxStack,
+    apply(player, scene, m = 1) { player.bulletsPerShot += count(u.extraBullets, m); },
   },
   {
     id: 'moveSpeed',
     name: 'Szybkość ruchu',
-    description: `+${pct(u.moveSpeedPct)} szybkości chodzenia`,
+    description: (m) => `+${pct(u.moveSpeedPct * m)} szybkości chodzenia`,
     maxStack: u.maxStack,
-    apply(player) { player.speed += player.base.speed * u.moveSpeedPct; },
+    apply(player, scene, m = 1) { player.speed += player.base.speed * u.moveSpeedPct * m; },
   },
   {
     id: 'maxHp',
     name: 'Max HP',
-    description: `+${u.maxHp} max HP i leczenie o ${u.maxHp}`,
+    description: (m) => `+${Math.round(u.maxHp * m)} max HP i leczenie o ${Math.round(u.maxHp * m)}`,
     maxStack: u.maxStack,
-    apply(player) {
-      player.maxHp += u.maxHp;
-      player.hp = Math.min(player.maxHp, player.hp + u.maxHp);
+    apply(player, scene, m = 1) {
+      const hp = Math.round(u.maxHp * m);
+      player.maxHp += hp;
+      player.hp = Math.min(player.maxHp, player.hp + hp);
     },
   },
   {
@@ -53,7 +57,9 @@ export const upgrades = [
     name: 'Ul',
     description: 'Pszczoły są szczęśliwe.',
     maxStack: u.maxStack,
-    apply(player) { player.bees += player.bees ? config.bees.perLevel : config.bees.firstLevel; },
+    apply(player, scene, m = 1) {
+      player.bees += count(player.bees ? config.bees.perLevel : config.bees.firstLevel, m);
+    },
   },
   {
     id: 'bartkowanie',
@@ -61,6 +67,7 @@ export const upgrades = [
     description: 'Nikt nie wie, co się stanie. Bartek też nie.',
     maxStack: Infinity,
     weight: config.bartkowanie.weight,
+    rarity: false,
     apply(player, scene) { doBartkowanie(scene, Phaser.Utils.Array.GetRandom(bartkowanie)); },
   },
 ];
@@ -69,7 +76,7 @@ export const upgrades = [
 export const fallbackUpgrade = {
   id: 'heal',
   name: 'Leczenie',
-  description: `+${u.fallbackHeal} HP`,
+  description: (m) => `+${Math.round(u.fallbackHeal * m)} HP`,
   maxStack: Infinity,
-  apply(player) { player.hp = Math.min(player.maxHp, player.hp + u.fallbackHeal); },
+  apply(player, scene, m = 1) { player.hp = Math.min(player.maxHp, player.hp + Math.round(u.fallbackHeal * m)); },
 };

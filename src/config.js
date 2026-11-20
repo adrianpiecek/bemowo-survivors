@@ -1,7 +1,7 @@
 export const config = {
   game: { width: 1280, height: 720, background: '#000000' },
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
-  pistol: { fireRateMs: 800, range: 400, bulletSpeed: 500, bulletDamage: 5, bulletsPerShot: 1 },
+  pistol: { fireRateMs: 500, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1 },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
     zombie: { speed: 80, hp: 10, contactDamage: 15, appearsAtSec: 0, spawnWeight: 0.6 },
@@ -18,10 +18,13 @@ export const config = {
     gemCount: 40, gemKind: 'green', gemSpread: 120, proteinBonus: 30, // the rain on top of the Golf's own gem
   },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
-  spawn: { startIntervalMs: 450, minIntervalMs: 70, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
-  wave: { everySec: 60, baseCount: 20, perWave: 8 }, // burst of extra enemies every minute, all around Bartek
+  // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
+  // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
+  spawn: { startPerSec: 1, endPerSec: 9, curvePow: 1.6, hpPerMinutePct: 0.2, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
+  wave: { everySec: 60, baseCount: 10, perWave: 8 }, // burst of extra enemies every minute, all around Bartek
   // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value. Sheets are 4 frames of 16x16.
-  xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, gemFrameSize: 16, gemScale: 1.25, gemFps: 8,
+  // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
+  xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, perLevelSq: 0.4, gemFrameSize: 16, gemScale: 1.25, gemFps: 8,
     gems: {
       green: { value: 1, file: './assets/Coin_Gems/spr_coin_strip4.png' },
       blue: { value: 3, file: './assets/Coin_Gems/spr_coin_azu.png' },
@@ -40,6 +43,9 @@ export const config = {
     klapaKey: false, // true: the K key launches a klapa at Bartek
     bossKey: false, // true: the B key calls the boss now (banner, then the Golf bannerSec later)
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
+    balanceOverlay: false, // true: numbers for balancing in the top right (enemies, spawn/s, kills/s, DPS)
+    timeSkipKey: false, // true: the J key moves the run clock 60 s forward
+    forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
   // Ultimate: charged by kills, Space (or a tap on its bar) turns Bartek into a tank.
   tank: { killsToCharge: 100, durationSec: 10, bossDamagePerSec: 50, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200 },
@@ -91,7 +97,11 @@ export const config = {
   audio: {
     files: {
       clang: { file: './assets/sounds/title_hit.wav', volume: 0.8 },
-      music: { file: './assets/audio/music.mp3', volume: 0.4 },
+      // shortcut: music is WAV (~10 MB together), slow on a phone's first load; convert to OGG/MP3 before deploy.
+      musicGameplay: { file: './assets/music/gameplay.wav', volume: 0.35 },
+      musicGym: { file: './assets/music/gym.wav', volume: 0.35 },
+      musicBossIntro: { file: './assets/music/BossIntro.wav', volume: 0.4 },
+      musicBossMain: { file: './assets/music/BossMain.wav', volume: 0.4 },
       muchacho: { file: './assets/audio/muchacho.mp3', volume: 1 }, // optional
       levelUp: { file: './assets/sounds/level_up.wav', volume: 0.7 },
       pick: { file: './assets/sounds/pick.wav', volume: 0.4, minGapMs: 50 },
@@ -100,15 +110,32 @@ export const config = {
       shotHit: { file: './assets/sounds/shot_hit.wav', volume: 0.3, minGapMs: 50 },
     },
     events: { tank: 'powerUp', pickup: 'powerUp', boss: 'clang' },
+    // Music tracks: an optional intro played once, then the loop, joined without a gap. One track at a time.
+    music: {
+      gameplay: { loop: 'musicGameplay' },
+      gym: { loop: 'musicGym' },
+      boss: { intro: 'musicBossIntro', loop: 'musicBossMain' }, // also under the title once the logo has landed
+    },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for the boss and its klapas
-  upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, extraBullets: 1, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
-  ui: { margin: 16, hudFontSize: 24, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
-    dimAlpha: 0.6, card: { count: 3, width: 260, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 22, textFontSize: 18 },
+  // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
+  // so rarer cards come up more often later. mult scales the card's numbers.
+  rarity: [
+    { id: 'common', name: 'Zwykła', mult: 1, color: 0xbdbdbd, weight: 100, perLevel: 0 },
+    { id: 'rare', name: 'Rzadka', mult: 1.5, color: 0x3a8dff, weight: 20, perLevel: 2 },
+    { id: 'epic', name: 'Epicka', mult: 2, color: 0xb04cff, weight: 4, perLevel: 1 },
+    { id: 'legendary', name: 'Legendarna', mult: 3, color: 0xff9800, weight: 0.5, perLevel: 0.3 },
+  ],
+  upgrade: { maxStack: 5, extraBulletMaxStack: 3, damagePct: 0.25, fireRatePct: 0.15, extraBullets: 1, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
+  ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
+    dimAlpha: 0.6, card: { count: 3, width: 260, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 22, textFontSize: 18,
+      rarityBorderWidth: 5, rarityFontSize: 18 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
     hud: { barWidth: 260, barHeight: 22, barGap: 8, barFontSize: 16, barBg: 0x333333, hpColor: 0xd03030, xpColor: 0x3a8dff,
       tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65 },
+    // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
+    tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: 'Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 250, survivorsY: 410, dropMs: 450, gapMs: 600,
@@ -128,6 +155,7 @@ export const config = {
     hitSpark: { path: 'impacts/hit-spark', scale: 0.5 }, // bullet hits an enemy
     deathPoof: { path: 'impacts/death-poof', scale: 1 }, // enemy dies
     golfBoom: { path: 'explosions/big-explosion', scale: 2 }, // the Golf is scrapped
+    starBurst: { path: 'ui/star-burst-pickup', scale: 3 }, // a legendary card appears
   },
   // Texture sizes in px. Images: `height` is the on-screen height, width follows the image, bodyRadius is on-screen too.
   textures: {

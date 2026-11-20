@@ -6,7 +6,7 @@ import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { createOrbit, updateOrbit } from '../systems/orbit.js';
 import { startGolf, updateGolf } from '../systems/golf.js';
 import { createVfxPool, playVfx } from '../systems/vfx.js';
-import { playSfx } from '../systems/audio.js';
+import { playSfx, playMusic } from '../systems/audio.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
 
 export default class GameScene extends Phaser.Scene {
@@ -14,6 +14,7 @@ export default class GameScene extends Phaser.Scene {
 
   create() {
     this.run = newRun();
+    playMusic(this, 'gameplay');
     const { width, height } = this.scale;
     const cam = this.cameras.main;
 
@@ -81,6 +82,12 @@ export default class GameScene extends Phaser.Scene {
       }));
     }
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
+    if (config.debug.timeSkipKey) {
+      this.input.keyboard.on('keydown-J', () => {
+        this.run.elapsedMs += 60000;
+        this.run.wave = Math.floor(this.run.elapsedMs / (config.wave.everySec * 1000)); // no burst of the skipped waves
+      });
+    }
 
     this.scene.launch('UIScene', { run: this.run });
     // scene.start('GameOverScene') only stops this scene, so take the HUD down with it.
@@ -125,6 +132,7 @@ export default class GameScene extends Phaser.Scene {
   // Shared by bullets and orbits: damage, a spark where it hit, death at 0 HP.
   hurtEnemy(enemy, damage, x, y) {
     playVfx(this, 'hitSpark', x, y);
+    this.run.damageDealt += Math.min(damage, enemy.hp);
     enemy.hp -= damage;
     if (enemy.hp <= 0) this.killEnemy(enemy);
   }
@@ -143,6 +151,7 @@ export default class GameScene extends Phaser.Scene {
     const b = config.boss, r = b.gemSpread;
     boss.clearTint();
     this.run.bossKilled = true;
+    playMusic(this, 'gameplay');
     for (let i = 0; i < b.gemCount; i++) {
       this.dropGem(boss.x + Phaser.Math.FloatBetween(-r, r), boss.y + Phaser.Math.FloatBetween(-r, r), b.gemKind);
     }
@@ -300,7 +309,9 @@ export default class GameScene extends Phaser.Scene {
     z.body.setCircle(br, z.width / 2 - br, z.height / 2 - br);
     z.enableBody(true, x, y, true, true);
     z.stats = def;
-    z.hp = def.hp;
+    // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
+    z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000);
+    this.run.spawned++;
     if (def.behavior === 'line') {
       z.startX = x;
       z.startY = y;
@@ -319,12 +330,11 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Spawn interval shrinks linearly from start to min over the whole run.
-    const { startIntervalMs, minIntervalMs } = config.spawn;
+    const { startPerSec, endPerSec, curvePow } = config.spawn;
     run.spawnCooldownMs -= delta;
     if (run.spawnCooldownMs <= 0) {
       this.spawnEnemy();
-      run.spawnCooldownMs += Phaser.Math.Linear(startIntervalMs, minIntervalMs, run.elapsedMs / total);
+      run.spawnCooldownMs += 1000 / Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow);
     }
 
     // The Golf: banner first, then it drives in from the spawn ring, once per run.
@@ -333,6 +343,7 @@ export default class GameScene extends Phaser.Scene {
       run.bossAnnounced = true;
       this.scene.get('UIScene').showBanner('UWAGA: GOLF NA BEMOWIE', '', b.bannerSec * 1000);
       playSfx(this, 'boss');
+      playMusic(this, 'boss');
     }
     if (!run.bossSpawned && run.elapsedMs >= run.bossAtMs) {
       run.bossSpawned = true;
