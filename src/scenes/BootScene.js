@@ -41,6 +41,11 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(b.color).fillCircle(b.radius, b.radius, b.radius);
     g.generateTexture('bullet', b.radius * 2, b.radius * 2).clear();
 
+    const bee = t.bee, bd = bee.radius * 2;
+    g.fillStyle(bee.color).fillCircle(bee.radius, bee.radius, bee.radius);
+    g.fillStyle(bee.stripeColor).fillRect(bee.radius - bee.stripeWidth / 2, 0, bee.stripeWidth, bd);
+    g.generateTexture('bee', bd, bd).clear();
+
     const gr = t.ground;
     g.fillStyle(gr.color).fillRect(0, 0, gr.size, gr.size);
     g.lineStyle(gr.lineWidth, gr.lineColor).strokeRect(0, 0, gr.size, gr.size);

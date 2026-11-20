@@ -8,6 +8,7 @@ function startingStats() {
     speed: config.player.speed,
     magnetRadius: config.xp.magnetRadius,
     scale: 1, // Bartek's size and hitbox, 1 = normal
+    bees: 0, // from the "Ul" upgrade
     ...config.pistol,
     // Warm-up from the gym; these defaults mean no effect.
     warmupMs: 0,

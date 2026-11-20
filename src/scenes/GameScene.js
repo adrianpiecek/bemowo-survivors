@@ -2,7 +2,8 @@ import { config } from '../config.js';
 import { newRun, xpToNextLevel } from '../state.js';
 import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
-import { updateEffects } from '../systems/effects.js';
+import { updateEffects, isEffectActive } from '../systems/effects.js';
+import { createOrbit, updateOrbit } from '../systems/orbit.js';
 import { startGolf, updateGolf } from '../systems/golf.js';
 import { createVfxPool, playVfx } from '../systems/vfx.js';
 
@@ -42,6 +43,9 @@ export default class GameScene extends Phaser.Scene {
       createCallback: (b) => b.setDepth(1).body.setCircle(config.textures.bullet.radius),
     });
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHit, null, this);
+
+    const bz = config.bees;
+    this.bees = createOrbit(this, { texture: 'bee', maxSize: config.pools.bees, damage: bz.damage, hitCooldownMs: bz.hitCooldownMs });
 
     this.gems = this.physics.add.group({ defaultKey: 'gem_green', maxSize: config.pools.gems });
     this.vfx = createVfxPool(this);
@@ -101,8 +105,13 @@ export default class GameScene extends Phaser.Scene {
   onBulletHit(bullet, enemy) {
     if (!bullet.active || !enemy.active) return; // several overlaps can fire in one step
     bullet.disableBody(true, true);
-    playVfx(this, 'hitSpark', bullet.x, bullet.y);
-    enemy.hp -= bullet.damage;
+    this.hurtEnemy(enemy, bullet.damage, bullet.x, bullet.y);
+  }
+
+  // Shared by bullets and orbits: damage, a spark where it hit, death at 0 HP.
+  hurtEnemy(enemy, damage, x, y) {
+    playVfx(this, 'hitSpark', x, y);
+    enemy.hp -= damage;
     if (enemy.hp <= 0) this.killEnemy(enemy);
   }
 
@@ -370,6 +379,13 @@ export default class GameScene extends Phaser.Scene {
       if (p.ageMs >= pk.lifetimeSec * 1000) p.disableBody(true, true);
       else p.setAlpha(Math.floor(p.ageMs / pk.blinkMs) % 2 ? pk.blinkAlpha : 1);
     }
+
+    // Bees: a small B gets a denser swarm on a tighter orbit, so it fits his size.
+    const bz = config.bees, small = isEffectActive(run, 'smallB');
+    updateOrbit(this.bees, this.player.x, this.player.y, {
+      count: pl.bees * (small ? bz.smallMult : 1), radius: small ? bz.smallRadius : bz.radius,
+      degPerSec: bz.degPerSec, waveAmp: bz.waveAmp, waveHz: bz.waveHz,
+    }, delta);
 
     // Cooldown is capped at 0 so a shot fires as soon as a target comes into range.
     this.run.fireCooldownMs = Math.max(0, this.run.fireCooldownMs - delta);

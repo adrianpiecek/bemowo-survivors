@@ -46,6 +46,13 @@ export const upgrades = [
       player.hp = Math.min(player.maxHp, player.hp + u.maxHp);
     },
   },
+  {
+    id: 'ul',
+    name: 'Ul',
+    description: 'Pszczoły są szczęśliwe.',
+    maxStack: u.maxStack,
+    apply(player) { player.bees += player.bees ? config.bees.perLevel : config.bees.firstLevel; },
+  },
 ];
 
 // Offered instead of the cards once every upgrade is at maxStack.

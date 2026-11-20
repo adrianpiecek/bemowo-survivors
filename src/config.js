@@ -68,8 +68,12 @@ export const config = {
       'Okulary? To do czytania etykiet odżywek.',
     ],
   },
+  // "Ul" upgrade: bees on an orbit (systems/orbit.js). Level 1 gives firstLevel bees, every next level perLevel more.
+  // While Bartek is a small B there are smallMult times more, on the smaller smallRadius.
+  bees: { firstLevel: 2, perLevel: 1, damage: 4, hitCooldownMs: 500, radius: 70, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
+    smallMult: 2, smallRadius: 42 },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
-  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60 }, // enemies: spawn.maxEnemies + room for the boss and its klapas
+  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for the boss and its klapas
   upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, extraBullets: 1, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
   ui: { margin: 16, hudFontSize: 24, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
     dimAlpha: 0.6, card: { count: 3, width: 260, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 22, textFontSize: 18 },
@@ -103,6 +107,7 @@ export const config = {
     homelander: { height: 72, bodyRadius: 27 },
     klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
+    bee: { radius: 7, color: 0xffd400, stripeWidth: 3, stripeColor: 0x000000 },
     pickup: { size: 22, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },
     tank: { height: 110, bodyRadius: 45 }, // czołg.png: Bartek in a tank, barrel to the left
     // Top-down car facing right; the texture has room for the open trunk lid behind it.
