@@ -36,7 +36,7 @@ export function drawBar(g, x, y, w, h, fill, color) {
 // opts: { width, height, fontSize, variant }. The container gets setLabel(text) and setVariant(variant).
 export function button(scene, x, y, label, onClick, opts = {}) {
   const b = config.ui.button, size = opts.fontSize ?? b.fontSize;
-  const text = scene.add.text(0, 0, label, font(size, { fontStyle: 'bold' })).setOrigin(0.5);
+  const text = scene.add.text(0, 0, label, font(size, { fontStyle: 'bold', align: 'center' })).setOrigin(0.5); // a label may have two lines
   const w = opts.width ?? text.width + b.padX * 2, h = opts.height ?? text.height + b.padY * 2;
   const g = scene.add.graphics();
   const c = scene.add.container(x, y, [g, text]).setSize(w, h);

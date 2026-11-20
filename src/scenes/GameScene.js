@@ -8,6 +8,7 @@ import { plans } from '../data/plans.js';
 import { elites } from '../data/elites.js';
 import { events } from '../data/events.js';
 import { font } from '../systems/ui.js';
+import { applyBets } from '../data/bets.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { updateLeaper } from '../systems/charge.js';
 import { playVfx } from '../systems/vfx.js';
@@ -28,6 +29,7 @@ export default class GameScene extends Phaser.Scene {
       plan.apply(this.run.player, this.run);
       this.run.player.hp = this.run.player.maxHp;
     }
+    applyBets(this.run); // Zakłady z Unc: enemies, spawn, bosses, pickups, cards
     playMusic(this, 'gameplay');
     const { width, height } = this.scale;
     const cam = this.cameras.main;
@@ -303,7 +305,6 @@ export default class GameScene extends Phaser.Scene {
   // Elites (data/elites.js): an enemy just spawned gets more HP, a bigger size, a glow and its trait's name over its head.
   makeElite(z, trait) {
     const c = config.elites;
-    z.stats = { ...z.stats }; // its own copy, so a trait can change its speed
     z.elite = trait;
     z.eliteMs = 0;
     z.stolen = 0;
@@ -353,14 +354,14 @@ export default class GameScene extends Phaser.Scene {
     }
     this.lastBosses = ids;
     return slots.map((s, i) => ({
-      ...enemies.find((d) => d.id === ids[i]), appearsAtSec: s.atSec, hp: s.hp, chest: s.chest, protein: s.protein,
+      ...enemies.find((d) => d.id === ids[i]), appearsAtSec: s.atSec - this.run.bossEarlySec, hp: s.hp, chest: s.chest, protein: s.protein,
     }));
   }
 
   // This run's events (data/events.js): ones the last run did not have first, each at a random second that keeps
   // config.events' gaps to the other events and to the boss slots. An event with no such second left is dropped.
   scheduleEvents() {
-    const c = config.events, last = this.lastEvents ?? [], bossSecs = config.boss.slots.map((s) => s.atSec);
+    const c = config.events, last = this.lastEvents ?? [], bossSecs = this.bossQueue.map((d) => d.appearsAtSec);
     const fresh = Phaser.Utils.Array.Shuffle(events.filter((e) => !last.includes(e.id)));
     const picked = [...fresh, ...Phaser.Utils.Array.Shuffle(events.filter((e) => last.includes(e.id)))].slice(0, c.perRun);
     this.lastEvents = picked.map((e) => e.id);
@@ -465,6 +466,7 @@ export default class GameScene extends Phaser.Scene {
   dropPickupById(id, x, y) { return this.dropPickup(pickups.find((d) => d.id === id), x, y); }
 
   dropPickup(def, x, y, lifetimeSec = config.pickups.lifetimeSec) {
+    if (def.heals && this.run.noPickupHeal) return; // bet Bez pierogów
     const p = this.pickups.get(x, y);
     if (!p) return; // pool full: rare drops at a 10-slot cap, losing one is harmless
     p.setTexture(def.icon ?? 'pickup').setAlpha(1); // a pooled sprite may still be mid-blink
@@ -638,6 +640,7 @@ export default class GameScene extends Phaser.Scene {
     z.body.setCircle(br, z.width / 2 - br, z.height / 2 - br);
     z.enableBody(true, x, y, true, true);
     z.stats = def;
+    z.speed = def.speed * this.run.enemySpeedMult; // its walk; a fast elite raises its own
     z.charge = null; // a pooled sprite may have died mid-leap
     z.leapMs = 0;
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
@@ -647,7 +650,7 @@ export default class GameScene extends Phaser.Scene {
     if (def.behavior === 'line') {
       z.startX = x;
       z.startY = y;
-      this.physics.moveToObject(z, this.player, def.speed); // aimed once, at where Bartek is now
+      this.physics.moveToObject(z, this.player, z.speed); // aimed once, at where Bartek is now
     }
     return z;
   }
@@ -706,7 +709,7 @@ export default class GameScene extends Phaser.Scene {
         run.eliteMs = config.elites.everySec * 1000;
         this.makeElite(z, Phaser.Utils.Array.GetRandom(elites));
       }
-      run.spawnCooldownMs += 1000 / Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow);
+      run.spawnCooldownMs += 1000 / (Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow) * run.spawnRateMult);
     }
 
     // Bosses walk in at their minute; the banner and the boss music come bannerSec earlier.
@@ -784,7 +787,7 @@ export default class GameScene extends Phaser.Scene {
       if (walker && frozen) z.setVelocity(0, 0);
       else if (walker && squats) z.setVelocity(0, bk.squatAmp * hopW * Math.cos(hopW * hopT + z.x));
       else if (z.stats.behavior === 'leap' && !moonwalk) updateLeaper(this, z, delta);
-      else if (walker) this.physics.moveToObject(z, this.player, z.stats.speed * (moonwalk ? -1 : 1));
+      else if (walker) this.physics.moveToObject(z, this.player, z.speed * (moonwalk ? -1 : 1));
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
       else z.angle += z.stats.spinDegPerSec * delta / 1000;
       if (!z.elite) continue;

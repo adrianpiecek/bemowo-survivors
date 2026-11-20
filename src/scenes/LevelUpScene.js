@@ -28,8 +28,8 @@ export default class LevelUpScene extends Phaser.Scene {
     const taken = this.run.upgrades;
     // Cards are drawn by weight without repeats. Short of cards, the heal fills in.
     if (!this.choices) {
-      this.choices = drawUpgrades(this.run, c.count);
-      if (this.choices.length < c.count) this.choices.push(fallbackUpgrade);
+      this.choices = drawUpgrades(this.run, this.run.cardCount); // 3, or 2 with the bet Dwie karty
+      if (this.choices.length < this.run.cardCount) this.choices.push(fallbackUpgrade);
       this.rarities = this.choices.map((up) => rollRarity(up, this.run));
     }
 

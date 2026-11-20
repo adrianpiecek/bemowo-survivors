@@ -3,6 +3,7 @@ import { save, writeSave } from '../state.js';
 import { plans } from '../data/plans.js';
 import { cardCenter } from '../systems/cards.js';
 import { font, panel } from '../systems/ui.js';
+import { betSum } from '../data/bets.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 const isUnlocked = (p) => !p.unlock || save.unlocks.includes(p.id);
@@ -50,6 +51,12 @@ export default class PlanScene extends Phaser.Scene {
       this.add.text(x, top + c.height - u.margin, `[${i + 1}]`, font(u.hudFontSize)).setOrigin(0.5, 1);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.pick(i));
     });
+    // The bets picked in the gym, so the bonus is in view before the run.
+    const sum = Math.round(betSum() * 100), last = cardCenter(this, this.choices.length - 1, this.choices.length);
+    if (sum) {
+      this.add.text(width / 2, last.y + c.height / 2 + ps.betsGap, `Zakłady z Unc: +${sum}% białka`, font(ps.lineFontSize, { color: ps.minusColor }))
+        .setOrigin(0.5, 0);
+    }
   }
 
   pick(i) {

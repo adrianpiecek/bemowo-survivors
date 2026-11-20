@@ -3,7 +3,7 @@ import { enemies } from './enemies.js';
 import { playVfx } from '../systems/vfx.js';
 
 // Elite traits. GameScene.makeElite turns a fresh enemy into an elite (more HP, bigger, a glow, the name over its head)
-// and then calls apply. `scene` is GameScene, `z` the enemy sprite (z.stats is the elite's own copy, safe to change).
+// and then calls apply. `scene` is GameScene, `z` the enemy sprite (z.speed is its own walking speed, z.stats shared).
 //   apply(z)                  optional: changes the elite once
 //   update(scene, z, delta)   optional: every frame while it walks (not while frozen, squatting or mid-leap)
 //   onDeath(scene, z)         optional: when it dies, before its chest drops
@@ -13,7 +13,7 @@ const c = config.elites;
 export const elites = [
   {
     id: 'fast', name: 'Szybki', color: c.fast.color,
-    apply(z) { z.stats.speed *= 1 + c.fast.speedPct; },
+    apply(z) { z.speed *= 1 + c.fast.speedPct; },
   },
   {
     id: 'armored', name: 'Pancerny', color: c.armored.color,
@@ -65,7 +65,7 @@ export const elites = [
           best = g;
         }
       }
-      if (best) scene.physics.moveToObject(z, best, z.stats.speed);
+      if (best) scene.physics.moveToObject(z, best, z.speed);
     },
     onDeath(scene, z) {
       if (z.stolen > 0) scene.dropGemWorth(z.x, z.y, z.stolen * (1 + c.thief.bonusPct));

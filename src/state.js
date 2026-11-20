@@ -76,6 +76,13 @@ export function newRun() {
     events: [], // this run's events (data/events.js): { def, atMs, started }, drawn in GameScene.create
     activeEvents: [], // events going on now: { def, remainingMs, durationMs } plus the event's own counters
     xpMult: 1, // Złota godzina
+    // Zakłady z Unc (data/bets.js), set in GameScene.create:
+    betPct: 0, // protein bonus of the run's bets (0.45 = +45%)
+    enemySpeedMult: 1, // every enemy's speed
+    spawnRateMult: 1, // the regular spawn rate
+    bossEarlySec: 0, // bosses walk in this much earlier
+    noPickupHeal: false, // pickups that heal do not drop
+    cardCount: config.ui.card.count, // cards on a level up
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
@@ -106,8 +113,9 @@ export function formatTime(ms) {
 // Protein earned by a finished run.
 export function proteinForRun(run, won) {
   const p = config.protein;
-  return Math.floor(run.kills / p.perKills) + Math.floor(run.elapsedMs / 60000) * p.perMinute + (won ? p.winBonus : 0)
+  const base = Math.floor(run.kills / p.perKills) + Math.floor(run.elapsedMs / 60000) * p.perMinute + (won ? p.winBonus : 0)
     + run.bossProtein;
+  return Math.floor(base * (1 + run.betPct)); // Zakłady z Unc
 }
 
 // Persistent progress in localStorage. Bump SAVE_VERSION and migrate in loadSave() when the schema changes.
@@ -115,13 +123,14 @@ const SAVE_KEY = 'bemowo-survivors-save-v1';
 const SAVE_VERSION = 1;
 
 function freshSave() {
-  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, orientation: 'portrait', evolutions: [], runsPlayed: 0, stats: freshStats() };
+  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, orientation: 'portrait', evolutions: [], runsPlayed: 0, stats: freshStats(),
+    bets: {} }; // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
 }
 
 // Totals over all runs, for the passives' and plans' unlocks. Added in GameOverScene.
-// bartkowanie: Bartkowanie cards picked; earlyDeaths: runs lost before config.plans.lazy.earlyDeathSec.
+// bartkowanie: Bartkowanie cards picked; earlyDeaths: runs lost before config.plans.lazy.earlyDeathSec; wins: runs won.
 function freshStats() {
-  return { pierogi: 0, damageTaken: 0, goldCoins: 0, maxLevel: 0, bartkowanie: 0, earlyDeaths: 0 };
+  return { pierogi: 0, damageTaken: 0, goldCoins: 0, maxLevel: 0, bartkowanie: 0, earlyDeaths: 0, wins: 0 };
 }
 
 // Unreadable save (corrupt JSON, private mode, blocked storage) gives a fresh one, never an error.
@@ -137,6 +146,7 @@ export function loadSave() {
   if (!isObject(d) || (d.version !== undefined && d.version !== SAVE_VERSION)) return s;
   if (Number.isFinite(d.protein) && d.protein >= 0) s.protein = d.protein;
   if (isObject(d.gym)) s.gym = d.gym;
+  if (isObject(d.bets)) s.bets = d.bets; // levels are clamped where they are read (betLevel)
   if (Array.isArray(d.unlocks)) s.unlocks = d.unlocks;
   if (typeof d.muted === 'boolean') s.muted = d.muted;
   for (const k of ['musicVolume', 'sfxVolume']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], 0, 1);

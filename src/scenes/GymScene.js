@@ -5,6 +5,7 @@ import { playMusic, playSfx } from '../systems/audio.js';
 import { font, panel, drawPanel, button } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
 import { startRun } from './PlanScene.js';
+import { betsOpen, betSum } from '../data/bets.js';
 
 // Between runs: spend protein on permanent upgrades, then start the next run.
 // A purchase restarts the scene with { bought, cost }, so the new pip pops and the cost floats up from the protein.
@@ -107,11 +108,21 @@ export default class GymScene extends Phaser.Scene {
       fontStyle: 'italic', color: gs.definitionColor, wordWrap: { width: gs.quoteWidth + gs.padding * 2 },
     }));
 
+    // "Na Bemowo!" at the bottom; after the first win "Zakłady z Unc" (with the bonus picked) left of it, the pair centred
+    // (portrait) or on the right (landscape).
     const go = () => startRun(this); // the plan screen first
-    const goX = gs.goRight ? x0 + totalW - gs.goWidth / 2 : cx;
-    button(this, goX, height - gs.bottom - gs.goHeight / 2, 'Na Bemowo!', go, {
+    const bt = u.bets, bets = betsOpen(), rowW = gs.goWidth + (bets ? bt.gymButtonGap + bt.gymButtonWidth : 0);
+    const rowRight = gs.goRight ? x0 + totalW : cx + rowW / 2, goX = rowRight - gs.goWidth / 2, rowY = height - gs.bottom - gs.goHeight / 2;
+    button(this, goX, rowY, 'Na Bemowo!', go, {
       width: gs.goWidth, height: gs.goHeight, fontSize: gs.goFontSize,
     });
+    if (bets) {
+      const sum = Math.round(betSum() * 100);
+      button(this, rowRight - rowW + bt.gymButtonWidth / 2, rowY, `Zakłady z Unc\n${sum ? `+${sum}% białka` : 'bez zakładów'}`, () => {
+        this.scene.pause();
+        this.scene.launch('BetsScene');
+      }, { width: bt.gymButtonWidth, height: gs.goHeight, fontSize: bt.gymButtonFontSize, variant: 'secondary' });
+    }
     this.add.text(goX, height - gs.bottom - gs.goHeight - gs.pipGap, '[Enter]', font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
     this.input.keyboard.once('keydown-ENTER', go);
   }

@@ -34,14 +34,14 @@ export function updateCharge(scene, z, delta) {
 }
 
 // Leaper (the Sportakus): walks at Bartek; every leapEverySec, if Bartek is within leapRange, charges at him.
-// A target mark shows where it will land, dust where it takes off. Numbers come from the enemy's stats.
+// A target mark shows where it will land, dust where it takes off. Numbers come from the enemy's stats, the walk from z.speed.
 export function updateLeaper(scene, z, delta) {
   const s = z.stats;
   if (z.charge) {
     updateCharge(scene, z, delta);
     return;
   }
-  scene.physics.moveToObject(z, scene.player, s.speed);
+  scene.physics.moveToObject(z, scene.player, z.speed);
   z.leapMs += delta;
   if (z.leapMs < s.leapEverySec * 1000 || Phaser.Math.Distance.BetweenPoints(z, scene.player) > s.leapRange) return;
   z.leapMs = 0;

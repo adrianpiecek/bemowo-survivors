@@ -114,6 +114,17 @@ export const config = {
     // Walks to the nearest gem within seekRadius and takes the ones within stealRadius; dies dropping their XP plus bonusPct.
     thief: { stealRadius: 40, seekRadius: 450, bonusPct: 0.5, color: 0xffd600 },
   },
+  // Zakłady z Unc (data/bets.js): proteinPct per level adds to the run's protein (not the coins'). Numbers per level.
+  // rewards: a won run with at least this bonus also unlocks the plan Trening z Unc (uncPct) and every locked passive.
+  bets: {
+    rewards: { uncPct: 0.5, passivesPct: 1 },
+    fasterZombies: { speedPct: 0.1, proteinPct: 0.1, maxLevel: 3 }, // every enemy's speed, bosses too
+    thickerZombies: { hpPct: 0.2, proteinPct: 0.1, maxLevel: 3 }, // walking enemies' HP (boss HP comes from its slot)
+    denserHorde: { spawnPct: 0.25, proteinPct: 0.15, maxLevel: 2 }, // the regular spawn rate
+    earlierBosses: { sec: 30, proteinPct: 0.15, maxLevel: 2 },
+    noPierogi: { proteinPct: 0.15, maxLevel: 1 }, // pickups that heal (heals: true) do not drop
+    twoCards: { cards: 2, proteinPct: 0.2, maxLevel: 1 },
+  },
   // Run events (data/events.js): perRun of them in a run (none of the last run's while others are left), each starting
   // at a random second between firstSec and lastSec, at least gapSec after the one before and bossGapSec away from
   // every boss slot. A banner announces each; one that lasts shows a time bar under the HUD.
@@ -182,7 +193,8 @@ export const config = {
     forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
     evolveKey: false,
     eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
-    eventKey: false, // true: V, then a digit 1-8, starts that run event (data/events.js order) // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
+    eventKey: false, // true: V, then a digit 1-8, starts that run event (data/events.js order)
+    betsUnlocked: false, // true: the gym shows Zakłady z Unc without a won run // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -324,7 +336,7 @@ export const config = {
     drawButtons: { width: 200, height: 64, gap: 20, top: 40, fontSize: 24, hintFontSize: 18, hintGap: 14, hintColor: '#b0bec5',
       banishColor: '#ff5252', banishBorder: 0xff5252 },
     // Plan screen: the title at titleY, the plan cards where the level-up cards go (card size), plus and minus lines.
-    planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12,
+    planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
       valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
@@ -333,6 +345,10 @@ export const config = {
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
     // Arrow at the screen edge toward the nearest pickup lying off screen.
     pickupArrow: { size: 22, margin: 30, color: 0xffcc00 }, // points at the Żabka shop first, else at the nearest pickup off screen
+    // Zakłady z Unc window over the gym; gymButton*: its button next to "Na Bemowo!" (two lines: name and bonus).
+    bets: { width: 660, padding: 22, gap: 12, titleFontSize: 44, textFontSize: 17, nameFontSize: 22, descFontSize: 17, rowHeight: 92,
+      stepButton: 52, levelWidth: 70, sumFontSize: 28, sumColor: '#9ccc65', onColor: '#ff8a80', hintColor: '#b0bec5',
+      backWidth: 240, backHeight: 60, backFontSize: 26, gymButtonWidth: 260, gymButtonGap: 20, gymButtonFontSize: 22 },
     shop: { titleFontSize: 56, titleColor: '#76ff03', poorColor: '#ff8a80', boughtColor: '#9e9e9e', boughtAlpha: 0.45, shakePx: 6, shakeMs: 50 },
     // Active timed effects under the HUD panel: icon, name, a bar of the time left.
     effectHud: { width: 230, height: 38, iconSize: 28, barHeight: 6, gap: 6, fontSize: 15, color: 0xffcc00 },
@@ -378,6 +394,8 @@ export const config = {
         bossBar: { y: 76 },
         chest: { titleY: 110 },
         planScreen: { titleY: 60, lineFontSize: 17 },
+        bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,
+          stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },
         banner: { y: 150 },
         gymScreen: { titleY: 22, top: 104, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, rowHeight: 128, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30 },

@@ -311,6 +311,14 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 
 - **Nagrody:** wygrane z sumą zakładów od 50% i od 100% odblokowują plan „Trening z Unc” i ostatnie pasywki. Daje to cel po pierwszych wygranych.
 
+**Jak działa (krok 35):**
+- Zakłady to dane w `src/data/bets.js`, liczby w `config.bets`. Wybrane poziomy siedzą w `save.bets` i działają w każdej rundzie, dopóki gracz ich nie zmieni.
+- Siłownia pokazuje przycisk „Zakłady z Unc” (z bieżącą premią) obok „Na Bemowo!” po pierwszej wygranej. Wygrane liczy `save.stats.wins`; stary zapis z odblokowaną Rzeźbą też się liczy. Przycisk otwiera okno `BetsScene` z [−] poziom [+] przy każdym zakładzie, sumą premii i nagrodami. Premia widnieje też na ekranie planu i na ekranie końca gry („zakłady +X%”).
+- Działanie: Szybsze zombie mnożą prędkość chodu każdego wroga, też bossów (`z.speed`). Grubsze zombie mnożą HP zwykłych wrogów (`run.enemyHpMult`, razem z planem Lenistwo); HP bossa zależy od slotu. Gęstsza horda mnoży zwykły spawn na sekundę (fale bez zmian). Wcześniejsi bossowie przesuwają każdy slot, a wydarzenia trzymają odstęp od nowych czasów. Bez pierogów: znajdźki z `heals: true` nie wypadają. Dwie karty: level up ma 2 karty (skrzynia i Żabka bez zmian).
+- Premia mnoży białko z rundy (zabici, minuty, wygrana, bossowie), monet nie: `proteinForRun` × (1 + suma).
+- Nagrody za wygraną (dodatkowa droga, własne warunki zostają): premia od 50% odblokowuje plan Trening z Unc, od 100% wszystkie wciąż zablokowane pasywki.
+- Debug: `config.debug.betsUnlocked` pokazuje zakłady bez wygranej.
+
 ### Później (po kroku 37 z mapą)
 
 - **Dzielnice** (z map z VS): Bemowo, Jelonki, Górce, z inną paletą ulic, innym miksem wrogów i inną pulą wydarzeń. Odblokowywane wygranymi.

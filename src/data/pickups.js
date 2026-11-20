@@ -10,6 +10,7 @@ import { addEffect } from '../systems/effects.js';
 //   effect id of the timed effect it starts: UIScene shows the icon and the time left
 //   aura   config.textures.auras id drawn around Bartek while that effect lasts
 //   vfx    config.vfx id played on Bartek when picked up
+//   heals  it heals Bartek: never drops with the bet Bez pierogów
 // apply(scene, sprite) gets the pickup's sprite too (the chest reads its count from it). No bannerText: no banner.
 const pk = config.pickups, o = pk.olx, ps = pk.photoshop;
 const fr = pk.freeze, pw = pk.preworkout, bb = pk.bubble, pi = pk.pierogi, mg = pk.magnet;
@@ -116,6 +117,7 @@ export const pickups = [
     cooldownSec: pi.cooldownSec,
     icon: 'pickup_pierogi',
     onMap: true,
+    heals: true,
     vfx: 'holyHeal',
     apply(scene) {
       const pl = scene.run.player;

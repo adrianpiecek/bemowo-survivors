@@ -5,6 +5,7 @@ import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
 import { startRun } from './PlanScene.js';
+import { unlockedByBets } from '../data/bets.js';
 import { button } from '../systems/ui.js';
 
 export default class GameOverScene extends Phaser.Scene {
@@ -25,10 +26,12 @@ export default class GameOverScene extends Phaser.Scene {
     st.maxLevel = Math.max(st.maxLevel, r.level);
     st.bartkowanie += r.upgrades.bartkowanie ?? 0;
     if (!this.won && r.elapsedMs < config.plans.lazy.earlyDeathSec * 1000) st.earlyDeaths++;
+    if (this.won) st.wins++;
     // One at a time, in list order, so the shield (last weapon) already sees the others unlocked by this same run.
     this.newUnlocks = [];
     for (const def of [...weapons, ...passives, ...plans]) {
-      if (!def.unlock || save.unlocks.includes(def.id) || !def.unlock.check(this.run, this.won)) continue;
+      if (!def.unlock || save.unlocks.includes(def.id)) continue;
+      if (!def.unlock.check(this.run, this.won) && !unlockedByBets(def, this.run, this.won)) continue;
       save.unlocks.push(def.id);
       this.newUnlocks.push(def);
     }
@@ -53,7 +56,8 @@ export default class GameOverScene extends Phaser.Scene {
     this.add.text(cx, cy, `Czas: ${formatTime(r.elapsedMs)}   Zabici: ${r.kills}   Poziom: ${r.level}`, {
       fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`,
     }).setOrigin(0.5);
-    const coins = r.coinProtein ? ` (z monet: ${r.coinProtein})` : '';
+    const extra = [r.coinProtein ? `z monet: ${r.coinProtein}` : '', r.betPct ? `zakłady +${Math.round(r.betPct * 100)}%` : ''].filter(Boolean);
+    const coins = extra.length ? ` (${extra.join(', ')})` : '';
     this.add.text(cx, cy + u.lineGap, `Zdobyte białko: ${this.earned}${coins}   Razem: ${save.protein}`, {
       fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`,
     }).setOrigin(0.5);
