@@ -12,7 +12,7 @@ export function addEffect(run, def) {
   def.apply(pl);
   const changed = {};
   for (const k of Object.keys(pl)) if (pl[k] !== before[k]) changed[k] = { before: before[k], after: pl[k] };
-  run.effects[def.id] = { remainingMs: def.durationMs, changed };
+  run.effects[def.id] = { remainingMs: def.durationMs, durationMs: def.durationMs, changed };
 }
 
 // Counts effects down; returns the ids that ended this frame.

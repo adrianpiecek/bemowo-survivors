@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { xpToNextLevel, formatTime } from '../state.js';
 import { isEffectActive } from '../systems/effects.js';
+import { pickups } from '../data/pickups.js';
 
 // HUD on its own layer above GameScene. It reads `run` every frame, so GameScene never has to notify it.
 export default class UIScene extends Phaser.Scene {
@@ -33,6 +34,17 @@ export default class UIScene extends Phaser.Scene {
       .setOrigin(0.5).setVisible(false);
 
     this.createJoystick();
+
+    // Icons of active timed pickup effects, one per pickup that has an effect; bars are drawn in update.
+    const eh = u.effectHud;
+    this.effectIcons = pickups.filter((d) => d.effect).map((d) => ({
+      effect: d.effect,
+      image: this.add.image(0, 0, d.icon ?? 'pickup').setDisplaySize(eh.iconSize, eh.iconSize).setOrigin(0).setVisible(false),
+    }));
+    this.effectTop = tankY + h.barHeight + h.barGap;
+
+    const pa = u.pickupArrow;
+    this.pickupArrow = this.add.triangle(0, 0, pa.size, pa.size / 2, 0, 0, 0, pa.size, pa.color).setVisible(false);
 
     const tb = u.tankButton;
     this.tankButton = this.add.container(width - tb.margin - tb.radius, height - tb.margin - tb.radius, [
@@ -105,9 +117,45 @@ export default class UIScene extends Phaser.Scene {
       this.bars.fillStyle(bb.color).fillRect(x, bb.y, bb.width * Phaser.Math.Clamp(boss.hp / boss.stats.hp, 0, 1), bb.height);
     }
     this.tankButton.setVisible(full && r.tankMs <= 0);
+    this.updateEffectHud();
+    this.updatePickupArrow();
     if (this.balanceText) this.updateBalance();
     this.tankText.setText(r.tankMs > 0 ? `CZOŁG ${Math.ceil(r.tankMs / 1000)} s`
       : full ? 'CZOŁG GOTOWY!' : `Czołg ${r.tankCharge}/${t.killsToCharge}`);
+  }
+
+  // Active timed effects, stacked under the tank bar: icon, then a bar of the time left.
+  updateEffectHud() {
+    const eh = config.ui.effectHud, m = config.ui.margin, h = config.ui.hud;
+    let y = this.effectTop;
+    for (const { effect, image } of this.effectIcons) {
+      const e = this.run.effects[effect];
+      image.setVisible(!!e);
+      if (!e) continue;
+      image.setPosition(m, y);
+      const bx = m + eh.iconSize + eh.gap, by = y + (eh.iconSize - eh.barHeight) / 2;
+      this.bars.fillStyle(h.barBg).fillRect(bx, by, eh.barWidth, eh.barHeight);
+      this.bars.fillStyle(eh.color).fillRect(bx, by, eh.barWidth * Phaser.Math.Clamp(e.remainingMs / e.durationMs, 0, 1), eh.barHeight);
+      y += eh.iconSize + eh.gap;
+    }
+  }
+
+  // Arrow on the screen edge toward the nearest pickup lying off screen; hidden when none is.
+  updatePickupArrow() {
+    const gs = this.scene.get('GameScene'), cam = gs.cameras.main, view = cam.worldView, pa = config.ui.pickupArrow;
+    const cx = view.centerX, cy = view.centerY;
+    let best = null, bestD = Infinity;
+    for (const p of gs.pickups.getChildren()) {
+      if (!p.active || view.contains(p.x, p.y)) continue;
+      const d = Phaser.Math.Distance.Squared(cx, cy, p.x, p.y);
+      if (d < bestD) { bestD = d; best = p; }
+    }
+    this.pickupArrow.setVisible(!!best);
+    if (!best) return;
+    // Scale the direction until it touches the screen rectangle shrunk by the margin.
+    const dx = best.x - cx, dy = best.y - cy, { width, height } = this.scale;
+    const k = Math.min((width / 2 - pa.margin) / Math.abs(dx || 1e-6), (height / 2 - pa.margin) / Math.abs(dy || 1e-6));
+    this.pickupArrow.setPosition(width / 2 + dx * k, height / 2 + dy * k).setRotation(Math.atan2(dy, dx));
   }
 
   // Debug: rates over the last balanceWindowSec of run time, from a sample taken every second.

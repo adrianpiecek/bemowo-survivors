@@ -52,6 +52,8 @@ export const config = {
   // Rare drops from killed enemies. Each pickup's own numbers sit under its id.
   pickups: {
     lifetimeSec: 20,
+    // Every everySec one random onMap pickup lies down by itself, off screen but a few seconds' walk away.
+    mapSpawn: { everySec: 35, minDist: 750, maxDist: 1000, lifetimeSec: 30 },
     blinkMs: 150, blinkAlpha: 0.35, // blink while lying on the ground
     debugOffset: 90, // how far from Bartek the P key drops one
     olx: {
@@ -60,6 +62,11 @@ export const config = {
       cardMs: 2000, flockMin: 10, flockMax: 15, flyMs: 1800, flockSpreadMs: 400, waveAmp: 18, waveCycles: 3,
     },
     photoshop: { dropChance: 0.004, cooldownSec: 60, durationSec: 15, scale: 0.5, speedPct: 0.3, damagePct: -0.3 },
+    magnet: { dropChance: 0.004, cooldownSec: 45 }, // every gem on the map flies to Bartek
+    freeze: { dropChance: 0.003, cooldownSec: 60, durationSec: 5, tint: 0x9fd8ff }, // walkers stand still and do no damage
+    preworkout: { dropChance: 0.003, cooldownSec: 60, durationSec: 8, fireRateMult: 2 },
+    bubble: { dropChance: 0.003, cooldownSec: 60, durationSec: 6 }, // no damage taken
+    pierogi: { dropChance: 0.004, cooldownSec: 30, heal: 30 },
   },
   // Permanent upgrades bought with protein. Percentages multiply with the in-run upgrades.
   gym: {
@@ -136,6 +143,10 @@ export const config = {
       tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65 },
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
+    // Arrow at the screen edge toward the nearest pickup lying off screen.
+    pickupArrow: { size: 22, margin: 30, color: 0xffcc00 },
+    // Active timed effects under the tank bar: icon and a bar of the time left.
+    effectHud: { iconSize: 28, barWidth: 60, barHeight: 8, gap: 6, color: 0xffcc00 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: 'Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 250, survivorsY: 410, dropMs: 450, gapMs: 600,
@@ -155,7 +166,12 @@ export const config = {
     hitSpark: { path: 'impacts/hit-spark', scale: 0.5 }, // bullet hits an enemy
     deathPoof: { path: 'impacts/death-poof', scale: 1 }, // enemy dies
     golfBoom: { path: 'explosions/big-explosion', scale: 2 }, // the Golf is scrapped
-    starBurst: { path: 'ui/star-burst-pickup', scale: 3 }, // a legendary card appears
+    starBurst: { path: 'ui/star-burst-pickup', scale: 3 }, // a legendary card appears, any pickup is taken
+    vacuumPull: { path: 'wind/vacuum-pull', scale: 2 }, // magnet pickup
+    frostNova: { path: 'ice/frost-nova', scale: 4 }, // freeze pickup
+    holyHeal: { path: 'holy/holy-heal', scale: 1.5 }, // pierogi
+    shieldBubble: { path: 'holy/shield-bubble', scale: 1.4 }, // aura while the bubble lasts
+    berserk: { path: 'status/berserk', scale: 1.6 }, // aura while the pre-workout lasts
   },
   // Texture sizes in px. Images: `height` is the on-screen height, width follows the image, bodyRadius is on-screen too.
   textures: {
@@ -170,6 +186,9 @@ export const config = {
     bullet: { radius: 3, color: 0xffffff },
     bee: { radius: 7, color: 0xffd400, stripeWidth: 3, stripeColor: 0x000000 },
     pickup: { size: 22, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },
+    // Drawn icons of the timed pickups, size x size px.
+    pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
+      preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
     tank: { height: 110, bodyRadius: 45 }, // czołg.png: Bartek in a tank, barrel to the left
     // Top-down car facing right; the texture has room for the open trunk lid behind it.
     golf: { carLength: 150, carWidth: 76, wheelLength: 28, wheelWidth: 10, lidLength: 30, bodyRadius: 45,

@@ -52,6 +52,10 @@ Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkieg
 | Szybkość ruchu | +10% | 5 |
 | Max HP | +20 HP i leczenie | 5 |
 
+### Znajdźki czasowe (wersja 3)
+
+Oprócz rzadkich znajdziek z wrogów (OLX, Photoshop) są znajdźki typowe dla gatunku: Magnes z lodówki (wszystkie kryształy lecą do Bartka), Zimny prysznic (zwykli wrogowie stoją i nie zadają obrażeń, boss i klapy nie), Przedtreningówka (x2 szybkostrzelność), Bańka (brak obrażeń) i Pierogi babci (leczenie). Wypadają z wrogów i co ok. 35 s jedna leży sama na mapie, poza ekranem; strzałka na krawędzi ekranu wskazuje najbliższą. Aktywne efekty widać w HUD (ikonka i pasek czasu). Dane w `src/data/pickups.js`, liczby w `config.pickups`.
+
 ### Runda
 
 - Licznik 10:00. Przeżyjesz, to wygrałeś.

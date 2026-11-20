@@ -80,7 +80,31 @@ export default class BootScene extends Phaser.Scene {
     const pk = t.pickup;
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);
     g.lineStyle(pk.borderWidth, pk.borderColor).strokeRect(0, 0, pk.size, pk.size);
-    g.generateTexture('pickup', pk.size, pk.size);
+    g.generateTexture('pickup', pk.size, pk.size).clear();
+
+    // Timed pickup icons. Shapes are proportions of the icon size.
+    const ic = t.pickupIcons, s = ic.size, c = s / 2;
+    g.lineStyle(s * 0.22, ic.magnet).beginPath().arc(c, c * 0.9, s * 0.3, 0, Math.PI).strokePath(); // magnet: red U
+    g.fillStyle(ic.magnet).fillRect(c - s * 0.41, s * 0.12, s * 0.22, s * 0.33).fillRect(c + s * 0.19, s * 0.12, s * 0.22, s * 0.33);
+    g.fillStyle(ic.magnetTip).fillRect(c - s * 0.41, s * 0.05, s * 0.22, s * 0.12).fillRect(c + s * 0.19, s * 0.05, s * 0.22, s * 0.12);
+    g.generateTexture('pickup_magnet', s, s).clear();
+    g.fillStyle(ic.freeze).fillCircle(c, c, c); // freeze: ice ball with a snowflake
+    g.lineStyle(2, ic.freezeLine);
+    for (let i = 0; i < 3; i++) {
+      const a = (i * Math.PI) / 3, dx = Math.cos(a) * c * 0.75, dy = Math.sin(a) * c * 0.75;
+      g.lineBetween(c - dx, c - dy, c + dx, c + dy);
+    }
+    g.generateTexture('pickup_freeze', s, s).clear();
+    g.fillStyle(ic.preworkout).fillRect(s * 0.25, s * 0.25, s * 0.5, s * 0.72); // pre-workout: a shaker
+    g.fillStyle(ic.preworkoutCap).fillRect(s * 0.2, s * 0.05, s * 0.6, s * 0.22);
+    g.generateTexture('pickup_preworkout', s, s).clear();
+    g.fillStyle(ic.bubble, 0.35).fillCircle(c, c, c - 1); // bubble
+    g.lineStyle(3, ic.bubble).strokeCircle(c, c, c - 2);
+    g.fillStyle(0xffffff, 0.8).fillCircle(c * 0.65, c * 0.65, s * 0.08);
+    g.generateTexture('pickup_bubble', s, s).clear();
+    g.fillStyle(ic.pierogi).slice(c, s * 0.7, c * 0.95, Math.PI, 0, false).fillPath(); // pierogi: half moon, crimped edge
+    g.lineStyle(2, ic.pierogiLine).beginPath().arc(c, s * 0.7, c * 0.95, Math.PI, 0, false).strokePath();
+    g.generateTexture('pickup_pierogi', s, s);
 
     g.destroy();
 

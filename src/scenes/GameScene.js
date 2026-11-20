@@ -55,10 +55,18 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
 
     this.pickups = this.physics.add.group({ defaultKey: 'pickup', maxSize: config.pools.pickups });
+    // Looped effects around Bartek while a pickup's effect lasts (bubble, pre-workout).
+    this.auras = pickups.filter((d) => d.aura).map((d) => ({
+      effect: d.effect,
+      sprite: this.add.sprite(0, 0, d.aura).setScale(config.vfx[d.aura].scale).setDepth(2).setVisible(false)
+        .play({ key: d.aura, repeat: -1 }),
+    }));
     this.physics.add.overlap(this.player, this.pickups, this.collectPickup, null, this);
     if (config.debug.pickupKey) {
+      // Each press drops the next pickup in data order, so every one is easy to reach.
+      let next = 0;
       this.input.keyboard.on('keydown-P', () => {
-        this.dropPickup(Phaser.Utils.Array.GetRandom(pickups), this.player.x + config.pickups.debugOffset, this.player.y);
+        this.dropPickup(pickups[next++ % pickups.length], this.player.x + config.pickups.debugOffset, this.player.y);
       });
     }
 
@@ -113,7 +121,8 @@ export default class GameScene extends Phaser.Scene {
       if (!enemy.stats.isBoss || enemy.hp <= 0) this.killEnemy(enemy);
       return;
     }
-    if (this.time.now < this.run.invulnUntilMs) return;
+    if (this.time.now < this.run.invulnUntilMs || isEffectActive(this.run, 'bubble')) return;
+    if (enemy.stats.behavior === 'chase' && isEffectActive(this.run, 'freeze')) return; // frozen walkers do not bite
     const pl = this.run.player;
     pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
     playSfx(this, 'playerDamage');
@@ -208,12 +217,15 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  dropPickup(def, x, y) {
+  dropPickup(def, x, y, lifetimeSec = config.pickups.lifetimeSec) {
     const p = this.pickups.get(x, y);
     if (!p) return; // pool full: rare drops at a 10-slot cap, losing one is harmless
+    p.setTexture(def.icon ?? 'pickup');
+    p.body.setSize(); // pooled sprites change icon, so fit the body to this one
     p.enableBody(true, x, y, true, true);
     p.def = def;
     p.ageMs = 0;
+    p.lifetimeMs = lifetimeSec * 1000;
     this.run.pickupDropMs[def.id] = this.run.elapsedMs;
   }
 
@@ -221,8 +233,15 @@ export default class GameScene extends Phaser.Scene {
     if (!p.active) return;
     p.disableBody(true, true);
     playSfx(this, 'pickup');
+    playVfx(this, 'starBurst', this.player.x, this.player.y);
+    if (p.def.vfx) playVfx(this, p.def.vfx, this.player.x, this.player.y);
     this.scene.get('UIScene').showBanner(p.def.bannerText, p.def.bannerSubtext);
     p.def.apply(this);
+  }
+
+  // Magnet pickup and Bartkowanie "Sprzątanie Bemowa": every gem on the map flies to Bartek.
+  magnetAllGems() {
+    for (const gem of this.gems.getChildren()) if (gem.active) gem.magnet = true;
   }
 
   dropGem(x, y, kind) {
@@ -350,6 +369,16 @@ export default class GameScene extends Phaser.Scene {
       this.boss = this.spawnEnemy(enemies.find((d) => d.id === 'golf'));
     }
 
+    // Now and then a timed pickup lies down by itself somewhere off screen, a few seconds' walk away.
+    const ms = config.pickups.mapSpawn;
+    run.mapPickupMs -= delta;
+    if (run.mapPickupMs <= 0) {
+      run.mapPickupMs += ms.everySec * 1000;
+      const angle = Phaser.Math.FloatBetween(0, Math.PI * 2), r = Phaser.Math.FloatBetween(ms.minDist, ms.maxDist);
+      this.dropPickup(Phaser.Utils.Array.GetRandom(pickups.filter((d) => d.onMap)),
+        this.player.x + Math.cos(angle) * r, this.player.y + Math.sin(angle) * r, ms.lifetimeSec);
+    }
+
     // Every wave.everySec a ring of enemies spawns at once; each wave is bigger. The enemy cap still applies.
     const w = config.wave;
     if (Math.floor(run.elapsedMs / (w.everySec * 1000)) > run.wave) {
@@ -391,10 +420,14 @@ export default class GameScene extends Phaser.Scene {
     // Bartkowanie: during squats walkers stand and hop (vertical speed is the derivative of a sine, so no drift);
     // during the moonwalk they walk away from Bartek.
     const bk = config.bartkowanie, squats = isEffectActive(run, 'squats'), moonwalk = isEffectActive(run, 'moonwalk');
+    const frozen = isEffectActive(run, 'freeze'), freezeTint = config.pickups.freeze.tint;
     const hopW = Math.PI * 2 * bk.squatHz, hopT = run.elapsedMs / 1000;
     for (const z of this.enemies.getChildren()) {
       if (!z.active) continue;
-      if (z.stats.behavior === 'chase' && squats) z.setVelocity(0, bk.squatAmp * hopW * Math.cos(hopW * hopT + z.x));
+      // Freeze: walkers stand still in blue; the boss and flying klapas are not affected.
+      if (z.stats.behavior === 'chase' && (frozen || z.isTinted)) frozen ? z.setTint(freezeTint) : z.clearTint();
+      if (z.stats.behavior === 'chase' && frozen) z.setVelocity(0, 0);
+      else if (z.stats.behavior === 'chase' && squats) z.setVelocity(0, bk.squatAmp * hopW * Math.cos(hopW * hopT + z.x));
       else if (z.stats.behavior === 'chase') this.physics.moveToObject(z, this.player, z.stats.speed * (moonwalk ? -1 : 1));
       else if (z.stats.behavior === 'boss') updateGolf(this, z, delta);
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
@@ -419,8 +452,12 @@ export default class GameScene extends Phaser.Scene {
     for (const p of this.pickups.getChildren()) {
       if (!p.active) continue;
       p.ageMs += delta;
-      if (p.ageMs >= pk.lifetimeSec * 1000) p.disableBody(true, true);
+      if (p.ageMs >= p.lifetimeMs) p.disableBody(true, true);
       else p.setAlpha(Math.floor(p.ageMs / pk.blinkMs) % 2 ? pk.blinkAlpha : 1);
+    }
+
+    for (const a of this.auras) {
+      a.sprite.setVisible(isEffectActive(run, a.effect)).setPosition(this.player.x, this.player.y + this.player.displayHeight / 2);
     }
 
     // Bees: a small B gets a denser swarm on a tighter orbit, so it fits his size.

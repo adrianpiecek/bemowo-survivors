@@ -32,7 +32,7 @@ export const bartkowanie = [
   },
   {
     name: 'Sprzątanie Bemowa',
-    apply(scene) { for (const gem of scene.gems.getChildren()) if (gem.active) gem.magnet = true; },
+    apply(scene) { scene.magnetAllGems(); },
   },
   {
     name: 'Bartkowanie zakończone sukcesem',

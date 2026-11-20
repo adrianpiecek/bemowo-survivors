@@ -36,6 +36,7 @@ export function newRun() {
     fireCooldownMs: 0,
     spawnCooldownMs: 0,
     wave: 0, // waves spawned so far
+    mapPickupMs: config.pickups.mapSpawn.everySec * 1000, // time to the next pickup lying down by itself
     spawned: 0, // enemies spawned, for the debug overlay
     damageDealt: 0, // by bullets and bees, for the debug overlay
     pendingLevelUps: 0, // level-ups still waiting for a card pick
