@@ -12,6 +12,7 @@ export default class BootScene extends Phaser.Scene {
     for (const key of ['goblin', 'sportakus']) this.load.image(key, config.textures[key].file);
     this.load.image('tank', './assets/czołg.png');
     this.load.image('captain_shield', config.textures.captainShield.file);
+    this.load.image('shotgun', config.textures.shotgun.file);
     // May be missing: the OLX card falls back to the first pigeon frame.
     this.load.image('golab', config.pickups.olx.photo);
     for (let i = 1; i <= config.textures.pigeon.frames; i++) this.load.image(`pigeon${i}`, `./assets/Pigeons/pigeon${i}.png`);
@@ -34,6 +35,7 @@ export default class BootScene extends Phaser.Scene {
     }
     this.anims.create({ key: 'pigeonFly', frames: pigeonFrames, frameRate: t.pigeon.fps, repeat: -1, yoyo: true });
     pixel('captain_shield');
+    pixel('shotgun');
     createVfxTextures(this);
 
     const g = this.add.graphics();
@@ -158,6 +160,24 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(t.bee.stripeColor).fillRect(ws * 0.36, ws * 0.24, ws * 0.08, ws * 0.52).fillRect(ws * 0.56, ws * 0.24, ws * 0.08, ws * 0.52);
     g.lineStyle(2, t.bee.stripeColor).strokePoints(hex, true);
     g.generateTexture('weapon_bees', ws, ws).clear();
+    // Dwarf's axe: a handle up the middle and a double blade at the top, light cutting edges, a dark outline.
+    const ax = t.axe;
+    const drawAxe = (ox, oy, s) => {
+      const P = (pts) => pts.map(([px, py]) => ({ x: ox + px * s, y: oy + py * s }));
+      g.fillStyle(ax.outline).fillRect(ox + s * 0.43, oy + s * 0.1, s * 0.14, s * 0.88);
+      g.fillStyle(ax.handle).fillRect(ox + s * 0.46, oy + s * 0.12, s * 0.08, s * 0.84);
+      for (const side of [1, -1]) {
+        const blade = P([[0.5, 0.14], [0.5 + side * 0.32, 0.02], [0.5 + side * 0.46, 0.24], [0.5 + side * 0.32, 0.46], [0.5, 0.34]]);
+        g.fillStyle(ax.head).fillPoints(blade, true).lineStyle(Math.max(1, s * 0.04), ax.outline).strokePoints(blade, true);
+        const [ex1, ex2, ex3] = P([[0.5 + side * 0.32, 0.05], [0.5 + side * 0.43, 0.24], [0.5 + side * 0.32, 0.43]]);
+        g.lineStyle(Math.max(1, s * 0.05), ax.edge).lineBetween(ex1.x, ex1.y, ex2.x, ex2.y).lineBetween(ex2.x, ex2.y, ex3.x, ex3.y);
+      }
+    };
+    drawAxe(0, 0, ax.size);
+    g.generateTexture('axe', ax.size, ax.size).clear();
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    drawAxe(ws * 0.12, ws * 0.12, ws * 0.76);
+    g.generateTexture('weapon_axe', ws, ws).clear();
 
     // Evolved weapons: the same framed square with a gold frame.
     const evoFrame = () => g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(3, wi.evoBorder).strokeRect(1.5, 1.5, ws - 3, ws - 3);
@@ -191,6 +211,16 @@ export default class BootScene extends Phaser.Scene {
     wi.shieldColors.forEach((color, i) => g.fillStyle(color).fillCircle(ws / 2, ws / 2, ws * (0.38 - i * 0.11)));
     g.fillStyle(wi.shieldColors[0]).fillCircle(ws / 2, ws / 2, ws * 0.07);
     g.generateTexture('weapon_bemowo_shield', ws, ws).clear();
+    // Dwururka dziadka: two barrels side by side on a wooden stock.
+    evoFrame();
+    g.fillStyle(wi.gunColor).fillRect(ws * 0.3, ws * 0.3, ws * 0.6, ws * 0.09).fillRect(ws * 0.3, ws * 0.42, ws * 0.6, ws * 0.09);
+    g.fillStyle(wi.gripColor).fillRect(ws * 0.1, ws * 0.3, ws * 0.24, ws * 0.21).fillRect(ws * 0.1, ws * 0.5, ws * 0.12, ws * 0.22);
+    g.generateTexture('weapon_double_barrel', ws, ws).clear();
+    // Młyn krasnoluda: two axes.
+    evoFrame();
+    drawAxe(ws * 0.02, ws * 0.18, ws * 0.6);
+    drawAxe(ws * 0.38, ws * 0.18, ws * 0.6);
+    g.generateTexture('weapon_axe_mill', ws, ws).clear();
     // Laughing gas cloud: puffs scattered around the middle, see-through so they stack into a soft cloud.
     const gz = t.gasCloud, gcs = gz.size, gcc = gcs / 2;
     // The same puffs in other colors make the evolved Smog nad Bemowem cloud.

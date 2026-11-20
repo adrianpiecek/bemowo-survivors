@@ -65,9 +65,11 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHit, null, this);
 
     this.gems = this.physics.add.group({ defaultKey: 'gem_green', maxSize: config.pools.gems });
-    this.addWeapon(weapons.find((d) => d.id === config.weapons.start));
+    // One random starting weapon (debug.startWeapon picks it).
+    const startId = config.debug.startWeapon ?? Phaser.Utils.Array.GetRandom(config.weapons.start);
+    this.addWeapon(weapons.find((d) => d.id === startId));
     const debugIds = [].concat(config.debug.giveWeapon ?? []);
-    for (const debugWeapon of weapons.filter((d) => debugIds.includes(d.id) && d.id !== config.weapons.start)) {
+    for (const debugWeapon of weapons.filter((d) => debugIds.includes(d.id) && d.id !== startId)) {
       if (debugWeapon.unlock && !save.unlocks.includes(debugWeapon.id)) {
         save.unlocks.push(debugWeapon.id);
         writeSave(save);
@@ -906,10 +908,12 @@ export default class GameScene extends Phaser.Scene {
 
     for (const w of run.weapons) w.def.update(this, w, delta);
 
-    // Past the spawn ring there is nothing left to hit.
+    // Past the spawn ring there is nothing left to hit; a shotgun pellet stops after its range (b.maxDist).
     const maxDist = config.spawn.ringMaxRadius;
     for (const b of this.bullets.getChildren()) {
-      if (b.active && Phaser.Math.Distance.Between(b.x, b.y, this.player.x, this.player.y) > maxDist) b.disableBody(true, true);
+      if (!b.active) continue;
+      if (Phaser.Math.Distance.Between(b.x, b.y, this.player.x, this.player.y) > maxDist
+        || Phaser.Math.Distance.Between(b.x, b.y, b.startX, b.startY) > b.maxDist) b.disableBody(true, true);
     }
   }
 }

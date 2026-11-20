@@ -1,10 +1,11 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
-  // Weapons (data/weapons.js). Bartek starts with `start` and carries up to maxSlots; new ones and levels come as cards.
+  // Weapons (data/weapons.js). Bartek starts with one random weapon from `start` and carries up to maxSlots; new ones
+  // and levels come as cards.
   weapons: {
     maxSlots: 4,
-    start: 'pistol',
+    start: ['pistol', 'shotgun', 'shield'],
     // Evolutions (data/weapons.js, `evolution`): a weapon at its max level plus its passive in a slot evolves from the
     // next chest. Each weapon's `evolution` numbers below.
     // Auto-aims at the nearest enemies in range. levels: what each level after the first adds.
@@ -14,11 +15,18 @@ export const config = {
       evolution: { fireRateMs: 120, damagePct: 0.6, pierce: 1 },
       // The gun's grip sits this far from Bartek's middle toward the target and offsetY px lower; the flash at its barrel tip.
       gun: { distance: 22, offsetY: 8 } },
+    // Shotgun: every cooldownMs `pellets` pellets fan out over spreadDeg toward the nearest enemy within rangeMult x the
+    // pistol range (Okulary from the gym count); a pellet flies `range` far at most, pelletScale the size of a bullet.
+    shotgun: { damage: 5, pellets: 5, cooldownMs: 1100, rangeMult: 0.7, spreadDeg: 50, jitterRad: 0.04, speed: 600, pelletScale: 0.8,
+      levels: [{ pellets: 1 }, { damage: 2 }, { pellets: 1 }, { damage: 3 }, { pellets: 2 }, { damage: 3 }],
+      // Dwururka dziadka: pelletsMult x pellets, each goes through `pierce` enemies.
+      evolution: { pelletsMult: 2, pierce: 1 },
+      // Held lower than the pistol, so both show when Bartek has the two.
+      gun: { distance: 16, offsetY: 18 } },
     // Captain's shield: flies to the nearest enemy within range, bounces `bounces` times to the next nearest ones (not hit
     // yet on this throw) within bounceRange, then flies back; each shield waits cooldownMs once it is back.
-    // unlockDamageTaken: the unlock (data/weapons.js) needs a won run with at least this much damage taken.
     shield: { damage: 20, bounces: 2, shields: 1, cooldownMs: 1800, range: 380, bounceRange: 300, speed: 650, hitDist: 20,
-      size: 34, spinDegPerSec: 900, unlockDamageTaken: 500,
+      size: 34, spinDegPerSec: 900,
       levels: [{ bounces: 1 }, { damage: 10 }, { shields: 1 }, { bounces: 2 }, { damage: 10 }, { shields: 1 }],
       evolution: { healPerHit: 1, tint: 0xffd54f } }, // Tarcza Bemowa: thrown again at once, every hit heals Bartek
     // Laughing gas (Joker): every cooldownMs `clouds` clouds land on random ones of the `pick` nearest enemies within range.
@@ -46,6 +54,13 @@ export const config = {
       smallMult: 2, smallRadius: 42, hitScale: 1.7, hitMs: 90,
       levels: [{ bees: 1 }, { damage: 2 }, { bees: 1 }, { damage: 3 }, { bees: 1 }],
       evolution: { beesMult: 2, pierogiChance: 0.04 } }, // Pasieka babci: beesMult x bees; a bee kill drops Pierogi w domu this often
+    // Dwarf's axe: `axes` axes circle Bartek (systems/orbit.js) at degPerSec, `radius` away, spinning; an axe hurts an enemy
+    // at most once per hitCooldownMs. Any hit turns them all back the other way (not again for flipGapMs, so a crowd
+    // does not make them shake in place).
+    axe: { damage: 14, axes: 1, radius: 85, degPerSec: 230, size: 36, spinDegPerSec: 720, hitCooldownMs: 400, flipGapMs: 150,
+      levels: [{ damage: 6 }, { axes: 1 }, { radius: 20 }, { damage: 8 }, { axes: 1 }, { damage: 8 }],
+      // Młyn krasnoluda: axesMult x axes, speedMult x as fast, radiusMult x as far out.
+      evolution: { axesMult: 2, speedMult: 1.4, radiusMult: 1.3 } },
   },
   // Passives (data/passives.js): items that raise one stat each level, up to maxSlots at once. The numbers are one level
   // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
@@ -205,6 +220,7 @@ export const config = {
     eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
     eventKey: false, // true: V, then a digit 1-8, starts that run event (data/events.js order)
     betsUnlocked: false, // true: the gym shows Zakłady z Unc without a won run
+    startWeapon: null, // a weapon id: every run starts with it instead of a random one from weapons.start
     forcePressure: null, // a number 0..dda.max: the hidden pressure stays there all run (the balance overlay shows it)
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
@@ -285,7 +301,7 @@ export const config = {
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   // enemies: spawn.maxEnemies + room for bosses, the school trip and split elites; pickups: room for boss and elite chests
-  pools: { bullets: 100, enemies: 320, gems: 300, pickups: 20, vfx: 60, bees: 20, gas: 12 },
+  pools: { bullets: 160, enemies: 320, gems: 300, pickups: 20, vfx: 60, bees: 20, gas: 12, axes: 12 },
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -530,6 +546,10 @@ export const config = {
     // The pistol Bartek holds, drawn pointing right: width x height px, held at grip (fraction of the size).
     gun: { width: 28, height: 15, grip: [0.3, 0.5], slide: 0x455a64, slideLight: 0x90a4ae, frame: 0x263238, handle: 0x6d4c41, handleLight: 0x8d6e63 },
     captainShield: { file: './assets/captain_shield.png' }, // 50x50 pixel art, also the shield's HUD icon
+    // 64x64 pixel art, barrel to the right, also the shotgun's HUD icon: drawn at `scale`, held at `grip`, fires from tipX.
+    shotgun: { file: './assets/Shotgun.png', scale: 0.7, grip: [0.34, 0.47], tipX: 0.92 },
+    // The dwarf's axe (drawn): a handle and a double blade with light edges; `size` square.
+    axe: { size: 36, handle: 0x6d4c41, head: 0x90a4ae, edge: 0xeceff1, outline: 0x263238 },
     // Drawn weapon icons for the HUD, size x size px.
     weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41,
       gasColors: [0x9ccc65, 0xba68c8, 0x7cb342], laserColor: 0xff1744, eyeColor: 0xffffff,

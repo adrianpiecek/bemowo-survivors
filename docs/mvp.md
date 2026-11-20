@@ -118,9 +118,9 @@ Nazwa i logo Gigantów Programowania oraz cudze postacie zostają tylko w wersji
 
 ## Bronie
 
-**Zmiana planu:** postacią grywalną jest zawsze zwykły Bartek (`bartek.png`). Zamiast postaci zmieniają się bronie, a warianty Bartka (Joker, Homelander, Uncanny i kolejne) są wrogami, nie postaciami. Lista poniżej to teraz lista broni; nazwa z kolumny "Inspiracja" zostaje jako nazwa broni albo opis karty. Bronie robisz w tej kolejności, ale Tarcza Kapitana odblokowuje się jako ostatnia.
+**Zmiana planu:** postacią grywalną jest zawsze zwykły Bartek (`bartek.png`). Zamiast postaci zmieniają się bronie, a warianty Bartka (Joker, Homelander, Uncanny i kolejne) są wrogami, nie postaciami. Lista poniżej to teraz lista broni; nazwa z kolumny "Inspiracja" zostaje jako nazwa broni albo opis karty. Bronie robisz w tej kolejności. (Od kroku 35c Tarcza Kapitana nie ma warunku odblokowania.)
 
-**Zmiana planu (v3): bronie z kart, nie wybór przed rundą.** Jak w gatunku: Bartek zaczyna z pistoletem i nosi do 4 broni naraz (`config.weapons.maxSlots`). Nowa broń wypada jako karta przy level upie ("NOWA BROŃ"), a kolejne poziomy broni też jako karty z rzadkością (rzadsza karta = większy skok). Karta Obrażenia i Szybkostrzelność, siłownia i znajdźki działają na wszystkie bronie. Która broń w ogóle może wypaść, decyduje jej warunek odblokowania: sprawdzany na końcu rundy i zapisany na stałe w `save.unlocks`. Siłownia nie ma wyboru broni. Bronie to dane w `src/data/weapons.js`; HUD pokazuje w lewym dolnym rogu ikonki posiadanych broni z poziomem.
+**Zmiana planu (v3): bronie z kart, nie wybór przed rundą.** Jak w gatunku: Bartek zaczyna z jedną bronią (od kroku 35c losowo: Pistolet, Shotgun albo Tarcza Kapitana) i nosi do 4 broni naraz (`config.weapons.maxSlots`). Nowa broń wypada jako karta przy level upie ("NOWA BROŃ"), a kolejne poziomy broni też jako karty z rzadkością (rzadsza karta = większy skok). Karta Obrażenia i Szybkostrzelność, siłownia i znajdźki działają na wszystkie bronie. Która broń w ogóle może wypaść, decyduje jej warunek odblokowania: sprawdzany na końcu rundy i zapisany na stałe w `save.unlocks`. Siłownia nie ma wyboru broni. Bronie to dane w `src/data/weapons.js`; HUD pokazuje w lewym dolnym rogu ikonki posiadanych broni z poziomem.
 
 | # | Inspiracja | Broń / mechanika | Typ |
 | --- | --- | --- | --- |
@@ -143,7 +143,10 @@ Warunki odblokowania broni też są memami, np. aura Uncanny za przetrwanie 60 s
 
 - **Gaz rozweselający** (wersja 3, krok 29): co 3 s chmura spada na jednego z 5 najbliższych wrogów, trwa 3 s, co 0,5 s rani wszystkich w środku; obraca się, nad nią wyskakują rysowane „HA”, na końcu blednie. Poziomy dają obrażenia, kolejne chmury, promień i czas (`config.weapons.gas`). Odblokowanie: „Dlaczego taki poważny?”, czyli 30 zabitych Jokerów w jednej rundzie (`run.killsByType`).
 - **Laser z oczu** (wersja 3, krok 29): co 2,5 s promień z oczu Bartka (z okularów) w stronę najbliższego wroga, rani wszystkich na linii na całym zasięgu; rysowany w kodzie (poświata, czerwony promień, białe jądro), gaśnie w 0,26 s. Poziomy dają obrażenia, kolejne promienie (do kolejnych najbliższych wrogów), szerokość i zasięg (`config.weapons.laser`). Odblokowanie: „Wzrok, który zabija”, czyli wygrana runda z pokonanym Wielkim Homelanderem (`run.bossesKilled`).
-- **Tarcza Kapitana** (wersja 3): leci do najbliższego wroga, odbija się do kolejnych (nietrafionych w tym rzucie), wraca do Bartka i czeka chwilę; obraca się w locie, przy każdym odbiciu `impacts/metal-clang`. Poziomy dają odbicia, obrażenia i kolejne tarcze (`config.weapons.shield`). Odblokowanie, jako ostatnia broń: „Mogę tak cały dzień”, czyli wygrana runda z co najmniej 500 przyjętymi obrażeniami, gdy wszystkie inne bronie są już odblokowane. Grafika `assets/captain_shield.png` to eksport z `captain_shield.aseprite`. Debug: `config.debug.giveWeapon` (id albo lista, np. `['gas', 'laser', 'shield']`) odblokowuje bronie i daje je na start.
+- **Tarcza Kapitana** (wersja 3): leci do najbliższego wroga, odbija się do kolejnych (nietrafionych w tym rzucie), wraca do Bartka i czeka chwilę; obraca się w locie, przy każdym odbiciu `impacts/metal-clang`. Poziomy dają odbicia, obrażenia i kolejne tarcze (`config.weapons.shield`). Dostępna od startu (od kroku 35c; wcześniej odblokowywana jako ostatnia) i jest jedną z trzech broni startowych. Grafika `assets/captain_shield.png` to eksport z `captain_shield.aseprite`. Debug: `config.debug.giveWeapon` (id albo lista, np. `['gas', 'laser', 'shield']`) odblokowuje bronie i daje je na start.
+- **Shotgun** (krok 35c, grafika `assets/Shotgun.png` w ręce Bartka i jako ikonka): co 1,1 s wachlarz 5 śrucin w rozrzucie 50° w najbliższego wroga. Zasięg to 70% zasięgu pistoletu (Okulary z siłowni go zwiększają), śrucina leci najwyżej ten dystans. Śrucina za 5 obrażeń. Poziomy dają śruciny i obrażenia (`config.weapons.shotgun`). Bez odblokowania, jedna z trzech broni startowych.
+- **Topór krasnoluda** (krok 35c, rysowany w kodzie): topór krąży wokół Bartka (`src/systems/orbit.js`, 85 px, 230°/s) i kręci się wokół własnej osi. Każde trafienie odbija wszystkie topory w drugą stronę, nie częściej niż co 150 ms, więc w tłumie topór wahadłowo tnie tam i z powrotem. Rani tego samego wroga najwyżej co 0,4 s. Poziomy dają obrażenia, topory i promień (`config.weapons.axe`). Bez odblokowania, tylko z kart.
+- Broń startowa: `config.weapons.start` to lista, gra losuje z niej jedną. Debug: `config.debug.startWeapon` (id) wymusza broń startową.
 
 ## Różnorodność podejść (wersja 3, kroki 30–35)
 
@@ -224,6 +227,8 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 | Gaz rozweselający | Karnet na siłownię | Smog nad Bemowem | chmury nie znikają i powoli płyną za najbliższym wrogiem |
 | Laser z oczu | Hantle w plecaku | Wzrok Homelandera | ciągły promień, który obraca się za celem |
 | Ul | Rosół babci | Pasieka babci | 2x pszczół, a zabici przez pszczoły czasem zostawiają pierogi |
+| Shotgun | Kreatyna | Dwururka dziadka | 2x śrucin, każda przebija 1 wroga (krok 35c) |
+| Topór krasnoluda | Buty z bazaru | Młyn krasnoluda | 2x toporów, 1.4x szybciej, 1.3x dalej od Bartka (krok 35c) |
 
 **Jak działa (krok 32):**
 - Pole `evolution` broni: `{ passive, id, name, icon, description, evolve? }`, liczby w `config.weapons.<broń>.evolution`. Ewoluowana broń ma `w.evolved`, a jej zwykłe `update` czyta tę flagę.

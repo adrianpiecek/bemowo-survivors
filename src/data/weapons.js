@@ -1,7 +1,6 @@
 import { config } from '../config.js';
 import { playSfx } from '../systems/audio.js';
 import { playVfx } from '../systems/vfx.js';
-import { save } from '../state.js';
 import { isEffectActive } from '../systems/effects.js';
 import { createOrbit, updateOrbit } from '../systems/orbit.js';
 
@@ -21,6 +20,7 @@ import { createOrbit, updateOrbit } from '../systems/orbit.js';
 // scene.weaponArea(x), durations through scene.weaponDuration(ms) and counts through scene.weaponAmount(n),
 // so the passives, the gym and timed pickups work on every weapon.
 const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons.gas, lz = config.weapons.laser, bz = config.weapons.bees;
+const sg = config.weapons.shotgun, ax = config.weapons.axe;
 const count = (n, mult) => Math.ceil(n * mult);
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
 const plural = (n, one, few, many) => (n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
@@ -47,7 +47,7 @@ export const weapons = [
     levelUp(scene, w, m) { w.bullets += count(p.levels[w.level - 2].bullets, m); },
     update(scene, w, delta) {
       const pl = scene.player;
-      placeGun(w, pl);
+      placeGun(w, pl, p.gun);
       w.cooldownMs = Math.max(0, w.cooldownMs - delta);
       if (w.cooldownMs > 0) return;
       // Nearest enemies in range; extra bullets go to the next nearest ones.
@@ -62,7 +62,7 @@ export const weapons = [
       // Turn the gun at the first target; bullets and the flash leave its barrel tip, a shell flies up and back.
       const t = targets[0].z;
       w.aim = Phaser.Math.Angle.Between(pl.x, pl.y, t.x, t.y);
-      const { x, y } = placeGun(w, pl), tip = config.textures.gun.width * (1 - config.textures.gun.grip[0]);
+      const { x, y } = placeGun(w, pl, p.gun), tip = config.textures.gun.width * (1 - config.textures.gun.grip[0]);
       const tx = x + Math.cos(w.aim) * tip, ty = y + Math.sin(w.aim) * tip;
       const bullets = scene.weaponAmount(w.bullets), area = scene.weaponArea(1);
       for (let i = 0; i < bullets; i++) {
@@ -73,9 +73,66 @@ export const weapons = [
         b.damage = scene.weaponDamage(p.bulletDamage * (w.evolved ? p.evolution.damagePct : 1));
         b.pierce = w.evolved ? p.evolution.pierce : 0; // enemies it still goes through (GameScene.onBulletHit)
         b.lastHit = null;
+        b.maxDist = Infinity; // only shotgun pellets fly a set distance
         scene.physics.moveToObject(b, targets[i % targets.length].z, scene.run.player.bulletSpeed);
       }
       w.cooldownMs = scene.weaponCooldown(w.evolved ? p.evolution.fireRateMs : p.fireRateMs);
+      playVfx(scene, 'muzzleFlash', tx, ty, Phaser.Math.RadToDeg(w.aim));
+      playVfx(scene, 'shell', x, y, Math.cos(w.aim) < 0 ? 30 : -30);
+      playSfx(scene, 'muzzleShot');
+    },
+  },
+  {
+    id: 'shotgun',
+    name: 'Shotgun',
+    icon: 'shotgun',
+    levels: sg.levels,
+    maxLevel: sg.levels.length + 1,
+    unlock: null,
+    evolution: { passive: 'creatine', id: 'doubleBarrel', name: 'Dwururka dziadka', icon: 'weapon_double_barrel',
+      description: `Dwie lufy: ${sg.evolution.pelletsMult}x więcej śrutu, każda śrucina przebija ${sg.evolution.pierce} wroga.` },
+    description(level, m) {
+      if (level === 1) return 'Strzela z bliska wachlarzem śrutu w najbliższego wroga.';
+      const b = sg.levels[level - 2], n = count(b.pellets ?? 0, m);
+      return [n && `+${n} ${plural(n, 'śrucina', 'śruciny', 'śrucin')} na strzał`, b.damage && `+${Math.round(b.damage * m)} obrażeń śruciny`]
+        .filter(Boolean).join(', ');
+    },
+    create(scene, w) {
+      Object.assign(w, { damage: sg.damage, pellets: sg.pellets, cooldownMs: 0, aim: 0 });
+      const t = config.textures.shotgun;
+      w.gun = scene.add.image(0, 0, 'shotgun').setOrigin(...t.grip).setScale(t.scale).setDepth(1.5);
+    },
+    levelUp(scene, w, m) {
+      const b = sg.levels[w.level - 2];
+      w.damage += (b.damage ?? 0) * m;
+      w.pellets += count(b.pellets ?? 0, m);
+    },
+    update(scene, w, delta) {
+      const pl = scene.player, range = scene.run.player.range * sg.rangeMult;
+      placeGun(w, pl, sg.gun);
+      w.cooldownMs = Math.max(0, w.cooldownMs - delta);
+      if (w.cooldownMs > 0) return;
+      const t = nearestEnemy(scene, pl.x, pl.y, range, new Set());
+      if (!t) return; // nothing in range: ready again on the next frame
+      w.aim = Phaser.Math.Angle.Between(pl.x, pl.y, t.x, t.y);
+      const tex = config.textures.shotgun, { x, y } = placeGun(w, pl, sg.gun);
+      const tip = (tex.tipX - tex.grip[0]) * scene.textures.get('shotgun').source[0].width * tex.scale;
+      const tx = x + Math.cos(w.aim) * tip, ty = y + Math.sin(w.aim) * tip;
+      const n = scene.weaponAmount(w.pellets) * (w.evolved ? sg.evolution.pelletsMult : 1), spread = Phaser.Math.DegToRad(sg.spreadDeg);
+      for (let i = 0; i < n; i++) {
+        const b = scene.bullets.get(tx, ty);
+        if (!b) break;
+        b.enableBody(true, tx, ty, true, true);
+        b.setScale(scene.weaponArea(sg.pelletScale));
+        b.damage = scene.weaponDamage(w.damage);
+        b.pierce = w.evolved ? sg.evolution.pierce : 0;
+        b.lastHit = null;
+        // Even fan over the spread, a little jitter so the pellets do not look lined up.
+        const a = w.aim + (n > 1 ? (i / (n - 1) - 0.5) * spread : 0) + Phaser.Math.FloatBetween(-sg.jitterRad, sg.jitterRad);
+        Object.assign(b, { maxDist: range, startX: tx, startY: ty });
+        b.body.setVelocity(Math.cos(a) * sg.speed, Math.sin(a) * sg.speed);
+      }
+      w.cooldownMs = scene.weaponCooldown(sg.cooldownMs);
       playVfx(scene, 'muzzleFlash', tx, ty, Phaser.Math.RadToDeg(w.aim));
       playVfx(scene, 'shell', x, y, Math.cos(w.aim) < 0 ? 30 : -30);
       playSfx(scene, 'muzzleShot');
@@ -223,12 +280,7 @@ export const weapons = [
     icon: 'captain_shield',
     levels: sh.levels,
     maxLevel: sh.levels.length + 1,
-    // Unlocked last of all weapons: "I can do this all day".
-    unlock: {
-      text: `„Mogę tak cały dzień”: wygraj rundę, przyjmując co najmniej ${sh.unlockDamageTaken} obrażeń, gdy wszystkie inne bronie są już odblokowane`,
-      check: (run, won) => won && run.damageTaken >= sh.unlockDamageTaken
-        && weapons.every((d) => !d.unlock || d.id === 'shield' || save.unlocks.includes(d.id)),
-    },
+    unlock: null,
     evolution: { passive: 'jacket', id: 'bemowoShield', name: 'Tarcza Bemowa', icon: 'weapon_bemowo_shield',
       description: `Tarcze lecą znowu bez czekania. Każde trafienie leczy ${sh.evolution.healPerHit} HP.`,
       evolve(scene, w) {
@@ -261,11 +313,56 @@ export const weapons = [
       for (const s of w.shields) updateShield(scene, w, s, delta);
     },
   },
+  {
+    id: 'axe',
+    name: 'Topór krasnoluda',
+    icon: 'weapon_axe',
+    levels: ax.levels,
+    maxLevel: ax.levels.length + 1,
+    unlock: null,
+    evolution: { passive: 'shoes', id: 'axeMill', name: 'Młyn krasnoluda', icon: 'weapon_axe_mill',
+      description: `${ax.evolution.axesMult}x więcej toporów, kręcą się szybciej i dalej od Bartka.` },
+    description(level, m) {
+      if (level === 1) return 'Topór krąży wokół Bartka. Kiedy kogoś trafi, odbija się i leci w drugą stronę.';
+      const b = ax.levels[level - 2], n = count(b.axes ?? 0, m);
+      return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'topór', 'topory', 'toporów')}`,
+        b.radius && `+${Math.round(b.radius * m)} px promienia`].filter(Boolean).join(', ');
+    },
+    create(scene, w) {
+      Object.assign(w, { damage: ax.damage, axes: ax.axes, radius: ax.radius, dir: 1, flipMs: 0 });
+      w.orbit = createOrbit(scene, {
+        texture: 'axe', maxSize: config.pools.axes, damage: () => scene.weaponDamage(w.damage), hitCooldownMs: ax.hitCooldownMs, vfx: 'metalClang',
+        onHit: () => {
+          if (w.flipMs > 0) return;
+          w.dir = -w.dir;
+          w.flipMs = ax.flipGapMs;
+        },
+      });
+    },
+    levelUp(scene, w, m) {
+      const b = ax.levels[w.level - 2];
+      w.damage += (b.damage ?? 0) * m;
+      w.axes += count(b.axes ?? 0, m);
+      w.radius += (b.radius ?? 0) * m;
+    },
+    update(scene, w, delta) {
+      const ev = w.evolved ? ax.evolution : { axesMult: 1, speedMult: 1, radiusMult: 1 }, pl = scene.player;
+      w.flipMs -= delta;
+      updateOrbit(w.orbit, pl.x, pl.y, {
+        count: scene.weaponAmount(w.axes) * ev.axesMult, radius: scene.weaponArea(w.radius) * ev.radiusMult,
+        degPerSec: ax.degPerSec * ev.speedMult * w.dir, waveAmp: 0, waveHz: 0,
+      }, delta);
+      // Each axe spins the way the orbit goes.
+      const size = scene.weaponArea(ax.size), spin = ax.spinDegPerSec * w.dir * delta / 1000;
+      for (const s of w.orbit.group.getChildren()) if (s.active) s.setDisplaySize(size, size).setAngle(s.angle + spin);
+    },
+  },
 ];
 
-// The pistol in front of Bartek, turned at w.aim; mirrored when aiming left so the grip stays down. Hidden in the tank.
-function placeGun(w, pl) {
-  const x = pl.x + Math.cos(w.aim) * p.gun.distance, y = pl.y + p.gun.offsetY + Math.sin(w.aim) * p.gun.distance;
+// A gun in front of Bartek (gun: its distance and offsetY), turned at w.aim; mirrored when aiming left so the grip stays
+// down. Hidden in the tank.
+function placeGun(w, pl, gun) {
+  const x = pl.x + Math.cos(w.aim) * gun.distance, y = pl.y + gun.offsetY + Math.sin(w.aim) * gun.distance;
   w.gun.setPosition(x, y).setRotation(w.aim).setFlipY(Math.cos(w.aim) < 0).setVisible(pl.texture.key !== 'tank');
   return { x, y };
 }

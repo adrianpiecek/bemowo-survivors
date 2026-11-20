@@ -38,7 +38,7 @@ export const gymUpgrades = [
     id: 'glasses',
     icon: 'gym_glasses',
     name: 'Okulary do czytania',
-    description: `+${pct(g.glasses.rangePct)} zasięgu pistoletu i magnesu na poziom`,
+    description: `+${pct(g.glasses.rangePct)} zasięgu pistoletu, shotguna i magnesu na poziom`,
     maxLevel: g.glasses.maxLevel,
     costs: g.glasses.costs,
     apply(stats, level) {

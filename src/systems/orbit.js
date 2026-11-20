@@ -1,9 +1,9 @@
-// Things circling Bartek that hurt enemies they touch: bees now, Kratos blades later.
+// Things circling Bartek that hurt enemies they touch: bees, the dwarf's axes.
 // One orbit = one pooled physics group. Each enemy is hurt by an orbit at most once per hitCooldownMs.
 
 // opts: { texture, maxSize, damage (a number or a function returning it), hitCooldownMs,
 //         vfx? (hit effect id), hitScale?/hitMs? (the sprite swells on a hit), faceTravel? (turned along the orbit),
-//         onKill?(enemy) (an orbit hit killed it) }.
+//         onHit?(enemy) (after every hit), onKill?(enemy) (an orbit hit killed it) }.
 // scene must have `enemies` and `hurtEnemy(enemy, damage, x, y, vfx)` returning true on a kill.
 export function createOrbit(scene, opts) {
   const group = scene.physics.add.group({
@@ -18,6 +18,7 @@ export function createOrbit(scene, opts) {
     if (last !== undefined && orbit.clockMs - last < opts.hitCooldownMs) return;
     orbit.lastHitMs.set(enemy, orbit.clockMs);
     const killed = scene.hurtEnemy(enemy, typeof opts.damage === 'function' ? opts.damage() : opts.damage, enemy.x, enemy.y, opts.vfx);
+    opts.onHit?.(enemy);
     if (killed) opts.onKill?.(enemy);
     if (opts.hitScale && !s.stinging) {
       s.stinging = true;
