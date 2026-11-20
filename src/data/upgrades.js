@@ -1,7 +1,8 @@
 import { config } from '../config.js';
 import { bartkowanie, doBartkowanie } from './bartkowanie.js';
 
-// `player` is run.player: HP and weapon stats for the current run.
+// `player` is run.player: HP, movement and the stats shared by all weapons for the current run.
+// Weapon cards (new weapons, weapon levels) are not here: systems/cards.js makes them from data/weapons.js.
 // Percentage upgrades add a share of the run's starting value (player.base, after the gym),
 // so every level gives the same boost and gym and run percentages multiply.
 // Fire rate is the exception: it divides the cooldown, which raises shots per second by the given share each level.
@@ -16,23 +17,16 @@ export const upgrades = [
   {
     id: 'damage',
     name: 'Obrażenia',
-    description: (m) => `+${pct(u.damagePct * m)} obrażeń pocisku`,
+    description: (m) => `+${pct(u.damagePct * m)} obrażeń wszystkich broni`,
     maxStack: u.maxStack,
-    apply(player, scene, m = 1) { player.bulletDamage += player.base.bulletDamage * u.damagePct * m; },
+    apply(player, scene, m = 1) { player.damageMult += player.base.damageMult * u.damagePct * m; },
   },
   {
     id: 'fireRate',
     name: 'Szybkostrzelność',
-    description: (m) => `+${pct(u.fireRatePct * m)} strzałów na sekundę`,
+    description: (m) => `+${pct(u.fireRatePct * m)} szybkostrzelności wszystkich broni`,
     maxStack: u.maxStack,
-    apply(player, scene, m = 1) { player.fireRateMs /= 1 + u.fireRatePct * m; },
-  },
-  {
-    id: 'extraBullet',
-    name: 'Dodatkowy pocisk',
-    description: (m) => `+${count(u.extraBullets, m)} ${count(u.extraBullets, m) > 1 ? 'pociski' : 'pocisk'} na strzał, w kolejne najbliższe zombie`,
-    maxStack: u.extraBulletMaxStack,
-    apply(player, scene, m = 1) { player.bulletsPerShot += count(u.extraBullets, m); },
+    apply(player, scene, m = 1) { player.cooldownMult /= 1 + u.fireRatePct * m; },
   },
   {
     id: 'moveSpeed',

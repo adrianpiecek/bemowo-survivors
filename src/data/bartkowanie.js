@@ -16,15 +16,15 @@ export const bartkowanie = [
   {
     name: 'Żółty sweter mocy',
     apply(scene) {
-      addEffect(scene.run, { id: 'yellowSweater', durationMs: timedMs, apply(pl) { pl.bulletDamage *= 1 + b.damagePct; } });
+      addEffect(scene.run, { id: 'yellowSweater', durationMs: timedMs, apply(pl) { pl.damageMult *= 1 + b.damagePct; } });
     },
   },
   {
     name: 'Muchacho do pustej przestrzeni',
     apply(scene) {
       const pl = scene.run.player, k = b.allStatsPct;
-      for (const stat of ['speed', 'magnetRadius', 'range', 'bulletSpeed', 'bulletDamage']) pl[stat] += pl.base[stat] * k;
-      pl.fireRateMs /= 1 + k;
+      for (const stat of ['speed', 'magnetRadius', 'range', 'bulletSpeed', 'damageMult']) pl[stat] += pl.base[stat] * k;
+      pl.cooldownMult /= 1 + k;
       const hp = Math.max(1, Math.round(pl.base.maxHp * k)); // whole HP, so the HUD stays readable
       pl.maxHp += hp;
       pl.hp += hp;

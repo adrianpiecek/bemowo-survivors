@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { formatTime, proteinForRun, save, writeSave } from '../state.js';
 import { stopMusic } from '../systems/audio.js';
+import { weapons } from '../data/weapons.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
@@ -11,6 +12,8 @@ export default class GameOverScene extends Phaser.Scene {
     this.earned = proteinForRun(this.run, this.won) + this.run.coinProtein;
     save.protein += this.earned;
     save.runsPlayed += 1;
+    // A weapon whose unlock condition this run met can drop as a card from now on.
+    for (const def of weapons) if (def.unlock && !save.unlocks.includes(def.id) && def.unlock.check(this.run)) save.unlocks.push(def.id);
     writeSave(save);
     stopMusic();
   }

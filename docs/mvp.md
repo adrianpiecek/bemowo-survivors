@@ -25,8 +25,9 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 ### Broń: pistolet
 
-- Strzela sam co 0,8 s w najbliższego zombie w zasięgu.
+- Strzela sam w najbliższego zombie w zasięgu (co 0,6 s, liczby w `config.weapons.pistol`).
 - Pocisk znika po pierwszym trafieniu.
+- Wersja 3: pistolet to pierwsza broń z `src/data/weapons.js`, Bartek ma go od startu. Kolejne poziomy pistoletu przychodzą jako karty i dają +1 pocisk na strzał (dawna karta "Dodatkowy pocisk"). Przy strzale błysk przy lufie, łuska i dźwięk z paczki `assets/muzzle-flash-pixel-fx-v1` (CC0).
 
 ### Wrogowie
 
@@ -44,13 +45,12 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 ### XP i level up
 
-Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. W v2 kryształy to animowane gemy (CC0, `assets/Coin_Gems`) o różnej wartości: każdy typ wroga wypada innym kolorem. Zielony = 1 XP (zombie, biegacz, klapa), niebieski = 3 (Joker), żółty = 5 (Homelander), szary = 10, czerwony = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (`Moneda*.png`: czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty z 5 ulepszeń.
+Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. W v2 kryształy to animowane gemy (CC0, `assets/Coin_Gems`) o różnej wartości: każdy typ wroga wypada innym kolorem. Zielony = 1 XP (zombie, biegacz, klapa), niebieski = 3 (Joker), żółty = 5 (Homelander), szary = 10, czerwony = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (`Moneda*.png`: czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty: ulepszenia z tabeli poniżej i karty broni (sekcja "Bronie").
 
 | Ulepszenie | Efekt na poziom | Max poziomów |
 | --- | --- | --- |
-| Obrażenia | +25% | 5 |
-| Szybkostrzelność | +15% | 5 |
-| Dodatkowy pocisk | +1 pocisk | 5 |
+| Obrażenia (wszystkich broni) | +25% | 5 |
+| Szybkostrzelność (wszystkich broni) | +15% | 5 |
 | Szybkość ruchu | +10% | 5 |
 | Max HP | +20 HP i leczenie | 5 |
 
@@ -106,6 +106,8 @@ Nazwa i logo Gigantów Programowania oraz cudze postacie zostają tylko w wersji
 ## Bronie
 
 **Zmiana planu:** postacią grywalną jest zawsze zwykły Bartek (`bartek.png`). Zamiast postaci zmieniają się bronie, a warianty Bartka (Joker, Homelander, Uncanny i kolejne) są wrogami, nie postaciami. Lista poniżej to teraz lista broni; nazwa z kolumny "Inspiracja" zostaje jako nazwa broni albo opis karty. Bronie robisz w tej kolejności, ale Tarcza Kapitana odblokowuje się jako ostatnia.
+
+**Zmiana planu (v3): bronie z kart, nie wybór przed rundą.** Jak w gatunku: Bartek zaczyna z pistoletem i nosi do 4 broni naraz (`config.weapons.maxSlots`). Nowa broń wypada jako karta przy level upie ("NOWA BROŃ"), a kolejne poziomy broni też jako karty z rzadkością (rzadsza karta = większy skok). Karta Obrażenia i Szybkostrzelność, siłownia i znajdźki działają na wszystkie bronie. Która broń w ogóle może wypaść, decyduje jej warunek odblokowania: sprawdzany na końcu rundy i zapisany na stałe w `save.unlocks`. Siłownia nie ma wyboru broni. Bronie to dane w `src/data/weapons.js`; HUD pokazuje w lewym dolnym rogu ikonki posiadanych broni z poziomem.
 
 | # | Inspiracja | Broń / mechanika | Typ |
 | --- | --- | --- | --- |

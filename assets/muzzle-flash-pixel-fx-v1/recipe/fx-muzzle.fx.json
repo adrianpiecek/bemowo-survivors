@@ -1,0 +1,668 @@
+{
+  "format": "pixelforge-fx",
+  "version": 1,
+  "name": "fx-muzzle",
+  "width": 64,
+  "height": 32,
+  "anchor": [
+    20,
+    14
+  ],
+  "palette": {
+    "W": "#fff8e0",
+    "Y": "#ffe07a",
+    "O": "#ff9a3c",
+    "R": "#e0532b",
+    "D": "#7a2a24",
+    "h": "#3a1a14",
+    "B": "#f2cf6b",
+    "b": "#b8862a",
+    "n": "#6b4419"
+  },
+  "symbols": {
+    "spark": [
+      "W"
+    ],
+    "spark-y": [
+      "Y"
+    ],
+    "spark-o": [
+      "O"
+    ],
+    "shell": [
+      "Bb",
+      "Bb",
+      "nn"
+    ]
+  },
+  "effects": {
+    "shot": {
+      "frames": 5,
+      "duration": {
+        "from": 40,
+        "to": 70,
+        "ease": "in"
+      },
+      "seed": 11,
+      "looks": {
+        "flash": {
+          "colors": [
+            "R",
+            "O",
+            "Y",
+            "W"
+          ],
+          "thresholds": [
+            0.2,
+            0.38,
+            0.6,
+            0.82
+          ],
+          "halo": {
+            "color": "h",
+            "width": 1
+          }
+        }
+      },
+      "cleanup": {
+        "corners": true,
+        "strays": true
+      },
+      "layers": [
+        {
+          "kind": "beam",
+          "look": "flash",
+          "at": [
+            21,
+            14
+          ],
+          "to": [
+            36,
+            14
+          ],
+          "frames": [
+            0,
+            3
+          ],
+          "width": [
+            5,
+            3,
+            1
+          ],
+          "fade": 0.7,
+          "reveal": 0,
+          "wobble": 0.2,
+          "wavelength": 6,
+          "waves": 1,
+          "power": [
+            1.5,
+            1.1,
+            0.5
+          ]
+        },
+        {
+          "kind": "burst",
+          "look": "flash",
+          "at": [
+            22,
+            14
+          ],
+          "frames": [
+            0,
+            4
+          ],
+          "radius": [
+            4,
+            5,
+            4,
+            2
+          ],
+          "noise": 0.45,
+          "scale": 3,
+          "power": [
+            1.6,
+            1.2,
+            0.65,
+            0.25
+          ]
+        }
+      ],
+      "emitters": [
+        {
+          "at": [
+            23,
+            14
+          ],
+          "burst": 6,
+          "start": 0,
+          "angle": [
+            -28,
+            28
+          ],
+          "speed": [
+            1.6,
+            3.0
+          ],
+          "drag": 0.35,
+          "life": [
+            1,
+            3
+          ],
+          "blob": {
+            "look": "flash",
+            "radius": [
+              2.6,
+              1.2
+            ]
+          }
+        },
+        {
+          "at": [
+            24,
+            14
+          ],
+          "burst": 4,
+          "start": 0,
+          "angle": [
+            -22,
+            22
+          ],
+          "speed": [
+            2.6,
+            4.4
+          ],
+          "drag": 0.12,
+          "life": [
+            3,
+            4
+          ],
+          "shapes": [
+            [
+              "spark",
+              "spark-y",
+              "spark-o"
+            ]
+          ],
+          "trail": {
+            "color": "O",
+            "length": 1
+          }
+        }
+      ]
+    },
+    "shot-big": {
+      "frames": 7,
+      "duration": {
+        "from": 40,
+        "to": 80,
+        "ease": "in"
+      },
+      "seed": 37,
+      "looks": {
+        "flash": {
+          "colors": [
+            "D",
+            "R",
+            "O",
+            "Y",
+            "W"
+          ],
+          "thresholds": [
+            0.16,
+            0.3,
+            0.46,
+            0.64,
+            0.84
+          ],
+          "halo": {
+            "color": "h",
+            "width": 1
+          }
+        }
+      },
+      "cleanup": {
+        "corners": true,
+        "strays": true
+      },
+      "layers": [
+        {
+          "kind": "beam",
+          "look": "flash",
+          "at": [
+            21,
+            14
+          ],
+          "to": [
+            50,
+            14
+          ],
+          "frames": [
+            0,
+            3
+          ],
+          "width": [
+            8,
+            5,
+            2
+          ],
+          "fade": 0.65,
+          "reveal": 0,
+          "wobble": 0.25,
+          "wavelength": 7,
+          "waves": 1.5,
+          "power": [
+            1.5,
+            1.1,
+            0.5
+          ]
+        },
+        {
+          "kind": "burst",
+          "look": "flash",
+          "at": [
+            23,
+            14
+          ],
+          "frames": [
+            0,
+            5
+          ],
+          "radius": [
+            6,
+            8,
+            7,
+            5
+          ],
+          "noise": 0.65,
+          "scale": 3,
+          "power": [
+            1.7,
+            1.3,
+            0.75,
+            0.2
+          ],
+          "hole": [
+            0,
+            0,
+            0.45,
+            0.85
+          ]
+        }
+      ],
+      "emitters": [
+        {
+          "at": [
+            24,
+            14
+          ],
+          "burst": 10,
+          "start": 0,
+          "angle": [
+            -34,
+            34
+          ],
+          "speed": [
+            2.0,
+            3.8
+          ],
+          "drag": 0.3,
+          "life": [
+            2,
+            4
+          ],
+          "blob": {
+            "look": "flash",
+            "radius": [
+              3.4,
+              2.2,
+              1
+            ]
+          }
+        },
+        {
+          "at": [
+            26,
+            14
+          ],
+          "burst": 5,
+          "start": 0,
+          "angle": [
+            -26,
+            38
+          ],
+          "speed": [
+            2.0,
+            6.0
+          ],
+          "drag": 0.1,
+          "gravity": [
+            0,
+            0.12
+          ],
+          "life": [
+            2,
+            6
+          ],
+          "shapes": [
+            [
+              "spark",
+              "spark-y",
+              "spark-o",
+              "spark-o"
+            ]
+          ],
+          "trail": {
+            "color": "O",
+            "length": 1
+          }
+        }
+      ]
+    },
+    "auto": {
+      "frames": 6,
+      "duration": 50,
+      "loop": true,
+      "seed": 31,
+      "looks": {
+        "flash": {
+          "colors": [
+            "R",
+            "O",
+            "Y",
+            "W"
+          ],
+          "thresholds": [
+            0.2,
+            0.38,
+            0.6,
+            0.82
+          ],
+          "halo": {
+            "color": "h",
+            "width": 1
+          }
+        }
+      },
+      "cleanup": {
+        "corners": true,
+        "strays": true
+      },
+      "layers": [
+        {
+          "kind": "beam",
+          "look": "flash",
+          "at": [
+            21,
+            14
+          ],
+          "to": [
+            38,
+            14
+          ],
+          "frames": [
+            0,
+            2
+          ],
+          "width": [
+            5,
+            2
+          ],
+          "fade": 0.7,
+          "reveal": 0,
+          "wobble": 0.2,
+          "wavelength": 6,
+          "waves": 1,
+          "power": [
+            1.4,
+            0.6
+          ]
+        },
+        {
+          "kind": "burst",
+          "look": "flash",
+          "at": [
+            22,
+            14
+          ],
+          "frames": [
+            0,
+            1
+          ],
+          "radius": 4,
+          "noise": 0.45,
+          "scale": 3,
+          "power": 1.6,
+          "seed": 1
+        },
+        {
+          "kind": "beam",
+          "look": "flash",
+          "at": [
+            21,
+            14
+          ],
+          "to": [
+            34,
+            13
+          ],
+          "frames": [
+            2,
+            4
+          ],
+          "width": [
+            4,
+            2
+          ],
+          "fade": 0.7,
+          "reveal": 0,
+          "wobble": 0.2,
+          "wavelength": 6,
+          "waves": 1,
+          "power": [
+            1.3,
+            0.55
+          ]
+        },
+        {
+          "kind": "burst",
+          "look": "flash",
+          "at": [
+            22,
+            14
+          ],
+          "frames": [
+            2,
+            3
+          ],
+          "radius": 4,
+          "noise": 0.45,
+          "scale": 3,
+          "power": 1.6,
+          "seed": 2
+        },
+        {
+          "kind": "beam",
+          "look": "flash",
+          "at": [
+            21,
+            14
+          ],
+          "to": [
+            37,
+            15
+          ],
+          "frames": [
+            4,
+            6
+          ],
+          "width": [
+            5,
+            2
+          ],
+          "fade": 0.7,
+          "reveal": 0,
+          "wobble": 0.2,
+          "wavelength": 6,
+          "waves": 1,
+          "power": [
+            1.4,
+            0.6
+          ]
+        },
+        {
+          "kind": "burst",
+          "look": "flash",
+          "at": [
+            22,
+            14
+          ],
+          "frames": [
+            4,
+            5
+          ],
+          "radius": 4,
+          "noise": 0.45,
+          "scale": 3,
+          "power": 1.6,
+          "seed": 3
+        }
+      ],
+      "emitters": [
+        {
+          "at": [
+            24,
+            14
+          ],
+          "burst": 2,
+          "start": 0,
+          "angle": [
+            -20,
+            20
+          ],
+          "speed": [
+            3.0,
+            4.4
+          ],
+          "drag": 0.1,
+          "life": [
+            2,
+            2
+          ],
+          "shapes": [
+            [
+              "spark",
+              "spark-y"
+            ]
+          ],
+          "trail": {
+            "color": "O",
+            "length": 1
+          }
+        },
+        {
+          "at": [
+            24,
+            14
+          ],
+          "burst": 2,
+          "start": 2,
+          "angle": [
+            -20,
+            20
+          ],
+          "speed": [
+            3.0,
+            4.4
+          ],
+          "drag": 0.1,
+          "life": [
+            2,
+            2
+          ],
+          "shapes": [
+            [
+              "spark",
+              "spark-y"
+            ]
+          ],
+          "trail": {
+            "color": "O",
+            "length": 1
+          }
+        },
+        {
+          "at": [
+            24,
+            14
+          ],
+          "burst": 2,
+          "start": 4,
+          "angle": [
+            -20,
+            20
+          ],
+          "speed": [
+            3.0,
+            4.4
+          ],
+          "drag": 0.1,
+          "life": [
+            2,
+            2
+          ],
+          "shapes": [
+            [
+              "spark",
+              "spark-y"
+            ]
+          ],
+          "trail": {
+            "color": "O",
+            "length": 1
+          }
+        }
+      ]
+    },
+    "shell": {
+      "frames": 23,
+      "duration": 50,
+      "seed": 43,
+      "emitters": [
+        {
+          "at": [
+            14,
+            12
+          ],
+          "burst": 1,
+          "start": 0,
+          "angle": [
+            258,
+            258
+          ],
+          "speed": [
+            3.1,
+            3.1
+          ],
+          "gravity": [
+            0,
+            0.6
+          ],
+          "drag": 0.02,
+          "spin": 90,
+          "floor": 27,
+          "bounce": 0.4,
+          "life": [
+            22,
+            22
+          ],
+          "shapes": [
+            [
+              "shell"
+            ]
+          ],
+          "rest": true
+        }
+      ]
+    }
+  }
+}

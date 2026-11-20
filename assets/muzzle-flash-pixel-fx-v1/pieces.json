@@ -1,0 +1,72 @@
+[
+  {
+    "piece": "fx-muzzle",
+    "about": "side-view gunfire: a pistol flash, a heavy rifle flash, a rapid-fire loop and a brass shell casing that flips out and bounces",
+    "animations": [
+      {
+        "name": "shot",
+        "frames": 5,
+        "loop": false,
+        "cell": [
+          64,
+          32
+        ],
+        "ms": 247,
+        "about": "a pistol shot: a white-hot flash at the barrel, a tongue of flame forward and a few sparks (plays once, ends empty)"
+      },
+      {
+        "name": "shot-big",
+        "frames": 7,
+        "loop": false,
+        "cell": [
+          64,
+          32
+        ],
+        "ms": 361,
+        "about": "a heavy shot (rifle, shotgun): a longer flame, a fireball that breaks up at the barrel and more sparks (plays once, ends empty)"
+      },
+      {
+        "name": "auto",
+        "frames": 6,
+        "loop": true,
+        "cell": [
+          64,
+          32
+        ],
+        "ms": 300,
+        "about": "rapid fire: three flashes of different shapes, one every 100 ms (seamless loop)"
+      },
+      {
+        "name": "shell",
+        "frames": 23,
+        "loop": false,
+        "cell": [
+          64,
+          32
+        ],
+        "ms": 1150,
+        "about": "a brass casing flips up out of the gun, tumbles, lands 13 px below the barrel (its first touch dips a pixel lower), bounces a pixel, lies still on its side and is gone (plays once, ends empty)"
+      }
+    ],
+    "no_halo": true,
+    "recipes": [
+      "recipe/fx-muzzle.fx.json"
+    ],
+    "pixelbolt": "0.16.0",
+    "previews": [
+      "previews/fx-muzzle-shot-4x.gif",
+      "previews/fx-muzzle-shot-big-4x.gif",
+      "previews/fx-muzzle-auto-4x.gif",
+      "previews/fx-muzzle-shell-4x.gif"
+    ],
+    "sounds": [
+      "sounds/fx-muzzle-shot.wav"
+    ],
+    "sound_for": {
+      "sounds/fx-muzzle-shot.wav": [
+        "shot",
+        "shot-big"
+      ]
+    }
+  }
+]

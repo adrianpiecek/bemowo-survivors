@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { newRun, xpToNextLevel } from '../state.js';
 import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
+import { weapons } from '../data/weapons.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { createOrbit, updateOrbit } from '../systems/orbit.js';
 import { updateLeaper } from '../systems/charge.js';
@@ -52,6 +53,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.gems = this.physics.add.group({ defaultKey: 'gem_green', maxSize: config.pools.gems });
     this.vfx = createVfxPool(this);
+    this.addWeapon(weapons.find((d) => d.id === config.weapons.start));
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
 
     this.pickups = this.physics.add.group({ defaultKey: 'pickup', maxSize: config.pools.pickups });
@@ -349,27 +351,25 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  // Shoots bulletsPerShot bullets at the nearest zombies in range. Returns false when nothing is in range.
-  fire() {
-    const s = this.run.player, p = this.player;
-    const rangeSq = s.range * s.range;
-    const targets = [];
-    for (const z of this.enemies.getChildren()) {
-      if (!z.active) continue;
-      const dSq = Phaser.Math.Distance.Squared(p.x, p.y, z.x, z.y);
-      if (dSq <= rangeSq) targets.push({ z, dSq });
-    }
-    if (!targets.length) return false;
-    targets.sort((a, b) => a.dSq - b.dSq);
-    for (let i = 0; i < s.bulletsPerShot; i++) {
-      const b = this.bullets.get(p.x, p.y);
-      if (!b) break;
-      b.enableBody(true, p.x, p.y, true, true);
-      b.damage = s.bulletDamage * (this.run.elapsedMs >= s.warmupMs ? s.afterWarmupDamageMult : 1);
-      this.physics.moveToObject(b, targets[i % targets.length].z, s.bulletSpeed);
-    }
-    return true;
+  // Weapons (data/weapons.js): Bartek gets a new one, or one he carries goes up a level.
+  addWeapon(def) {
+    const w = { def, level: 1 };
+    this.run.weapons.push(w);
+    def.create(this, w);
   }
+
+  levelUpWeapon(w, mult = 1) {
+    w.level++;
+    w.def.levelUp(this, w, mult);
+  }
+
+  // Every weapon's damage and cooldown go through these, so damage and fire rate cards, the gym and pickups reach all of them.
+  weaponDamage(base) {
+    const pl = this.run.player;
+    return base * pl.damageMult * (this.run.elapsedMs >= pl.warmupMs ? pl.afterWarmupDamageMult : 1);
+  }
+
+  weaponCooldown(ms) { return ms * this.run.player.cooldownMult; }
 
   updateBubble() {
     this.bubble.setVisible(this.run.bubbleMs > 0).setPosition(this.player.x, this.player.y - config.ui.bubble.offsetY);
@@ -577,9 +577,7 @@ export default class GameScene extends Phaser.Scene {
       degPerSec: bz.degPerSec, waveAmp: bz.waveAmp, waveHz: bz.waveHz,
     }, delta);
 
-    // Cooldown is capped at 0 so a shot fires as soon as a target comes into range.
-    this.run.fireCooldownMs = Math.max(0, this.run.fireCooldownMs - delta);
-    if (this.run.fireCooldownMs === 0 && this.fire()) this.run.fireCooldownMs = this.run.player.fireRateMs;
+    for (const w of run.weapons) w.def.update(this, w, delta);
 
     // Past the spawn ring there is nothing left to hit.
     const maxDist = config.spawn.ringMaxRadius;

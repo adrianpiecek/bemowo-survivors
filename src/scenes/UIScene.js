@@ -34,6 +34,7 @@ export default class UIScene extends Phaser.Scene {
       .setOrigin(0.5).setVisible(false);
 
     this.createJoystick();
+    this.weaponHud = []; // filled by updateWeaponHud as weapons come
 
     // Icons of active timed pickup effects, one per pickup that has an effect; bars are drawn in update.
     const eh = u.effectHud;
@@ -119,6 +120,7 @@ export default class UIScene extends Phaser.Scene {
     }
     this.tankButton.setVisible(full && r.tankMs <= 0);
     this.updateEffectHud();
+    this.updateWeaponHud();
     this.updatePickupArrow();
     if (this.balanceText) this.updateBalance();
     this.tankText.setText(r.tankMs > 0 ? `CZOŁG ${Math.ceil(r.tankMs / 1000)} s`
@@ -139,6 +141,22 @@ export default class UIScene extends Phaser.Scene {
       this.bars.fillStyle(eh.color).fillRect(bx, by, eh.barWidth * Phaser.Math.Clamp(e.remainingMs / e.durationMs, 0, 1), eh.barHeight);
       y += eh.iconSize + eh.gap;
     }
+  }
+
+  // Weapons Bartek carries, bottom left: icon with the level in its corner. An icon is made when a weapon is new.
+  updateWeaponHud() {
+    const wh = config.ui.weaponHud, m = config.ui.margin, y = this.scale.height - m - wh.size;
+    this.run.weapons.forEach((w, i) => {
+      if (!this.weaponHud[i]) {
+        const x = m + i * (wh.size + wh.gap);
+        this.weaponHud[i] = {
+          icon: this.add.image(x, y, w.def.icon).setOrigin(0).setDisplaySize(wh.size, wh.size),
+          level: this.add.text(x + wh.size, y + wh.size, '', { fontSize: `${wh.fontSize}px`, fontStyle: 'bold', stroke: '#000000', strokeThickness: 3 })
+            .setOrigin(1),
+        };
+      }
+      this.weaponHud[i].level.setText(w.level);
+    });
   }
 
   // Arrow on the screen edge toward the nearest pickup lying off screen; hidden when none is.
@@ -169,7 +187,8 @@ export default class UIScene extends Phaser.Scene {
     const a = s[0], b = s[s.length - 1], sec = Math.max(1, (b.t - a.t) / 1000);
     const per = (k) => ((b[k] - a[k]) / sec).toFixed(1);
     const pl = r.player, gs = this.scene.get('GameScene');
-    const dpsMax = pl.bulletDamage * pl.bulletsPerShot * 1000 / pl.fireRateMs;
+    const pw = r.weapons.find((w) => w.def.id === 'pistol'), pc = config.weapons.pistol;
+    const dpsMax = pw ? (pc.bulletDamage * pl.damageMult * pw.bullets * 1000) / (pc.fireRateMs * pl.cooldownMult) : 0;
     this.balanceText.setText([
       `wrogowie ${gs.enemies.countActive(true)}`,
       `spawn/s ${per('spawned')}   zabici/s ${per('kills')}`,

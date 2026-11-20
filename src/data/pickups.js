@@ -21,7 +21,7 @@ const smallB = {
   apply(player) {
     player.scale *= ps.scale;
     player.speed *= 1 + ps.speedPct;
-    player.bulletDamage *= 1 + ps.damagePct;
+    player.damageMult *= 1 + ps.damagePct;
   },
 };
 
@@ -81,7 +81,7 @@ export const pickups = [
     effect: 'preworkout',
     aura: 'rage',
     apply(scene) {
-      addEffect(scene.run, { id: 'preworkout', durationMs: pw.durationSec * 1000, apply(pl) { pl.fireRateMs /= pw.fireRateMult; } });
+      addEffect(scene.run, { id: 'preworkout', durationMs: pw.durationSec * 1000, apply(pl) { pl.cooldownMult /= pw.fireRateMult; } });
     },
   },
   {

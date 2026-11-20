@@ -12,7 +12,7 @@ export const gymUpgrades = [
     description: `+${pct(g.chest.damagePct)} obrażeń na poziom`,
     maxLevel: g.chest.maxLevel,
     costs: g.chest.costs,
-    apply(stats, level) { stats.bulletDamage *= 1 + g.chest.damagePct * level; },
+    apply(stats, level) { stats.damageMult *= 1 + g.chest.damagePct * level; },
   },
   {
     id: 'legs',

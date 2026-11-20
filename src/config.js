@@ -1,7 +1,16 @@
 export const config = {
   game: { width: 1280, height: 720, background: '#000000' },
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
-  pistol: { fireRateMs: 600, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1 },
+  // Weapons (data/weapons.js). Bartek starts with `start` and carries up to maxSlots; new ones and levels come as cards.
+  weapons: {
+    maxSlots: 4,
+    start: 'pistol',
+    // Auto-aims at the nearest enemies in range. levels: what each level after the first adds.
+    pistol: { fireRateMs: 600, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1,
+      levels: [{ bullets: 1 }, { bullets: 1 }, { bullets: 1 }],
+      muzzle: { distance: 30, scale: 2 }, // the flash's pivot (barrel tip) sits this many px from Bartek toward the target
+      shell: { distance: 12, offsetY: 8 } }, // where a shell starts: px toward the target, px down
+  },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
     // Contact damage is low on purpose: the horde is meant to build up around Bartek, a single touch should not end the run.
@@ -144,6 +153,7 @@ export const config = {
       playerDamage: { file: './assets/sounds/player_damage.wav', volume: 0.6 },
       powerUp: { file: './assets/sounds/power_up.wav', volume: 0.7 },
       shotHit: { file: './assets/sounds/shot_hit.wav', volume: 0.3, minGapMs: 50 },
+      muzzleShot: { file: './assets/muzzle-flash-pixel-fx-v1/sounds/fx-muzzle-shot.wav', volume: 1, minGapMs: 50 }, // mastered quiet
     },
     events: { tank: 'powerUp', pickup: 'powerUp', boss: 'clang' },
     // Music tracks: an optional intro played once, then the loop, joined without a gap. One track at a time.
@@ -154,7 +164,7 @@ export const config = {
     },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
-  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
+  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 12, shells: 30 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -163,7 +173,7 @@ export const config = {
     { id: 'epic', name: 'Epicka', mult: 2, color: 0xb04cff, weight: 4, perLevel: 1 },
     { id: 'legendary', name: 'Legendarna', mult: 3, color: 0xff9800, weight: 0.5, perLevel: 0.3 },
   ],
-  upgrade: { maxStack: 5, extraBulletMaxStack: 3, damagePct: 0.25, fireRatePct: 0.15, extraBullets: 1, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
+  upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
     dimAlpha: 0.6, card: { count: 3, width: 260, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 22, textFontSize: 18,
       rarityBorderWidth: 5, rarityFontSize: 18 },
@@ -176,6 +186,8 @@ export const config = {
     pickupArrow: { size: 22, margin: 30, color: 0xffcc00 },
     // Active timed effects under the tank bar: icon and a bar of the time left.
     effectHud: { iconSize: 28, barWidth: 60, barHeight: 8, gap: 6, color: 0xffcc00 },
+    // Icons of the weapons Bartek carries, bottom left, each with its level.
+    weaponHud: { size: 40, gap: 8, fontSize: 16 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: 'Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 250, survivorsY: 410, dropMs: 450, gapMs: 600,
@@ -236,6 +248,10 @@ export const config = {
     // Drawn icons of the timed pickups, size x size px.
     pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
+    // Muzzle flashes and shells (CC0): a TexturePacker atlas; each frame's anchor is the barrel tip.
+    muzzle: { image: './assets/muzzle-flash-pixel-fx-v1/sheets/fx-muzzle.png', atlas: './assets/muzzle-flash-pixel-fx-v1/sheets/fx-muzzle.atlas.json' },
+    // Drawn weapon icons for the HUD, size x size px.
+    weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41 },
     tank: { height: 110, bodyRadius: 45 }, // czołg.png: Bartek in a tank, barrel to the left
     pigeon: { frames: 3, fps: 10, scale: 2, width: 48, height: 40, flipX: true }, // assets/Pigeons/pigeon1..3.png, 24x20 px, facing left; size after scale; flipX turns it to face the flight
   },

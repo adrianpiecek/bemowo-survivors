@@ -9,7 +9,10 @@ function startingStats() {
     magnetRadius: config.xp.magnetRadius,
     scale: 1, // Bartek's size and hitbox, 1 = normal
     bees: 0, // from the "Ul" upgrade
-    ...config.pistol,
+    damageMult: 1, // every weapon's damage: damage cards, gym, pickups
+    cooldownMult: 1, // every weapon's cooldown: fire rate cards divide it
+    range: config.weapons.pistol.range, // pistol range (the "Okulary" gym upgrade)
+    bulletSpeed: config.weapons.pistol.bulletSpeed,
     // Warm-up from the gym; these defaults mean no effect.
     warmupMs: 0,
     warmupSpeedMult: 1,
@@ -33,7 +36,6 @@ export function newRun() {
     level: 1,
     xp: 0,
     invulnUntilMs: 0,
-    fireCooldownMs: 0,
     spawnCooldownMs: 0,
     wave: 0, // waves spawned so far
     mapPickupMs: config.pickups.mapSpawn.everySec * 1000, // time to the next pickup lying down by itself
@@ -55,6 +57,7 @@ export function newRun() {
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
     upgrades: {}, // upgrade id -> how many times taken
+    weapons: [], // the weapons Bartek carries: { def, level, ... }, see data/weapons.js
   };
 }
 

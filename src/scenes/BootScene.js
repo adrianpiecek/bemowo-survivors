@@ -18,6 +18,7 @@ export default class BootScene extends Phaser.Scene {
     const sheet = { frameWidth: x.gemFrameSize, frameHeight: x.gemFrameSize };
     for (const [kind, gem] of Object.entries(x.gems)) this.load.spritesheet(`gem_${kind}`, gem.file, sheet);
     for (const [kind, coin] of Object.entries(config.coins.kinds)) this.load.spritesheet(`coin_${kind}`, coin.file, sheet);
+    this.load.atlas('muzzle', config.textures.muzzle.image, config.textures.muzzle.atlas);
     preloadVfx(this);
     preloadAudio(this);
   }
@@ -39,6 +40,16 @@ export default class BootScene extends Phaser.Scene {
     }
     this.anims.create({ key: 'pigeonFly', frames: pigeonFrames, frameRate: t.pigeon.fps, repeat: -1, yoyo: true });
     createVfxAnims(this);
+    // Muzzle flash and shell: the atlas lists frames as "<anim>-<n>"; Phaser takes each frame's anchor as its pivot.
+    pixel('muzzle');
+    const muzzleFrames = this.textures.get('muzzle').getFrameNames();
+    for (const anim of ['shot', 'shell']) {
+      const names = muzzleFrames.filter((n) => new RegExp(`^${anim}-\\d+$`).test(n)).sort((a, b) => a.split('-').pop() - b.split('-').pop());
+      const frames = names.map((frame) => this.textures.getFrame('muzzle', frame));
+      // shortcut: plays at the average frame time (frames are 40-80 ms); per-frame timing if it ever looks off.
+      this.anims.create({ key: `muzzle_${anim}`, frames: names.map((frame) => ({ key: 'muzzle', frame })),
+        duration: frames.reduce((sum, f) => sum + f.customData.duration, 0) });
+    }
 
     const g = this.add.graphics();
 
@@ -69,6 +80,13 @@ export default class BootScene extends Phaser.Scene {
     g.fillRect(0, ch.lidHeight - ch.bandWidth / 2, ch.width, ch.bandWidth);
     g.fillStyle(ch.lidColor).fillRect((ch.width - ch.lockSize) / 2, ch.lidHeight - ch.lockSize / 2, ch.lockSize, ch.lockSize);
     g.generateTexture('chest', ch.width, ch.height).clear();
+
+    // Weapon icon: pistol (a barrel and a grip on a framed square).
+    const wi = t.weaponIcon, ws = wi.size;
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    g.fillStyle(wi.gunColor).fillRect(ws * 0.18, ws * 0.3, ws * 0.64, ws * 0.16);
+    g.fillStyle(wi.gripColor).fillRect(ws * 0.22, ws * 0.44, ws * 0.17, ws * 0.32);
+    g.generateTexture('weapon_pistol', ws, ws).clear();
 
     const pk = t.pickup;
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);

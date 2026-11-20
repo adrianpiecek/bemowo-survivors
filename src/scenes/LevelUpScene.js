@@ -27,8 +27,8 @@ export default class LevelUpScene extends Phaser.Scene {
     this.choices.forEach((up, i) => {
       const x = width / 2 + (i - (n - 1) / 2) * (c.width + c.gap);
       const y = height / 2, top = y - c.height / 2, bottom = y + c.height / 2;
-      const level = !Number.isFinite(up.maxStack) ? '' : // no counter without a limit (heal, Bartkowanie)
-`${taken[up.id] ?? 0}/${up.maxStack}\n`;
+      const level = up.levelText ? `${up.levelText}\n` // weapon cards: "NOWA BROŃ" or the level they reach
+        : !Number.isFinite(up.maxStack) ? '' : `${taken[up.id] ?? 0}/${up.maxStack}\n`; // no counter without a limit (heal, Bartkowanie)
 
       const rarity = this.rarities[i];
       this.add.rectangle(x, y, c.width, c.height, c.color)
