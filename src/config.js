@@ -86,6 +86,15 @@ export const config = {
       'Bartkowanie: przegrywanie z klapą bagażnika, z godnością.',
     ],
   },
+  // Sounds. A missing file is skipped, the game runs on without it. events: game event -> file key.
+  audio: {
+    files: {
+      clang: { file: './assets/audio/clang.mp3', volume: 0.8 },
+      music: { file: './assets/audio/music.mp3', volume: 0.4 },
+      muchacho: { file: './assets/audio/muchacho.mp3', volume: 1 }, // optional
+    },
+    events: { tank: 'clang', boss: 'clang' },
+  },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   pools: { bullets: 100, enemies: 270, gems: 300, pickups: 10, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for the boss and its klapas
   upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, extraBullets: 1, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
@@ -95,6 +104,9 @@ export const config = {
     hud: { barWidth: 260, barHeight: 22, barGap: 8, barFontSize: 16, barBg: 0x333333, hpColor: 0xd03030, xpColor: 0x3a8dff,
       tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
+    title: { promptFontSize: 32, logoFontSize: 140, fontFamily: 'Impact, "Arial Black", sans-serif', strokeThickness: 10,
+      bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 250, survivorsY: 410, dropMs: 450, gapMs: 600,
+      shakeMs: 250, shakeIntensity: 0.02, pressBottom: 90, blinkMs: 600 },
     bossBar: { y: 52, width: 600, height: 18, fontSize: 14, color: 0xd03030 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
     banner: { y: 84, fontSize: 64, strokeThickness: 8, durationMs: 1500, subFontSize: 24, subStrokeThickness: 5 },

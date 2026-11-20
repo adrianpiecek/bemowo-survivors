@@ -1,5 +1,7 @@
 import { config } from '../config.js';
 import { preloadVfx, createVfxAnims } from '../systems/vfx.js';
+import { preloadAudio } from '../systems/audio.js';
+import { save } from '../state.js';
 
 export default class BootScene extends Phaser.Scene {
   constructor() { super('BootScene'); }
@@ -16,6 +18,7 @@ export default class BootScene extends Phaser.Scene {
       this.load.spritesheet(`gem_${kind}`, gem.file, { frameWidth: x.gemFrameSize, frameHeight: x.gemFrameSize });
     }
     preloadVfx(this);
+    preloadAudio(this);
   }
 
   create() {
@@ -81,6 +84,7 @@ export default class BootScene extends Phaser.Scene {
 
     g.destroy();
 
-    this.scene.start('GameScene');
+    this.sound.mute = save.muted;
+    this.scene.start('TitleScene');
   }
 }

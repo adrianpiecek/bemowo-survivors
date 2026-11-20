@@ -77,7 +77,7 @@ const SAVE_KEY = 'bemowo-survivors-save-v1';
 const SAVE_VERSION = 1;
 
 function freshSave() {
-  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [] };
+  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false };
 }
 
 // Unreadable save (corrupt JSON, private mode, blocked storage) gives a fresh one, never an error.
@@ -94,6 +94,7 @@ export function loadSave() {
   if (Number.isFinite(d.protein) && d.protein >= 0) s.protein = d.protein;
   if (isObject(d.gym)) s.gym = d.gym;
   if (Array.isArray(d.unlocks)) s.unlocks = d.unlocks;
+  if (typeof d.muted === 'boolean') s.muted = d.muted;
   return s;
 }
 

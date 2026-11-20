@@ -6,6 +6,7 @@ import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { createOrbit, updateOrbit } from '../systems/orbit.js';
 import { startGolf, updateGolf } from '../systems/golf.js';
 import { createVfxPool, playVfx } from '../systems/vfx.js';
+import { playSfx } from '../systems/audio.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
 
 export default class GameScene extends Phaser.Scene {
@@ -156,6 +157,8 @@ export default class GameScene extends Phaser.Scene {
     const r = config.textures.tank.bodyRadius / this.tankScale; // body sizes are in texture px, before scale
     this.player.setTexture('tank').body.setCircle(r, this.player.width / 2 - r, this.player.height / 2 - r);
     run.bubbleMs = config.ui.bubble.durationMs;
+    playSfx(this, 'tank');
+    playSfx(this, 'muchacho');
     this.cameras.main.shake(t.shakeMs, t.shakeIntensity);
   }
 
@@ -231,6 +234,7 @@ export default class GameScene extends Phaser.Scene {
     }
     if (!wasPending && this.run.pendingLevelUps > 0) {
       this.run.bubbleMs = config.ui.bubble.durationMs;
+      playSfx(this, 'muchacho');
       this.updateBubble();
       this.scene.pause();
       this.scene.launch('LevelUpScene', { run: this.run });
@@ -323,6 +327,7 @@ export default class GameScene extends Phaser.Scene {
     if (!run.bossAnnounced && run.elapsedMs >= run.bossAtMs - b.bannerSec * 1000) {
       run.bossAnnounced = true;
       this.scene.get('UIScene').showBanner('UWAGA: GOLF NA BEMOWIE', '', b.bannerSec * 1000);
+      playSfx(this, 'boss');
     }
     if (!run.bossSpawned && run.elapsedMs >= run.bossAtMs) {
       run.bossSpawned = true;
