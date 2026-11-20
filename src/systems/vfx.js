@@ -21,6 +21,9 @@ export function createVfxTextures(scene) {
 
   g.fillStyle(0xffffff).fillCircle(f.dot, f.dot, f.dot);
   tex('fx_dot', f.dot * 2);
+  // Leaf: a long oval with a darker vein.
+  g.fillStyle(0xffffff).fillEllipse(f.leaf, f.leaf, f.leaf * 2, f.leaf).lineStyle(1, 0x000000, 0.35).lineBetween(1, f.leaf, f.leaf * 2 - 1, f.leaf);
+  tex('fx_leaf', f.leaf * 2);
   g.fillStyle(0xffffff).fillPoints(star(f.spark, f.spark, 4, f.spark, f.spark * 0.3), true);
   tex('fx_spark', f.spark * 2);
   // Soft puff: stacked circles, faint at the edge.

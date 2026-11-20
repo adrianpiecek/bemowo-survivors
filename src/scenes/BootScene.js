@@ -1,5 +1,6 @@
 import { config } from '../config.js';
 import { createVfxTextures } from '../systems/vfx.js';
+import { createMapTextures } from '../systems/map.js';
 import { preloadAudio } from '../systems/audio.js';
 import { save } from '../state.js';
 
@@ -37,6 +38,7 @@ export default class BootScene extends Phaser.Scene {
     pixel('captain_shield');
     pixel('shotgun');
     createVfxTextures(this);
+    createMapTextures(this);
 
     const g = this.add.graphics();
 
@@ -95,11 +97,6 @@ export default class BootScene extends Phaser.Scene {
     g.fillCircle(bw * 0.8, bh * 0.56, bh * 0.06);
     g.lineStyle(1, bee.stripeColor, 0.8).strokeEllipse(bw * 0.52, bh * 0.62, bw * 0.76, bh * 0.6);
     g.generateTexture('bee', bw, bh).clear();
-
-    const gr = t.ground;
-    g.fillStyle(gr.color).fillRect(0, 0, gr.size, gr.size);
-    g.lineStyle(gr.lineWidth, gr.lineColor).strokeRect(0, 0, gr.size, gr.size);
-    g.generateTexture('ground', gr.size, gr.size).clear();
 
     const kl = t.klapa;
     g.fillStyle(kl.color).fillRect(0, 0, kl.width, kl.height);

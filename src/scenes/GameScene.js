@@ -13,6 +13,7 @@ import { applyBets } from '../data/bets.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { updateLeaper } from '../systems/charge.js';
 import { playVfx } from '../systems/vfx.js';
+import { createMap } from '../systems/map.js';
 import { playSfx, playMusic } from '../systems/audio.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
 import { openSettings } from './SettingsScene.js';
@@ -35,12 +36,12 @@ export default class GameScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const cam = this.cameras.main;
 
-    // Screen-sized ground fixed to the camera; its tile offset follows the scroll, so the world has no edges.
-    const ground = this.add.tileSprite(0, 0, width, height, 'ground').setOrigin(0).setScrollFactor(0);
-    // followupdate fires after the camera computes this frame's scroll, so the ground never lags a frame.
-    cam.on(Phaser.Cameras.Scene2D.Events.FOLLOW_UPDATE, (c) => ground.setTilePosition(c.scrollX, c.scrollY));
-
+    // The estate (systems/map.js): street blocks and decorations around Bartek, made as he walks.
+    const lk = config.look;
     this.player = this.physics.add.sprite(0, 0, 'bartek');
+    this.playerShadow = this.add.image(0, 0, 'shadow').setDepth(lk.shadowDepth).setAlpha(lk.shadowAlpha);
+    this.map = createMap(this);
+    this.map.update(0);
     this.baseScale = config.textures.bartek.height / this.player.height;
     this.tankScale = config.textures.tank.height / this.textures.getFrame('tank').height;
     this.player.setScale(this.baseScale).setDepth(1);
@@ -52,6 +53,8 @@ export default class GameScene extends Phaser.Scene {
     this.enemies = this.physics.add.group({
       defaultKey: 'zombie',
       maxSize: config.pools.enemies,
+      // Every pooled enemy keeps its own shadow; the enemy loop moves it and hides it while the enemy is gone.
+      createCallback: (z) => { z.shadow = this.add.image(0, 0, 'shadow').setDepth(lk.shadowDepth).setAlpha(lk.shadowAlpha).setVisible(false); },
     });
     // Only walkers push each other; a flying klapa keeps its line.
     this.physics.add.collider(this.enemies, this.enemies, null, (a, b) => this.isWalker(a) && this.isWalker(b));
@@ -248,7 +251,10 @@ export default class GameScene extends Phaser.Scene {
     playVfx(this, vfx, x, y);
     this.run.damageDealt += Math.min(damage, enemy.hp);
     enemy.hp -= damage;
-    if (enemy.hp > 0) return false;
+    if (enemy.hp > 0) {
+      enemy.flashMs = config.look.hitFlashMs; // a white flash, run in the enemy loop
+      return false;
+    }
     this.killEnemy(enemy);
     return true;
   }
@@ -700,6 +706,8 @@ export default class GameScene extends Phaser.Scene {
     // Pooled sprites can come back as any type, so set the look and body every spawn.
     const t = config.textures[def.texture];
     z.setTexture(def.texture).setAngle(0).clearTint();
+    z.flashMs = 0;
+    z.bobPhase = Math.random() * Math.PI * 2; // walkers sway out of step
     const fit = t.height ? t.height / z.height : 1; // drawn textures already have their config height, so 1
     z.setScale(fit * (def.scale ?? 1)); // a boss is its base type, bigger
     const br = (t.bodyRadius ?? t.radius) / fit; // body sizes are in texture px, before scale, so the body grows with it
@@ -821,6 +829,11 @@ export default class GameScene extends Phaser.Scene {
     const pl = this.run.player;
     this.moveDir.scale(pl.speed * (run.elapsedMs < pl.warmupMs ? pl.warmupSpeedMult : 1));
     this.player.setVelocity(this.moveDir.x, this.moveDir.y);
+    // A sway while walking (not in the tank, not while a tween turns him, e.g. the Bartkowanie spins).
+    const lk = config.look, bobW = Math.PI * 2 * lk.bobHz;
+    if (!this.tweens.isTweening(this.player)) {
+      this.player.setAngle(this.moveDir.lengthSq() > 0 && run.tankMs <= 0 ? Math.sin(run.elapsedMs / 1000 * bobW) * lk.bobDeg : 0);
+    }
 
     if (run.tankMs > 0) {
       run.tankMs = Math.max(0, run.tankMs - delta);
@@ -851,15 +864,28 @@ export default class GameScene extends Phaser.Scene {
     const crowdR2 = config.dda.crowdRadius ** 2, px = this.player.x, py = this.player.y;
     let crowd = 0; // enemies near Bartek, for the hidden pressure
     for (const z of this.enemies.getChildren()) {
-      if (!z.active) continue;
+      if (!z.active) {
+        if (z.shadow.visible) z.shadow.setVisible(false);
+        continue;
+      }
+      z.shadow.setVisible(true).setPosition(z.x, z.y + z.displayHeight * lk.shadowY)
+        .setDisplaySize(z.displayWidth * lk.shadowW, z.displayWidth * lk.shadowW * lk.shadowFlat);
       if ((z.x - px) ** 2 + (z.y - py) ** 2 < crowdR2) crowd++;
       const walker = this.isWalker(z);
-      // Freeze: walkers stand still in blue; flying klapas and a Sportakus mid-leap are not affected.
-      if (walker && (frozen || z.isTinted)) frozen ? z.setTint(freezeTint) : z.clearTint();
+      // A hit flashes it white for a moment; otherwise freeze: walkers stand still in blue (flying klapas and a
+      // Sportakus mid-leap are not affected).
+      if (z.flashMs > 0) {
+        z.flashMs -= delta;
+        if (z.flashMs > 0) z.setTintFill(lk.hitFlashColor);
+        else z.clearTint();
+      } else if (walker && (frozen || z.isTinted)) frozen ? z.setTint(freezeTint) : z.clearTint();
       if (walker && frozen) z.setVelocity(0, 0);
       else if (walker && squats) z.setVelocity(0, bk.squatAmp * hopW * Math.cos(hopW * hopT + z.x));
       else if (z.stats.behavior === 'leap' && !moonwalk) updateLeaper(this, z, delta);
-      else if (walker) this.physics.moveToObject(z, this.player, z.speed * (moonwalk ? -1 : 1));
+      else if (walker) {
+        this.physics.moveToObject(z, this.player, z.speed * (moonwalk ? -1 : 1));
+        z.setAngle(Math.sin(hopT * bobW + z.bobPhase) * lk.bobDeg);
+      }
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
       else z.angle += z.stats.spinDegPerSec * delta / 1000;
       if (!z.elite) continue;
@@ -867,6 +893,9 @@ export default class GameScene extends Phaser.Scene {
       z.eliteLabel.setPosition(z.x, z.y - z.displayHeight / 2 - config.elites.labelGap);
     }
     this.updatePressure(delta, crowd);
+    this.playerShadow.setPosition(this.player.x, this.player.y + this.player.displayHeight * lk.shadowY)
+      .setDisplaySize(this.player.displayWidth * lk.shadowW, this.player.displayWidth * lk.shadowW * lk.shadowFlat);
+    this.map.update(delta);
 
     // The scar follows Bartek's head and his size; the tank hides it.
     const sc = config.scar;

@@ -162,6 +162,32 @@ export const config = {
     // one random side, within arcDeg; Bartek still standing at the end gets a chest (one card) chestDist px away.
     horde: { durationSec: 20, spawnMult: 3, arcDeg: 70, chestDist: 120 },
   },
+  // The estate around Bartek (systems/map.js): square blocks `block` px, a road `road` px wide along the top and left edge
+  // of each, a sidewalk `sidewalk` px wide around the lot, the lot's kind drawn by weight. Decorations are pooled images:
+  // lamps every lampEvery px, smallDecor[0]-[1] bins/benches/signs, parked cars with carChance per place, now and then a bus.
+  map: {
+    block: 768, road: 112, sidewalk: 44, curb: 4, plate: 22, laneWidth: 4, dash: [36, 28], pathWidth: 22, grassBlotches: 14, lawnTrees: 6,
+    zebra: { stripes: 5, margin: 8, gap: 8, length: 48, inset: 8 },
+    kinds: [{ id: 'flats', weight: 3 }, { id: 'lawn', weight: 2 }, { id: 'parking', weight: 1 }, { id: 'playground', weight: 1 }],
+    flats: { margin: 30, roof: 150, wall: 90, vents: 4, windowStep: 34, litChance: 0.3, trees: 4 },
+    parkingSpots: { edge: 30, width: 56, depth: 96, fill: 0.55 },
+    lampEvery: 220, smallDecor: [3, 7], parkGap: 6, carChance: 0.35, busChance: 0.12,
+    smallKinds: [{ key: 'decor_bin', weight: 3 }, { key: 'decor_bench', weight: 2 }, { key: 'decor_sign', weight: 1 }],
+    decorSize: { lamp: { w: 18, h: 76 }, bin: { w: 20, h: 26 }, bench: { w: 46, h: 22 }, sign: { w: 22, h: 56 }, light: { w: 16, h: 64, box: 32 },
+      car: { w: 66, h: 34 }, bus: { w: 170, h: 46 } },
+    carColors: [0xe53935, 0x1e88e5, 0xfafafa, 0x424242, 0x43a047, 0xfdd835, 0x8e24aa],
+    light: { ms: [4000, 1000, 4000], colors: [0xff1744, 0xffc400, 0x00e676] }, // green, yellow, red for ms[0], [1], [2]
+    ambient: { everyMs: 350 }, // one drifting leaf (vfx ambientLeaf) somewhere on screen this often
+    margin: 300, groundDepth: -2, decorDepth: -1, pool: { blocks: 24, decor: 700 },
+    colors: { asphalt: 0x45484d, asphaltDark: 0x3c3f44, lane: 0xf0f0f0, curb: 0xc7c7c7, sidewalk: 0x9a9a9a, plateLine: 0x878787,
+      grass: 0x5e8f3c, grassDark: 0x4b7a2f, path: 0xb9a37c, tree: 0x2e6b2a, treeLight: 0x4e9a3f, roof: 0x8c8c8c, roofDark: 0x6e6e6e,
+      wall: 0xe0d6c8, window: 0x455a64, windowLit: 0xffe082, door: 0x5d4037, parking: 0x52555a, parkLine: 0xeeeeee, sand: 0xe8cf94,
+      wood: 0x8d6e63, slide: 0xe53935, metal: 0xb0bec5, metalDark: 0x37474f, bin: 0x2e7d32, binDark: 0x1b5e20, signBlue: 0x1565c0,
+      lightBox: 0x212121, glass: 0x263238, busYellow: 0xffc107, busRed: 0xd32f2f },
+  },
+  // Characters: a shadow under each (shadowW x its width, shadowFlat as tall, shadowY x its height below its middle),
+  // a sway of bobDeg at bobHz while walking, a white flash for hitFlashMs when hit and still alive.
+  look: { shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
@@ -515,6 +541,10 @@ export const config = {
     muzzleFlash: { layers: [
       { image: { texture: 'fx_flash', origin: [0, 0.5], scale: [1, 0.6], alpha: [1, 0], ms: 80, ease: 'Linear' } },
       { particles: { texture: 'fx_dot', count: 3, speed: [80, 200], spread: 30, lifeMs: 120, scale: [0.6, 0], tint: 0xffe082, add: true } }] },
+    // A leaf drifting over the estate (systems/map.js plays it now and then), lying low over the ground.
+    ambientLeaf: { layers: [
+      { particles: { texture: 'fx_leaf', count: 1, speed: [15, 35], angle: 20, spread: 60, lifeMs: 4000, scale: [1, 0.8], alpha: [0.9, 0],
+        tint: [0x8bc34a, 0xcddc39, 0xff9800, 0xa1887f], spin: 90, depth: -0.4 } }] },
     shell: { layers: [
       { particles: { texture: 'fx_shell', count: 1, speed: [70, 120], angle: -90, spread: 30, gravityY: 600, lifeMs: 450, scale: [1, 1],
         alpha: [1, 0], tint: 0xffffff, spin: 180, depth: 0.5 } }] }, // depth: under Bartek (layers default to 1.6, over him)
@@ -522,7 +552,6 @@ export const config = {
   // Texture sizes in px. Images: `height` is the on-screen height, width follows the image, bodyRadius is on-screen too.
   textures: {
     bartek: { height: 80 },
-    ground: { size: 64, color: 0x6e6e6e, lineColor: 0x555555, lineWidth: 2 },
     // Enemies are Bartek variants; a bigger one is a stronger one.
     zombie: { height: 56, bodyRadius: 22 },
     uncanny: { height: 50, bodyRadius: 18 },
@@ -553,7 +582,7 @@ export const config = {
     pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
     // Effect shapes (systems/vfx.js), radius in px (flash: width and height, shell: height, twice as long).
-    fx: { dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9,
+    fx: { leaf: 6, dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9,
       bolt: 64 }, // bolt: a zigzag down the middle of a bolt*2 square
     // The pistol Bartek holds, drawn pointing right: width x height px, held at grip (fraction of the size).
     gun: { width: 28, height: 15, grip: [0.3, 0.5], slide: 0x455a64, slideLight: 0x90a4ae, frame: 0x263238, handle: 0x6d4c41, handleLight: 0x8d6e63 },

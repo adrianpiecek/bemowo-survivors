@@ -356,6 +356,18 @@ Zgłoszenia: topór za mocny, czołg przydatny tylko na początku, siłownię da
 - Ekran siłowni: rzędy niższe (112 px), Bartek z cytatem pokazuje się tylko, gdy mieści się nad przyciskiem startu. W pionie przy 8 rzędach się nie mieści, w poziomie tak.
 - **Głośność:** `config.audio.masterVolume` 0.4 mnoży wszystkie dźwięki i muzykę (globalna głośność Phasera). Dotyczy też istniejących zapisów; suwaki w ustawieniach działają w tym zakresie.
 
+### 9. Osiedle zamiast szarej kratki (krok 37)
+
+- **Mapa** (`src/systems/map.js`, liczby i kolory w `config.map`): nieskończona siatka kwadratowych bloków 768 px. Każdy blok ma jezdnię 112 px wzdłuż górnej i lewej krawędzi (skrzyżowanie w lewym górnym rogu), więc razem tworzą siatkę ulic. Na jezdniach są przerywane pasy, a na obu końcach każdej jezdni zebra. Działkę otacza chodnik z płytami i krawężnikiem.
+- **Rodzaje działek** (losowane z wagą): blok z oknami (dach z wywietrznikami, ściana z oknami, część okien świeci), trawnik z drzewami i wydeptaną ścieżką, parking z miejscami, plac zabaw (piaskownica, zjeżdżalnia, huśtawki). Każdy rodzaj to jedna tekstura rysowana raz w BootScene (`createMapTextures`).
+- **Ozdoby** (pula obrazków, bez kolizji, pod postaciami): latarnie co 220 px, kosze, ławki, znaki, zaparkowane auta w różnych kolorach, czasem autobus ZTM, auta na parkingu. Rozkład zależy od seeda z pozycji bloku, więc ten sam blok zawsze wygląda tak samo.
+- **Bloki dokładane i zwalniane** wokół Bartka (ekran + 300 px). Zwykle widać 9-12 bloków i ok. 150 ozdób.
+- **Światła** na rogu każdego skrzyżowania: zielone 4 s, żółte 1 s, czerwone 4 s, każde w innej fazie.
+- **Postacie:** cień pod Bartkiem i pod każdym wrogiem (wróg z puli ma swój cień), lekkie bujanie przy chodzeniu, biały błysk wroga przy trafieniu (60 ms; zamrożenie dalej barwi na niebiesko). Liczby w `config.look`.
+- **Ambient:** co 350 ms liść dryfuje nisko nad ziemią gdzieś na ekranie (efekt `ambientLeaf`, kształt `fx_leaf`).
+- Szara kratka (`ground`) zniknęła.
+- **Wydajność:** czas kroku gry przy 250 wrogach mierzony tak samo przed zmianą i po niej. Przed: ok. 22-33 ms, po: ok. 23-28 ms (panel przeglądarki ukryty, więc liczony czas kroku, nie FPS). Różnica mieści się w szumie.
+
 ### Później (po kroku 37 z mapą)
 
 - **Dzielnice** (z map z VS): Bemowo, Jelonki, Górce, z inną paletą ulic, innym miksem wrogów i inną pulą wydarzeń. Odblokowywane wygranymi.
