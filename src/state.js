@@ -9,6 +9,7 @@ function startingStats() {
     magnetRadius: config.xp.magnetRadius,
     scale: 1, // Bartek's size and hitbox, 1 = normal
     bees: 0, // from the "Ul" upgrade
+    beeDamageMult: 1, // rarer "Ul" cards raise it
     damageMult: 1, // every weapon's damage: damage cards, gym, pickups
     cooldownMult: 1, // every weapon's cooldown: fire rate cards divide it
     range: config.weapons.pistol.range, // pistol range (the "Okulary" gym upgrade)
@@ -42,6 +43,7 @@ export function newRun() {
     spawned: 0, // enemies spawned, for the debug overlay
     damageDealt: 0, // by bullets and bees, for the debug overlay
     coinProtein: 0, // protein from coins picked up this run, paid out at the end
+    damageTaken: 0, // from enemy touches, for the Captain's shield unlock
     pendingLevelUps: 0, // level-ups still waiting for a card pick
     pickupDropMs: {}, // pickup id -> run time of its last drop, for the cooldown
     effects: {}, // timed effects, see systems/effects.js

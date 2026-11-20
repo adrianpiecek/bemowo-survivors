@@ -29,6 +29,4 @@ Pliki na licencji CC-BY wymagają podania autora i linku. Wpisz je tutaj przy do
 
 Pozostałe assety z licencją CC0 (podanie autora nie jest wymagane):
 
-- `assets/effects/`: animowane efekty z paczki PVFX Foundry Thirteen.
-- `assets/Coin_Gems/`: gemy i monety.
-- `assets/muzzle-flash-pixel-fx-v1/`: błysk wystrzału, łuska i dźwięk strzału (Pixel FX by Skulitom Rivskiy, made with Pixelbolt, github.com/skulitom/Pixelbolt).
+- `assets/muzzle-flash-pixel-fx-v1/`: dźwięk strzału (Pixel FX by Skulitom Rivskiy, made with Pixelbolt, github.com/skulitom/Pixelbolt).

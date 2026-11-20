@@ -1,7 +1,9 @@
 // Things circling Bartek that hurt enemies they touch: bees now, Kratos blades later.
 // One orbit = one pooled physics group. Each enemy is hurt by an orbit at most once per hitCooldownMs.
 
-// opts: { texture, maxSize, damage, hitCooldownMs }. scene must have `enemies` and `hurtEnemy(enemy, damage, x, y)`.
+// opts: { texture, maxSize, damage (a number or a function returning it), hitCooldownMs,
+//         vfx? (hit effect id), hitScale?/hitMs? (the sprite swells on a hit), faceTravel? (turned along the orbit) }.
+// scene must have `enemies` and `hurtEnemy(enemy, damage, x, y, vfx)`.
 export function createOrbit(scene, opts) {
   const group = scene.physics.add.group({
     defaultKey: opts.texture,
@@ -14,7 +16,11 @@ export function createOrbit(scene, opts) {
     const last = orbit.lastHitMs.get(enemy);
     if (last !== undefined && orbit.clockMs - last < opts.hitCooldownMs) return;
     orbit.lastHitMs.set(enemy, orbit.clockMs);
-    scene.hurtEnemy(enemy, opts.damage, s.x, s.y);
+    scene.hurtEnemy(enemy, typeof opts.damage === 'function' ? opts.damage() : opts.damage, enemy.x, enemy.y, opts.vfx);
+    if (opts.hitScale && !s.stinging) {
+      s.stinging = true;
+      scene.tweens.add({ targets: s, scale: opts.hitScale, duration: opts.hitMs, yoyo: true, onComplete: () => { s.stinging = false; } });
+    }
   });
   return orbit;
 }
@@ -34,6 +40,7 @@ export function updateOrbit(orbit, cx, cy, layout, delta) {
     const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
     if (!s.active) s.enableBody(true, x, y, true, true);
     else s.body.reset(x, y);
+    if (orbit.opts.faceTravel) s.setRotation(a + Math.sign(layout.degPerSec || 1) * Math.PI / 2);
   }
   for (let i = layout.count; i < sprites.length; i++) if (sprites[i].active) sprites[i].disableBody(true, true);
 }

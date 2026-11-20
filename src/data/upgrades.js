@@ -7,7 +7,7 @@ import { bartkowanie, doBartkowanie } from './bartkowanie.js';
 // so every level gives the same boost and gym and run percentages multiply.
 // Fire rate is the exception: it divides the cooldown, which raises shots per second by the given share each level.
 // Rarity: apply(player, scene, mult) and description(mult) get the card's rarity multiplier (config.rarity);
-// counts (bullets, bees) round up. A card with `rarity: false` has no numbers to multiply and is always common.
+// counts (bullets) round up; the bee count never grows with rarity, the bees' damage does. A card with `rarity: false` has no numbers to multiply and is always common.
 // Optional: weight (how often the card is drawn, default 1).
 const u = config.upgrade;
 const pct = (x) => `${Math.round(x * 100)}%`;
@@ -49,10 +49,11 @@ export const upgrades = [
   {
     id: 'ul',
     name: 'Ul',
-    description: 'Pszczoły są szczęśliwe.',
+    description: (m) => `Pszczoły są szczęśliwe.\n+${config.bees.perLevel} pszczoła${m > 1 ? `, +${pct(config.bees.damagePct * (m - 1))} obrażeń pszczół` : ''}`,
     maxStack: u.maxStack,
     apply(player, scene, m = 1) {
-      player.bees += count(player.bees ? config.bees.perLevel : config.bees.firstLevel, m);
+      player.bees += config.bees.perLevel;
+      player.beeDamageMult += config.bees.damagePct * (m - 1);
     },
   },
   {

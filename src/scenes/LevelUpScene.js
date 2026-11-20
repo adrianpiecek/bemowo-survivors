@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { fallbackUpgrade } from '../data/upgrades.js';
 import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex } from '../systems/cards.js';
+import { playVfx } from '../systems/vfx.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 
@@ -36,17 +37,17 @@ export default class LevelUpScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => this.pick(i));
       if (rarity) {
-        this.add.text(x, top - u.margin / 2, rarity.name.toUpperCase(), { fontSize: `${c.rarityFontSize}px`, fontStyle: 'bold', color: rarityHex(rarity) })
+        this.add.text(x, top - u.margin / 2, rarity.name.toUpperCase(), { fontFamily: config.ui.font, fontSize: `${c.rarityFontSize}px`, fontStyle: 'bold', color: rarityHex(rarity) })
           .setOrigin(0.5, 1);
       }
-      if (rarity?.id === 'legendary') this.add.sprite(x, top, 'starBurst').setScale(config.vfx.starBurst.scale).play('starBurst');
+      if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, top);
       this.add.text(x, top + u.margin, up.name, {
-        fontSize: `${c.nameFontSize}px`, align: 'center', wordWrap: { width: c.width - 2 * u.margin },
+        fontFamily: config.ui.font, fontSize: `${c.nameFontSize}px`, align: 'center', wordWrap: { width: c.width - 2 * u.margin },
       }).setOrigin(0.5, 0);
       this.add.text(x, y, describe(up, rarity), {
-        fontSize: `${c.textFontSize}px`, align: 'center', wordWrap: { width: c.width - 2 * u.margin },
+        fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, align: 'center', wordWrap: { width: c.width - 2 * u.margin },
       }).setOrigin(0.5);
-      this.add.text(x, bottom - u.margin, `${level}[${i + 1}]`, { fontSize: `${u.hudFontSize}px`, align: 'center' })
+      this.add.text(x, bottom - u.margin, `${level}[${i + 1}]`, { fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, align: 'center' })
         .setOrigin(0.5, 1);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.pick(i));
     });

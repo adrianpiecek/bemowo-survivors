@@ -1,12 +1,12 @@
 import { config } from '../config.js';
-import { newRun, xpToNextLevel } from '../state.js';
+import { newRun, xpToNextLevel, save, writeSave } from '../state.js';
 import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
 import { weapons } from '../data/weapons.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { createOrbit, updateOrbit } from '../systems/orbit.js';
 import { updateLeaper } from '../systems/charge.js';
-import { createVfxPool, playVfx } from '../systems/vfx.js';
+import { playVfx } from '../systems/vfx.js';
 import { playSfx, playMusic } from '../systems/audio.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
 
@@ -49,11 +49,21 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHit, null, this);
 
     const bz = config.bees;
-    this.bees = createOrbit(this, { texture: 'bee', maxSize: config.pools.bees, damage: bz.damage, hitCooldownMs: bz.hitCooldownMs });
+    this.bees = createOrbit(this, {
+      texture: 'bee', maxSize: config.pools.bees, damage: () => bz.damage * this.run.player.beeDamageMult, hitCooldownMs: bz.hitCooldownMs,
+      vfx: 'beeSting', hitScale: bz.hitScale, hitMs: bz.hitMs, faceTravel: true,
+    });
 
     this.gems = this.physics.add.group({ defaultKey: 'gem_green', maxSize: config.pools.gems });
-    this.vfx = createVfxPool(this);
     this.addWeapon(weapons.find((d) => d.id === config.weapons.start));
+    const debugWeapon = weapons.find((d) => d.id === config.debug.giveWeapon && d.id !== config.weapons.start);
+    if (debugWeapon) {
+      if (debugWeapon.unlock && !save.unlocks.includes(debugWeapon.id)) {
+        save.unlocks.push(debugWeapon.id);
+        writeSave(save);
+      }
+      this.addWeapon(debugWeapon);
+    }
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
 
     this.pickups = this.physics.add.group({ defaultKey: 'pickup', maxSize: config.pools.pickups });
@@ -128,7 +138,7 @@ export default class GameScene extends Phaser.Scene {
 
     const b = config.ui.bubble;
     this.bubble = this.add.text(0, 0, 'Muchacho!', {
-      fontSize: `${b.fontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: b.padding, y: b.padding },
+      fontFamily: config.ui.font, fontSize: `${b.fontSize}px`, color: '#000000', backgroundColor: '#ffffff', padding: { x: b.padding, y: b.padding },
     }).setOrigin(0.5, 1).setDepth(2).setVisible(false);
 
     const sc = config.scar;
@@ -150,6 +160,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.isWalker(enemy) && isEffectActive(this.run, 'freeze')) return; // frozen walkers do not bite
     const pl = this.run.player;
     pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
+    this.run.damageTaken += enemy.stats.contactDamage;
     playSfx(this, 'playerDamage');
     if (enemy.stats.leavesScar) this.run.scarred = true;
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
@@ -163,9 +174,9 @@ export default class GameScene extends Phaser.Scene {
     this.hurtEnemy(enemy, bullet.damage, bullet.x, bullet.y);
   }
 
-  // Shared by bullets and orbits: damage, a spark where it hit, death at 0 HP.
-  hurtEnemy(enemy, damage, x, y) {
-    playVfx(this, 'hitSpark', x, y);
+  // Shared by bullets and orbits: damage, a hit effect where it hit (vfx id, default a spark), death at 0 HP.
+  hurtEnemy(enemy, damage, x, y, vfx = 'hitSpark') {
+    playVfx(this, vfx, x, y);
     this.run.damageDealt += Math.min(damage, enemy.hp);
     enemy.hp -= damage;
     if (enemy.hp <= 0) this.killEnemy(enemy);
@@ -300,7 +311,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Gems and coins share one pool, the magnet and the pickup; value is XP for a gem, protein for a coin.
-  dropCollectible(x, y, anim, value, coin) {
+  dropCollectible(x, y, texture, value, coin) {
     if (this.gems.countActive(true) >= config.xp.merge.above) this.mergeGems();
     const gem = this.gems.get(x, y);
     if (!gem) return; // full even after merging (only coins and flying gems left): this one drop is lost
@@ -308,7 +319,7 @@ export default class GameScene extends Phaser.Scene {
     gem.value = value;
     gem.coin = coin;
     gem.dropMs = this.run.elapsedMs;
-    gem.setScale(config.xp.gemScale).play(anim);
+    gem.setTexture(texture);
     gem.magnet = false;
   }
 
@@ -568,6 +579,11 @@ export default class GameScene extends Phaser.Scene {
       const pulse = 1 + (cfg.pulseScale - 1) * (0.5 + 0.5 * Math.sin((run.elapsedMs / cfg.pulseMs) * Math.PI * 2));
       image.setPosition(this.player.x, this.player.y).setScale(pulse * pl.scale)
         .setAngle(image.angle + (cfg.spinDegPerSec * delta) / 1000);
+      if (cfg.vfx && run.elapsedMs - (image.lastVfxMs ?? -Infinity) >= cfg.vfx.everyMs) {
+        image.lastVfxMs = run.elapsedMs;
+        const s = cfg.vfx.spread * pl.scale;
+        playVfx(this, cfg.vfx.id, this.player.x + Phaser.Math.FloatBetween(-s, s), this.player.y + Phaser.Math.FloatBetween(-s, s * 0.5));
+      }
     }
 
     // Bees: a small B gets a denser swarm on a tighter orbit, so it fits his size.

@@ -10,7 +10,7 @@ export default class TitleScene extends Phaser.Scene {
 
   create() {
     const t = config.ui.title, { width, height } = this.scale;
-    const prompt = this.add.text(width / 2, height / 2, 'Kliknij, aby zacząć', { fontSize: `${t.promptFontSize}px` }).setOrigin(0.5);
+    const prompt = this.add.text(width / 2, height / 2, 'Kliknij, aby zacząć', { fontFamily: config.ui.font, fontSize: `${t.promptFontSize}px` }).setOrigin(0.5);
     this.onFirstInput(() => {
       prompt.destroy();
       this.intro();
@@ -63,7 +63,7 @@ export default class TitleScene extends Phaser.Scene {
   ready() {
     const t = config.ui.title, { width, height } = this.scale;
     playMusic(this, 'boss');
-    const press = this.add.text(width / 2, height - t.pressBottom, 'Naciśnij dowolny klawisz', { fontSize: `${t.promptFontSize}px` })
+    const press = this.add.text(width / 2, height - t.pressBottom, 'Naciśnij dowolny klawisz', { fontFamily: config.ui.font, fontSize: `${t.promptFontSize}px` })
       .setOrigin(0.5);
     this.tweens.add({ targets: press, alpha: 0, duration: t.blinkMs, yoyo: true, repeat: -1 });
     this.onFirstInput(() => this.scene.start(save.runsPlayed ? 'GymScene' : 'GameScene'));

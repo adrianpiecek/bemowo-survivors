@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { upgrades, fallbackUpgrade } from '../data/upgrades.js';
 import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex } from '../systems/cards.js';
+import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
 
 // Boss chest over the paused GameScene: `count` cards spin through upgrade names and stop one by one.
@@ -19,7 +20,7 @@ export default class ChestScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0);
     this.add.text(width / 2, ch.titleY, 'SKRZYNIA', {
-      fontSize: `${ch.titleFontSize}px`, fontStyle: 'bold', color: ch.titleColor, stroke: '#000000', strokeThickness: ch.strokeThickness,
+      fontFamily: config.ui.font, fontSize: `${ch.titleFontSize}px`, fontStyle: 'bold', color: ch.titleColor, stroke: '#000000', strokeThickness: ch.strokeThickness,
     }).setOrigin(0.5);
 
     const prizes = drawUpgrades(this.run, this.count);
@@ -31,7 +32,7 @@ export default class ChestScene extends Phaser.Scene {
       const x = width / 2 + (i - (n - 1) / 2) * (c.width + c.gap), y = height / 2, top = y - c.height / 2;
       const wrap = { align: 'center', wordWrap: { width: c.width - 2 * u.margin } };
       const card = this.add.rectangle(x, y, c.width, c.height, c.color).setStrokeStyle(c.borderWidth, c.borderColor);
-      const name = this.add.text(x, top + u.margin, '', { fontSize: `${c.nameFontSize}px`, ...wrap }).setOrigin(0.5, 0);
+      const name = this.add.text(x, top + u.margin, '', { fontFamily: config.ui.font, fontSize: `${c.nameFontSize}px`, ...wrap }).setOrigin(0.5, 0);
       const spin = this.time.addEvent({ delay: ch.spinStepMs, loop: true, callback: () => name.setText(Phaser.Utils.Array.GetRandom(names)) });
 
       this.time.delayedCall(ch.spinMs + i * ch.stopGapMs, () => {
@@ -39,13 +40,13 @@ export default class ChestScene extends Phaser.Scene {
         const rarity = rollRarity(up, this.run.level);
         applyUpgrade(this.run, gs, up, rarity);
         name.setText(up.name);
-        this.add.text(x, y, describe(up, rarity), { fontSize: `${c.textFontSize}px`, ...wrap }).setOrigin(0.5);
+        this.add.text(x, y, describe(up, rarity), { fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, ...wrap }).setOrigin(0.5);
         card.setStrokeStyle(rarity ? c.rarityBorderWidth : c.borderWidth, rarity?.color ?? c.borderColor);
         if (rarity) {
-          this.add.text(x, top - u.margin / 2, rarity.name.toUpperCase(), { fontSize: `${c.rarityFontSize}px`, fontStyle: 'bold', color: rarityHex(rarity) })
+          this.add.text(x, top - u.margin / 2, rarity.name.toUpperCase(), { fontFamily: config.ui.font, fontSize: `${c.rarityFontSize}px`, fontStyle: 'bold', color: rarityHex(rarity) })
             .setOrigin(0.5, 1);
         }
-        if (rarity?.id === 'legendary') this.add.sprite(x, top, 'starBurst').setScale(config.vfx.starBurst.scale).play('starBurst');
+        if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, top);
         this.tweens.add({ targets: card, scale: ch.popScale, duration: ch.popMs, yoyo: true });
         playSfx(this, 'pickup');
         if (++stopped === n) this.allowClose();
@@ -55,7 +56,7 @@ export default class ChestScene extends Phaser.Scene {
 
   allowClose() {
     const { width, height } = this.scale, ch = config.ui.chest;
-    this.add.text(width / 2, height - ch.promptBottom, 'Dalej [Spacja]', { fontSize: `${config.ui.hudFontSize}px` }).setOrigin(0.5);
+    this.add.text(width / 2, height - ch.promptBottom, 'Dalej [Spacja]', { fontFamily: config.ui.font, fontSize: `${config.ui.hudFontSize}px` }).setOrigin(0.5);
     const close = () => {
       if (this.closing) return; // a click and a key press can land in the same frame
       this.closing = true;

@@ -27,7 +27,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 - Strzela sam w najbliższego zombie w zasięgu (co 0,6 s, liczby w `config.weapons.pistol`).
 - Pocisk znika po pierwszym trafieniu.
-- Wersja 3: pistolet to pierwsza broń z `src/data/weapons.js`, Bartek ma go od startu. Kolejne poziomy pistoletu przychodzą jako karty i dają +1 pocisk na strzał (dawna karta "Dodatkowy pocisk"). Przy strzale błysk przy lufie, łuska i dźwięk z paczki `assets/muzzle-flash-pixel-fx-v1` (CC0).
+- Wersja 3: pistolet to pierwsza broń z `src/data/weapons.js`, Bartek ma go od startu. Kolejne poziomy pistoletu przychodzą jako karty i dają +1 pocisk na strzał (dawna karta "Dodatkowy pocisk"). Bartek trzyma narysowany pistolet, obrócony w stronę celu; przy strzale pocisk wylatuje z lufy, jest błysk i łuska (rysowane w kodzie) i dźwięk z paczki `assets/muzzle-flash-pixel-fx-v1` (CC0).
 
 ### Wrogowie
 
@@ -39,13 +39,13 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 - Spawn poza ekranem, w pierścieniu wokół gracza. Częstotliwość rośnie z czasem.
 - Krzywa trudności (wersja 3): spawn na sekundę rośnie po krzywej, spokojnie na początku i najmocniej pod koniec. HP zwykłych wrogów rośnie z każdą minutą rundy (boss ma stałe HP). Kolejne poziomy drożeją szybciej niż liniowo. Spawn jest szybszy, niż pistolet nadąża zabijać, więc wokół Bartka zbiera się horda; za to pojedynczy dotyk zwykłego wroga boli mało. Co 45 s pierścień wrogów otacza Bartka, większy z każdą falą. Cel: horda rośnie przez całą rundę (ok. 10-30 wrogów na ekranie w 1.-2. minucie, ponad 100 w drugiej połowie), gracz bez siłowni przeżywa ok. 4-5 minut, a pełna siłownia z dobrymi kartami wygrywa.
 - **Zmiana planu (v2):** wrogowie to warianty Bartka. Zombie to zombie-Bartek, biegacz to Uncanny, a silniejsze zombie to kolejne warianty: Joker (od 3:00) i Homelander (od 5:00). Większy obrazek = silniejszy wróg. Nowi wrogowie w przyszłości to też warianty Bartka. Do tego klapa bagażnika (od 4:00). Liczby w `config.enemies` i `config.boss`. **Zmiana planu (v3):** boss Golf został usunięty z gry; bossowie to powiększone wersje zwykłych wrogów (krok 26).
-- Wersja 3: Goblin Bartek (od 2:00) przychodzi stadem 3-5 sztuk z jednego punktu pierścienia, szybki i kruchy. Sportakus (od 4:00) idzie powoli, a co kilka sekund, gdy Bartek jest blisko, staje, miga na czerwono i doskakuje tam, gdzie Bartek stał (znacznik celu w miejscu lądowania, kurz przy wybiciu). Ruch szarży (stop, miganie, rzut w zapamiętany punkt) jest w `src/systems/charge.js`, żeby bossowie mogli go użyć ponownie.
+- Wersja 3: Goblin Bartek (od 1:30) przychodzi stadem 3-5 sztuk z jednego punktu pierścienia, szybki i kruchy. Sportakus (od 4:00) idzie powoli, a co kilka sekund, gdy Bartek jest blisko, staje, miga na czerwono i doskakuje tam, gdzie Bartek stał (znacznik celu w miejscu lądowania, kurz przy wybiciu). Ruch szarży (stop, miganie, rzut w zapamiętany punkt) jest w `src/systems/charge.js`, żeby bossowie mogli go użyć ponownie.
 - Bossowie (wersja 3): powiększona wersja zwykłego wroga z jego zachowaniem (Wielki Sportakus też doskakuje). 2:30 Wielki Zombie, 4:30 Wielki Sportakus, 6:30 Wielki Joker, 9:30 Wielki Homelander; liczby w `config.boss.list` (typ bazowy, skala, mnożniki HP, prędkości i obrażeń, minuta, skrzynia, białko). 2 s wcześniej baner „UWAGA: …” i muzyka bossa. U góry pasek HP z nazwą bossa; gdy na mapie jest kilku, pasek pokazuje najnowszego. Po śmierci: wybuch, deszcz kryształów, czerwony gem, białko na koniec rundy i skrzynia, która leży aż do podniesienia. Skrzynia otwiera osobny ekran: karty przewijają nazwy ulepszeń i zatrzymują się po kolei, każde ulepszenie (z wylosowaną rzadkością) działa od razu; liczba ulepszeń 1-3 zależy od bossa. Gdy w tej samej chwili czekają karty level-upu, skrzynia otwiera się po nich. Debug: `config.debug.bossKey`, klawisz B, potem cyfra.
 - Limit 250 wrogów na ekranie, żeby gra nie klatkowała.
 
 ### XP i level up
 
-Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. W v2 kryształy to animowane gemy (CC0, `assets/Coin_Gems`) o różnej wartości: każdy typ wroga wypada innym kolorem. Zielony = 1 XP (zombie, biegacz, klapa), niebieski = 3 (Joker), żółty = 5 (Homelander), szary = 10, czerwony = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (`Moneda*.png`: czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty: ulepszenia z tabeli poniżej i karty broni (sekcja "Bronie").
+Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. Kryształy są rysowane w kodzie jako wielokąty z fasetami i białym błyskiem, każdy typ wroga wypada innym: zielony romb = 1 XP (zombie, biegacz, klapa), niebieski sześciokąt = 3 (Joker), żółty pięciokąt = 5 (Homelander), szary ośmiokąt = 10, czerwony szlifowany klejnot = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (rysowane: obwódka i hantla; czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty: ulepszenia z tabeli poniżej i karty broni (sekcja "Bronie").
 
 | Ulepszenie | Efekt na poziom | Max poziomów |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ Oprócz rzadkich znajdziek z wrogów (OLX, Photoshop) są znajdźki typowe dla g
 - Licznik 10:00. Przeżyjesz, to wygrałeś.
 - Śmierć daje ekran końca ze statystykami (czas, zabici, level) i przycisk "Jeszcze raz".
 - Pierwsze uruchomienie (licznik `save.runsPlayed` równy 0) prowadzi z intro prosto do rundy, bez siłowni. Po pierwszej rundzie przycisk "Siłownia" na ekranie końca pulsuje, a od drugiej rundy intro prowadzi do siłowni.
-- HUD: pasek HP, pasek XP, level, czas, liczba zabitych.
+- HUD: panel w lewym górnym rogu (HP z serduszkiem, XP z odznaką poziomu, pasek czołgu), zegar na środku, zabici i białko z monet w prawym rogu, aktywne efekty pod panelem (ikonka, nazwa, pasek czasu), sloty broni na dole z poziomem. Banery znajdziek na panelu, ok. 3 s, z opisem działania. Wszystko rysowane przez `src/systems/ui.js`.
 
 ### Memy w MVP (sam tekst, zero kosztu)
 
@@ -128,27 +128,166 @@ Nazwa i logo Gigantów Programowania oraz cudze postacie zostają tylko w wersji
 
 Warunki odblokowania broni też są memami, np. aura Uncanny za przetrwanie 60 sekund bez ruszania się, ostrza Kratosa za 1000 zabitych.
 
+- **Tarcza Kapitana** (wersja 3): leci do najbliższego wroga, odbija się do kolejnych (nietrafionych w tym rzucie), wraca do Bartka i czeka chwilę; obraca się w locie, przy każdym odbiciu `impacts/metal-clang`. Poziomy dają odbicia, obrażenia i kolejne tarcze (`config.weapons.shield`). Odblokowanie, jako ostatnia broń: „Mogę tak cały dzień”, czyli wygrana runda z co najmniej 500 przyjętymi obrażeniami, gdy wszystkie inne bronie są już odblokowane. Grafika `assets/captain_shield.png` to eksport z `captain_shield.aseprite`. Debug: `config.debug.giveWeapon: 'shield'` odblokowuje ją i daje na start.
+
+## Różnorodność podejść (wersja 3, kroki 30–35)
+
+**Problem.** Każda runda wygląda tak samo:
+- start zawsze z pistoletem;
+- te same 4 karty statystyk, które dają płaskie „+X%”;
+- ta sama mapa i bossowie o tych samych minutach;
+- brak decyzji, które coś wykluczają.
+
+Gracz bierze wszystko po kolei, więc buildy się nie różnią.
+
+**Cel.** Każda runda ma zmuszać do kilku wyborów, które się wykluczają. Każda ma mieć inny przebieg i powód, żeby zagrać jeszcze raz. Mechaniki biorę ze sprawdzonych gier gatunku: Vampire Survivors (VS), Brotato, Halls of Torment, Hades. Wszystkie liczby siedzą w `config.js`, treść w `src/data/`. Każda rzecz ma flagę lub klawisz w `config.debug`.
+
+### 1. Pasywki ze slotami (krok 30, z VS i Brotato)
+
+- **Pasywki zamiast kart statystyk.** Karty Obrażenia, Szybkostrzelność, Szybkość ruchu i Max HP znikają. W ich miejsce przychodzą **pasywki**: przedmioty z nazwą-memem, poziomami (karty z rzadkością, jak bronie) i limitem **4 slotów** (`config.passives.maxSlots`).
+- **Pula jest większa niż sloty**, więc trzeba wybierać. Po zapełnieniu slotów karty nowych pasywek przestają wypadać i zostają tylko poziomy posiadanych.
+- **Nowe statystyki gracza** (jak w VS):
+  - obszar: wielkość pocisków, chmur, promieni i tarcz;
+  - czas trwania;
+  - liczba pocisków;
+  - pancerz;
+  - regeneracja;
+  - szczęście;
+  - zysk XP;
+  - zasięg przyciągania.
+
+  Bronie czytają je przez helpery sceny (tak jak dziś `weaponDamage` i `weaponCooldown`). Dzięki temu każda pasywka działa na każdą broń.
+- **Ul przechodzi do broni.** Z pszczołami na orbicie to broń, nie ulepszenie, więc trafia do `src/data/weapons.js`.
+- **Bartkowanie zostaje kartą bez slotu.**
+- **Pasywki** (`src/data/passives.js`):
+
+| Pasywka | Statystyka | Na poziom (startowo) | Max | Odblokowanie |
+| --- | --- | --- | --- | --- |
+| Kreatyna | obrażenia | +10% | 5 | od startu |
+| Kawa z Żabki | czas odnowienia broni | -8% | 5 | od startu |
+| Buty z bazaru | szybkość ruchu | +8% | 5 | od startu |
+| Gainer | max HP | +20 | 5 | od startu |
+| Hantle w plecaku | obszar | +10% | 5 | od startu |
+| Bilet miesięczny ZTM | liczba pocisków | +1 | 2 | od startu |
+| Karnet na siłownię | czas trwania (bronie i znajdźki) | +10% | 5 | od startu |
+| Rosół babci | regeneracja | +0,3 HP/s | 5 | zjedz 20 pierogów (łącznie) |
+| Kurtka puchowa | pancerz: mniej obrażeń z każdego dotyku | -1 | 5 | przyjmij 2000 obrażeń (łącznie) |
+| Koniczyna z trawnika | szczęście: rzadsze karty, więcej monet | +10% | 5 | zbierz 10 złotych monet (łącznie) |
+| Zeszyt w kratkę | zysk XP | +8% | 5 | dojdź do 30 poziomu |
+| Wór na kryształy | zasięg przyciągania | +20% | 5 | od startu |
+
+Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unlocks`, tak jak u broni.
+
+### 2. Kontrola losowania (krok 31, z VS i Brotato)
+
+- **Ekran level upu dostaje trzy przyciski z licznikami:**
+  - **Odśwież (R):** nowe trzy karty.
+  - **Pomiń (S):** nic nie bierzesz, dostajesz trochę HP.
+  - **Wywal (W, potem cyfra):** karta znika z puli do końca rundy.
+- **Liczniki na start są małe** (`config.draw`). Siłownia sprzedaje kolejne w nowym ulepszeniu „Plan dnia”.
+- **Po co:** Wywalanie pozwala celować w konkretny build, a Odśwież ratuje słabe losowanie.
+
+### 3. Ewolucje broni (krok 32, z VS)
+
+- **Warunek:** broń na maksymalnym poziomie plus jej pasywka w slocie.
+- **Skąd:** najbliższa skrzynia (boss albo elita) zamiast kart daje **ewolucję**. Broń zmienia się w mocniejszą wersję w tym samym slocie, a pasywka zostaje.
+- **Podpowiedzi:** karta broni pokazuje „Ewolucja: + Pasywka”. Ekran końca gry pokazuje odkryte ewolucje.
+- Dane to pole `evolution` w `src/data/weapons.js`.
+
+| Broń | + Pasywka | Ewolucja | Co zmienia |
+| --- | --- | --- | --- |
+| Pistolet | Bilet miesięczny ZTM | Uzi z bazaru | ciągła seria, pocisk przebija 1 wroga |
+| Tarcza Kapitana | Kurtka puchowa | Tarcza Bemowa | tarcze bez czekania, każde trafienie leczy 1 HP |
+| Gaz rozweselający | Karnet na siłownię | Smog nad Bemowem | chmury nie znikają i powoli płyną za najbliższym wrogiem |
+| Laser z oczu | Hantle w plecaku | Wzrok Homelandera | ciągły promień, który obraca się za celem |
+| Ul | Rosół babci | Pasieka babci | 2x pszczół, a zabici przez pszczoły czasem zostawiają pierogi |
+
+### 4. Plan treningowy na start (krok 33, z Brotato i z postaci z VS)
+
+- **Wybór przed rundą.** Po „Na Bemowo!” gracz wybiera 1 z 3 losowych planów (`src/data/plans.js`, nowa scena `PlanScene`).
+- **Co daje plan:** wyraźny bonus i wyraźną wadę, czasem też startową pasywkę.
+- **Czego plan nie zmienia:** postać zostaje zwykłym Bartkiem, a broni nie wybiera się przed rundą (decyzja nr 1).
+- **Pierwsza runda w życiu** idzie bez planu.
+
+| Plan | Plus | Minus | Odblokowanie |
+| --- | --- | --- | --- |
+| Dzień klaty | +20% obrażeń | -15% szybkości ruchu | od startu |
+| Cardio | +20% szybkości ruchu, start z Butami z bazaru | -20 max HP | od startu |
+| Na masie | +40 max HP, start z Gainerem | -10% szybkostrzelności | od startu |
+| Rzeźba | +25% szybkostrzelności | -30 max HP | wygraj rundę |
+| Dzień nóg | 2x zasięg przyciągania, +10% XP | -10% obrażeń | od startu |
+| Trening z Unc | +2 Odśwież, +2 Wywal | karty tylko zwykłe | wygraj z 3 pasywkami na max |
+| Bartkowanie | Bartkowanie 3x częściej, start z losową pasywką | brak | wypadnij 10 razy na Bartkowanie |
+| Lenistwo | +30% XP | wrogowie +15% HP | zgiń przed 2:00 trzy razy |
+
+### 5. Elity i wydarzenia rundy (krok 34, z Halls of Torment i VS)
+
+- **Elity.** Co `config.elites.everySec` jeden zwykły wróg staje się elitą z losową cechą (`src/data/elites.js`). Elita ma większe HP, kolorową obwódkę i nazwę cechy nad głową, a po śmierci zostawia **małą skrzynię** (1 karta albo ewolucja). Cechy:
+
+| Cecha | Działanie |
+| --- | --- |
+| Szybki | +60% prędkości |
+| Pancerny | x4 HP |
+| Dzielący się | po śmierci 3 mniejsze kopie |
+| Wampir | leczy wrogów obok |
+| Złodziej | zbiera kryształy z ziemi; po zabiciu wysypuje je razem z bonusem |
+
+- **Wydarzenia.** Każda runda losuje 3 wydarzenia z puli (`src/data/events.js`) w losowych minutach, poza czasem bossów. Każde zapowiada baner z opisem.
+
+| Wydarzenie | Co się dzieje |
+| --- | --- |
+| Wycieczka szkolna | 40 goblinów z jednego kierunku |
+| Awaria prądu | 20 s ciemności, widać tylko krąg wokół Bartka |
+| Złota godzina | 30 s podwójnego XP |
+| Kontrola biletów | 3 elity naraz |
+| Promocja w Żabce | na mapie stoi sklep: 3 karty za monety białka z tej rundy, więc monety mają sens już w trakcie gry |
+| Burza | 15 s piorunów w losowych wrogów |
+| Festyn osiedlowy | 3 znajdźki naraz na mapie |
+| Deszcz kryształów | kryształy spadają wokół Bartka |
+
+- **Bossowie.** Pierwsze trzy sloty losują bossa z puli (`config.boss.slots`). Wielki Homelander jako ostatni zostaje stały.
+
+### 6. Zakłady z Unc (krok 35, z Hades i z klątwy z VS)
+
+- **Kiedy:** po pierwszej wygranej siłownia dostaje zakładkę „Zakłady z Unc”.
+- **Jak działa:** każdy zakład utrudnia rundę i podnosi białko z niej o swój procent. Sumę widać przed rundą i na ekranie końca gry.
+
+| Zakład | Na poziom | Białko | Max |
+| --- | --- | --- | --- |
+| Szybsze zombie | +10% prędkości | +10% | 3 |
+| Grubsze zombie | +20% HP | +10% | 3 |
+| Gęstsza horda | +25% spawnu | +15% | 2 |
+| Wcześniejsi bossowie | o 30 s | +15% | 2 |
+| Bez pierogów | brak leczenia ze znajdziek | +15% | 1 |
+| Dwie karty | 2 karty zamiast 3 | +20% | 1 |
+
+- **Nagrody:** wygrane z sumą zakładów od 50% i od 100% odblokowują plan „Trening z Unc” i ostatnie pasywki. Daje to cel po pierwszych wygranych.
+
+### Później (po kroku 37 z mapą)
+
+- **Dzielnice** (z map z VS): Bemowo, Jelonki, Górce, z inną paletą ulic, innym miksem wrogów i inną pulą wydarzeń. Odblokowywane wygranymi.
+- **Wyzwanie dnia:** ten sam seed dla wszystkich danego dnia.
+
 ## Plan na później
 
 ### Rzadkość ulepszeń
 
 Przy każdym level upie każda z 3 kart dostaje losową rzadkość: zwykła, rzadka, epicka albo legendarna. Rzadkość mnoży siłę efektu (np. 1x, 1,5x, 2x, 3x) i ma swój kolor ramki karty. Szansa na rzadsze karty rośnie z poziomem. Rzadkości, ich szanse i mnożniki są w `config.js`, a ulepszenia dalej są danymi: `apply(player, scene, mult)` dostaje mnożnik rzadkości jako trzeci argument, a `description` może być funkcją `(mult) => tekst`. Karty bez liczb (Bartkowanie) mają `rarity: false` i są zawsze zwykłe. Zrobione w kroku 22. Pasuje do pola `weight` z kroku 18 (Bartkowanie), ale to osobna rzecz: `weight` decyduje, która karta wypada, a rzadkość decyduje, jak mocna jest.
 
-### Efekty (CC0, `assets/effects`)
+### Efekty (rysowane w kodzie)
 
-Paczka ma ok. 1300 animowanych efektów w 18 kategoriach (48 MB). Każdy efekt ma `sprite-sheet.png` i `manifest.json` z klatkami, czasami i punktem zaczepienia. `src/systems/vfx.js` ładuje tylko efekty wpisane w `config.vfx` i tnie je według manifestu, więc gra nie pobiera całej paczki.
+Efekty nie są z pikselowych paczek (bez kontekstu wyglądały słabo). `src/systems/vfx.js` rysuje w `BootScene` małe białe kształty `fx_*` (kropka, iskra, kłąb dymu, pierścień, celownik, gwiazdka, promienie, plus, płatek śniegu, błysk z lufy, łuska), a każdy efekt w `config.vfx` to kilka warstw: wybuch cząsteczek (liczba, prędkość, czas, skala, kolor, grawitacja, kierunek) albo jeden kształt, który rośnie lub maleje i znika. `playVfx(scene, id, x, y, kąt)` działa w każdej scenie.
 
-W grze już są: `impacts/hit-spark` (trafienie pociskiem), `impacts/death-poof` (śmierć wroga), `explosions/big-explosion` (śmierć bossa).
+W grze są: `hitSpark` (trafienie), `deathPoof` (śmierć wroga), `bossBoom` (śmierć bossa), `targetMark` i `dashDust` (doskok Sportakusa), `gemPickup`, `coinPickup`, `starBurst` (legendarna karta, znajdźka), `vacuumPull` (magnes), `frostNova` (zimny prysznic), `holyHeal` (pierogi), `metalClang` (tarcza), `chestOpen` (skrzynia), `muzzleFlash` i `shell` (pistolet).
 
-Pomysły na później:
-- `ui/level-up` przy level upie, `ui/gem-pickup` przy zbieraniu kryształu, `holy/holy-heal` przy leczeniu z karty Max HP.
-- `scifi/muzzle-flash` przy strzale pistoletu.
-- Czołg: `smoke/dash-dust` spod gąsienic, `holy/shield-bubble` w czasie nietykalności.
-- Klapa: `impacts/metal-clang` przy trafieniu Bartka.
-- Mały B: `arcane/polymorph-poof` przy zmniejszeniu i powrocie.
-- Bartkowanie: `status/stun-stars` przy "Zombie robią przysiady", `status/haste` przy "Moonwalk".
-- Bronie: `nature/poison-cloud` (gaz rozweselający), `scifi/laser-beam` (laser), `explosions/barrel-explosion` (TNT), `lightning/chain-lightning` i `fire/flamethrower` jako nowe bronie.
-- Ekran wygranej: `explosions/firework-burst`.
+Pomysły na później (krok 38), wszystkie rysowane tak samo:
+- Błysk przy level upie, leczenie przy karcie Max HP.
+- Czołg: kurz spod gąsienic, bańka w czasie nietykalności.
+- Klapa: iskry z metalu przy trafieniu Bartka.
+- Mały B: kłąb dymu przy zmniejszeniu i powrocie.
+- Bartkowanie: krążące gwiazdki przy "Zombie robią przysiady", smugi przy "Moonwalk".
+- Mocne trafienie: większe iskry; śmierć wybranych wrogów: plama.
+- Ekran wygranej: fajerwerki.
 
 ## Architektura
 

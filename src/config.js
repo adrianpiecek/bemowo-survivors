@@ -8,22 +8,28 @@ export const config = {
     // Auto-aims at the nearest enemies in range. levels: what each level after the first adds.
     pistol: { fireRateMs: 600, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1,
       levels: [{ bullets: 1 }, { bullets: 1 }, { bullets: 1 }],
-      muzzle: { distance: 30, scale: 2 }, // the flash's pivot (barrel tip) sits this many px from Bartek toward the target
-      shell: { distance: 12, offsetY: 8 } }, // where a shell starts: px toward the target, px down
+      // The gun's grip sits this far from Bartek's middle toward the target and offsetY px lower; the flash at its barrel tip.
+      gun: { distance: 22, offsetY: 8 } },
+    // Captain's shield: flies to the nearest enemy within range, bounces `bounces` times to the next nearest ones (not hit
+    // yet on this throw) within bounceRange, then flies back; each shield waits cooldownMs once it is back.
+    // unlockDamageTaken: the unlock (data/weapons.js) needs a won run with at least this much damage taken.
+    shield: { damage: 20, bounces: 2, shields: 1, cooldownMs: 1800, range: 380, bounceRange: 300, speed: 650, hitDist: 20,
+      size: 34, spinDegPerSec: 900, unlockDamageTaken: 500,
+      levels: [{ bounces: 1 }, { damage: 10 }, { shields: 1 }, { bounces: 2 }, { damage: 10 }, { shields: 1 }] },
   },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
     // Contact damage is low on purpose: the horde is meant to build up around Bartek, a single touch should not end the run.
-    zombie: { speed: 80, hp: 10, contactDamage: 6, appearsAtSec: 0, spawnWeight: 0.6 },
-    runner: { speed: 160, hp: 4, contactDamage: 6, appearsAtSec: 60, spawnWeight: 0.4 },
+    zombie: { speed: 92, hp: 10, contactDamage: 6, appearsAtSec: 0, spawnWeight: 0.6 },
+    runner: { speed: 160, hp: 4, contactDamage: 6, appearsAtSec: 45, spawnWeight: 0.4 },
     joker: { speed: 90, hp: 30, contactDamage: 12, appearsAtSec: 180, spawnWeight: 0.15 },
     homelander: { speed: 100, hp: 80, contactDamage: 20, appearsAtSec: 300, spawnWeight: 0.08 },
     // Comes as a pack of packMin-packMax from one point of the spawn ring, packSpread px apart.
-    goblin: { speed: 130, hp: 5, contactDamage: 6, appearsAtSec: 120, spawnWeight: 0.12, packMin: 3, packMax: 5, packSpread: 40 },
+    goblin: { speed: 130, hp: 5, contactDamage: 6, appearsAtSec: 90, spawnWeight: 0.12, packMin: 3, packMax: 5, packSpread: 40 },
     // Walks; every leapEverySec, with Bartek within leapRange, stops, flashes for warnMs and leaps where he stood.
     sportakus: { speed: 70, hp: 40, contactDamage: 15, appearsAtSec: 240, spawnWeight: 0.06,
       leapEverySec: 3, leapRange: 450, warnMs: 700, flashMs: 100, flashColor: 0xff0000, leapSpeed: 650 },
-    klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // 2.5x zombie speed
+    klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // about 2x zombie speed
   },
   // Bosses: a bigger copy of a regular enemy type (base), with its behavior. hpMult, speedMult, damageMult multiply the
   // base numbers, scale its size. atSec: when it walks in (banner and boss music bannerSec earlier). chest: upgrades in the
@@ -42,30 +48,32 @@ export const config = {
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
-  spawn: { startPerSec: 1.3, endPerSec: 14, curvePow: 0.9, hpPerMinutePct: 0.35, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
+  spawn: { startPerSec: 1.6, endPerSec: 14, curvePow: 0.9, hpPerMinutePct: 0.35, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
   wave: { everySec: 45, baseCount: 6, perWave: 10 }, // a ring of extra enemies all around Bartek, bigger each time
-  // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value. Sheets are 4 frames of 16x16.
+  // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value.
   // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
-  xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, perLevelSq: 0.6, gemFrameSize: 16, gemScale: 1.25, gemFps: 8,
+  // Drawn in BootScene, gemSize px: a polygon with `sides` corners (stretch: taller than wide), or `cut`: a cut gem
+  // (flat top, pointed bottom); facets in `dark`, an inner face in `light`, and a white sparkle.
+  xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, perLevelSq: 0.6, gemSize: 20,
     gems: {
-      green: { value: 1, file: './assets/Coin_Gems/spr_coin_strip4.png' },
-      blue: { value: 3, file: './assets/Coin_Gems/spr_coin_azu.png' },
-      yellow: { value: 5, file: './assets/Coin_Gems/spr_coin_ama.png' },
-      grey: { value: 10, file: './assets/Coin_Gems/spr_coin_gri.png' },
-      red: { value: 25, file: './assets/Coin_Gems/spr_coin_roj.png' },
+      green: { value: 1, sides: 4, stretch: 1.3, color: 0x43a047, dark: 0x1b5e20, light: 0xa5d6a7 },
+      blue: { value: 3, sides: 6, stretch: 1.1, color: 0x1e88e5, dark: 0x0d47a1, light: 0x90caf9 },
+      yellow: { value: 5, sides: 5, stretch: 1, color: 0xfdd835, dark: 0xf57f17, light: 0xfff9c4 },
+      grey: { value: 10, sides: 8, stretch: 1, color: 0x90a4ae, dark: 0x37474f, light: 0xeceff1 },
+      red: { value: 25, cut: true, color: 0xe53935, dark: 0x7f0000, light: 0xffcdd2 },
     },
     // Too many gems on the map: the oldest `count` (not coins, not already flying) merge into one worth their sum,
     // coloured as the most valuable kind not above it.
     merge: { above: 200, count: 40 },
   },
   // Protein coins: a rare drop from any killed enemy, collected like gems. Their protein is added at the end of the run.
-  // Sheets are 5 frames of 16x16. weight: how often each kind comes up when a coin drops.
+  // weight: how often each kind comes up when a coin drops. Drawn in BootScene, size px: a rim, a face, a dumbbell.
   coins: {
-    dropChance: 0.02, fps: 10,
+    dropChance: 0.02, size: 18,
     kinds: {
-      red: { protein: 1, weight: 0.75, file: './assets/Coin_Gems/MonedaR.png' },
-      silver: { protein: 3, weight: 0.2, file: './assets/Coin_Gems/MonedaP.png' },
-      gold: { protein: 10, weight: 0.05, file: './assets/Coin_Gems/MonedaD.png' },
+      red: { protein: 1, weight: 0.75, color: 0xe57373, dark: 0x8e2424, light: 0xffcdd2 },
+      silver: { protein: 3, weight: 0.2, color: 0xcfd8dc, dark: 0x546e7a, light: 0xffffff },
+      gold: { protein: 10, weight: 0.05, color: 0xffca28, dark: 0xa16800, light: 0xfff8e1 },
     },
   },
   run: { durationSec: 600 },
@@ -74,7 +82,7 @@ export const config = {
   debug: {
     resetSave: false, // true wipes the save on page load
     freeProtein: false, // true makes gym purchases free
-    pickupKey: true, // true: the P key drops a random pickup next to Bartek. shortcut: on for testing, set false before deploy
+    pickupKey: false, // true: the P key drops a random pickup next to Bartek
     tankKey: false, // true: the T key fills the tank bar at once
     klapaKey: false, // true: the K key launches a klapa at Bartek
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
@@ -82,6 +90,7 @@ export const config = {
     timeSkipKey: false, // true: the J key moves the run clock 60 s forward
     bossKey: false, // true: B, then a digit 1-4, calls that boss (in order of appearance) after its banner
     enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
+    giveWeapon: null, // a weapon id (e.g. 'shield'): unlocked in the save and given at the start of every run
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -120,10 +129,11 @@ export const config = {
       'Okulary? To do czytania etykiet odżywek.',
     ],
   },
-  // "Ul" upgrade: bees on an orbit (systems/orbit.js). Level 1 gives firstLevel bees, every next level perLevel more.
-  // While Bartek is a small B there are smallMult times more, on the smaller smallRadius.
-  bees: { firstLevel: 2, perLevel: 1, damage: 4, hitCooldownMs: 500, radius: 70, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
-    smallMult: 2, smallRadius: 42 },
+  // "Ul" upgrade: bees on an orbit (systems/orbit.js). Every card adds perLevel bees whatever its rarity; a rarer card
+  // adds damagePct * (rarity mult - 1) to the bees' damage instead. While Bartek is a small B there are smallMult times
+  // more, on the smaller smallRadius. On a hit the bee swells to hitScale for hitMs and the enemy gets the 'beeSting' effect.
+  bees: { perLevel: 1, damage: 4, damagePct: 0.5, hitCooldownMs: 500, radius: 70, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
+    smallMult: 2, smallRadius: 42, hitScale: 1.7, hitMs: 90 },
   // "Bartkowanie" card: a random effect from data/bartkowanie.js on every pick, no stack limit.
   bartkowanie: {
     weight: 0.5, durationSec: 5, damagePct: 0.2, allStatsPct: 0.01, protein: 5,
@@ -145,8 +155,7 @@ export const config = {
       // shortcut: music is WAV (~10 MB together), slow on a phone's first load; convert to OGG/MP3 before deploy.
       musicGameplay: { file: './assets/music/gameplay.wav', volume: 0.35 },
       musicGym: { file: './assets/music/gym.wav', volume: 0.35 },
-      musicBossIntro: { file: './assets/music/BossIntro.wav', volume: 0.4 },
-      musicBossMain: { file: './assets/music/BossMain.wav', volume: 0.4 },
+      musicBoss: { file: './assets/music/Boss.wav', volume: 0.4 },
       muchacho: { file: './assets/audio/muchacho.mp3', volume: 1 }, // optional
       levelUp: { file: './assets/sounds/level_up.wav', volume: 0.7 },
       pick: { file: './assets/sounds/pick.wav', volume: 0.4, minGapMs: 50 },
@@ -160,11 +169,11 @@ export const config = {
     music: {
       gameplay: { loop: 'musicGameplay' },
       gym: { loop: 'musicGym' },
-      boss: { intro: 'musicBossIntro', loop: 'musicBossMain' }, // also under the title once the logo has landed
+      boss: { loop: 'musicBoss' }, // also under the title once the logo has landed
     },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
-  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 12, shells: 30 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
+  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 12 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -174,52 +183,118 @@ export const config = {
     { id: 'legendary', name: 'Legendarna', mult: 3, color: 0xff9800, weight: 0.5, perLevel: 0.3 },
   ],
   upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
-  ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, buttonPadding: 12, lineGap: 56,
+  ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
     dimAlpha: 0.6, card: { count: 3, width: 260, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 22, textFontSize: 18,
       rarityBorderWidth: 5, rarityFontSize: 18 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
-    hud: { barWidth: 260, barHeight: 22, barGap: 8, barFontSize: 16, barBg: 0x333333, hpColor: 0xd03030, xpColor: 0x3a8dff,
-      tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65 },
+    // Every text uses this font (system fonts only, nothing to load). The title logo has its own.
+    font: '"Trebuchet MS", "Segoe UI", Roboto, Arial, sans-serif',
+    // Drawn UI (systems/ui.js): panels, bars and buttons with rounded corners and a drop shadow.
+    panel: { color: 0x14161c, alpha: 0.75, radius: 10, borderColor: 0xffffff, borderAlpha: 0.18, borderWidth: 2, shadow: 3, shadowAlpha: 0.4 },
+    bar: { radius: 6, bg: 0x000000, bgAlpha: 0.6, borderColor: 0x000000, borderWidth: 2, shineAlpha: 0.3 },
+    button: { fontSize: 28, padX: 28, padY: 12, radius: 12, shadow: 4, pressScale: 0.94, pressMs: 70,
+      color: 0x43a047, hover: 0x66bb6a, border: 0x1b5e20, text: '#ffffff', // primary: green
+      secondary: { color: 0xeceff1, hover: 0xffffff, border: 0x607d8b, text: '#1b1b1b' },
+      disabled: { color: 0x3a3a3a, hover: 0x3a3a3a, border: 0x222222, text: '#8a8a8a' } },
+    // Drawn icons (heart, skull, clock, gym upgrades), size x size px; shown at the size each place asks for.
+    icons: { size: 48, heart: 0xe53935, heartLight: 0xff8a80, skull: 0xeceff1, skullDark: 0x263238, clock: 0xfafafa, clockDark: 0x263238,
+      metal: 0xb0bec5, metalDark: 0x37474f, accent: 0xffc400 },
+    // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.
+    hud: { width: 330, padding: 10, rowHeight: 30, iconSize: 26, barWidth: 270, barHeight: 20, barGap: 8, barFontSize: 15,
+      levelFontSize: 15, hpColor: 0xe53935, xpColor: 0x3a8dff, tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65, levelColor: 0x1565c0,
+      // Top center clock pill and the top right stats (kills, protein from coins).
+      clock: { width: 150, height: 46, fontSize: 30, iconSize: 26 }, stat: { width: 140, height: 38, fontSize: 22, iconSize: 26, gap: 8 } },
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
     // Arrow at the screen edge toward the nearest pickup lying off screen.
     pickupArrow: { size: 22, margin: 30, color: 0xffcc00 },
-    // Active timed effects under the tank bar: icon and a bar of the time left.
-    effectHud: { iconSize: 28, barWidth: 60, barHeight: 8, gap: 6, color: 0xffcc00 },
-    // Icons of the weapons Bartek carries, bottom left, each with its level.
-    weaponHud: { size: 40, gap: 8, fontSize: 16 },
+    // Active timed effects under the HUD panel: icon, name, a bar of the time left.
+    effectHud: { width: 230, height: 38, iconSize: 28, barHeight: 6, gap: 6, fontSize: 15, color: 0xffcc00 },
+    // Weapon slots, bottom left (maxSlots, empty ones dimmed): icon with a level badge in its corner.
+    weaponHud: { size: 52, iconSize: 40, gap: 8, fontSize: 15, badgeRadius: 11, emptyAlpha: 0.35 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: 'Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 250, survivorsY: 410, dropMs: 450, gapMs: 600,
       shakeMs: 250, shakeIntensity: 0.02, pressBottom: 90, blinkMs: 600 },
-    bossBar: { y: 52, width: 600, height: 18, fontSize: 14, color: 0xd03030 },
+    bossBar: { y: 76, width: 600, height: 24, fontSize: 16, color: 0xd03030 }, // under the clock pill
     // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
     chest: { titleY: 110, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
       popScale: 1.08, popMs: 120, promptBottom: 60 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
-    banner: { y: 84, fontSize: 64, strokeThickness: 8, durationMs: 1500, subFontSize: 24, subStrokeThickness: 5 },
+    // Pickup, Bartkowanie and boss banners: big text with a line under it, on a panel, faded in and out.
+    banner: { y: 150, fontSize: 52, strokeThickness: 6, durationMs: 3200, fadeMs: 250, subFontSize: 26, subStrokeThickness: 4, padX: 30, padY: 14, gap: 6 },
     olxCard: { width: 420, height: 440, padding: 24, photoSize: 200, titleFontSize: 34, textFontSize: 20, bigFontSize: 38 },
     buttonOffsetX: 160, // two buttons side by side sit this far left and right of center
     gymPulse: { scale: 1.12, ms: 500 }, // game over gym button after the first run
-    gymScreen: { titleY: 50, proteinY: 110, top: 170, rowHeight: 80, nameX: 120, levelX: 820, costX: 930, buyX: 1090,
-      descFontSize: 16, quoteBottom: 110, definitionGap: 8, definitionColor: '#bbbbbb', disabledColor: '#777777', disabledBg: '#333333' },
+    // Gym: a row per upgrade (icon, name, description, level pips, cost, buy button), Bartek with a speech bubble under it.
+    // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
+    gymScreen: { titleY: 22, titleFontSize: 56, top: 104, rowWidth: 1040, rowHeight: 76, rowGap: 10, padding: 14, iconSize: 50,
+      nameFontSize: 24, descFontSize: 16, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipX: 610, pipColor: 0xffc400, pipEmpty: 0x37474f,
+      costX: 780, costFontSize: 22, costIconSize: 24, shortFontSize: 14, shortColor: '#ff8a80', maxColor: '#ffc400',
+      buyWidth: 150, buyHeight: 46, buyFontSize: 22, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
+      protein: { width: 230, height: 50, fontSize: 28, iconSize: 32 },
+      bartekHeight: 120, quoteFontSize: 20, quoteWidth: 560, quoteGap: 16, tail: 14, definitionColor: '#b0bec5', definitionFontSize: 16,
+      bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30 },
   },
-  // Animated effects from assets/effects (CC0). Only these are loaded; frames and timing come from each manifest.json.
+  // Effects drawn in code (systems/vfx.js), textures fx_* from textures.fx. minGapMs: an effect that fires in bursts
+  // plays at most once per this many ms. Each layer is
+  //   particles: { texture, count, speed: [min, max] px/s, lifeMs, scale: [start, end], alpha?: [start, end], tint (one or a
+  //                list to pick from), gravityY?, spin? (random start angle up to +-deg), add? (glow), angle?, spread? (deg) }
+  //   image:     { texture, scale: [from, to], alpha: [from, to], ms, tint?, add?, spinDeg?, ease?, origin? }
+  // playVfx's angle turns image layers and aims particles (angle is added to it, spread is the cone, 360 = all around).
   vfx: {
-    tier: 'lit/grid',
-    hitSpark: { path: 'impacts/hit-spark', scale: 0.5 }, // bullet hits an enemy
-    deathPoof: { path: 'impacts/death-poof', scale: 1 }, // enemy dies
-    bossBoom: { path: 'explosions/big-explosion', scale: 2 }, // a boss dies
-    // minGapMs: an effect that fires in bursts plays at most once per this many ms.
-    targetMark: { path: 'status/target-mark', scale: 1.5 }, // where the Sportakus will land
-    dashDust: { path: 'smoke/dash-dust', scale: 1.5 }, // the Sportakus takes off
-    gemPickup: { path: 'ui/gem-pickup', scale: 1, minGapMs: 80 },
-    coinPickup: { path: 'ui/coin-pickup', scale: 1, minGapMs: 80 },
-    starBurst: { path: 'ui/star-burst-pickup', scale: 3 }, // a legendary card appears, any pickup is taken
-    vacuumPull: { path: 'wind/vacuum-pull', scale: 2 }, // magnet pickup
-    frostNova: { path: 'ice/frost-nova', scale: 4 }, // freeze pickup
-    holyHeal: { path: 'holy/holy-heal', scale: 1.5 }, // pierogi
-    chestOpen: { path: 'ui/chest-open', scale: 2 }, // a boss chest opens
+    hitSpark: { layers: [ // bullet hits an enemy
+      { particles: { texture: 'fx_spark', count: 5, speed: [60, 170], lifeMs: 220, scale: [0.8, 0], tint: [0xffffff, 0xffe082], add: true } },
+      { image: { texture: 'fx_dot', scale: [1.5, 0.3], alpha: [0.9, 0], ms: 100, tint: 0xfff3b0, add: true } }] },
+    deathPoof: { layers: [ // enemy dies: grey puffs and green bits falling
+      { particles: { texture: 'fx_puff', count: 7, speed: [25, 80], lifeMs: 450, scale: [0.5, 1.2], alpha: [0.7, 0], tint: [0xbdbdbd, 0x9e9e9e] } },
+      { particles: { texture: 'fx_dot', count: 6, speed: [80, 180], lifeMs: 420, scale: [0.9, 0], tint: [0x9ccc65, 0x689f38], gravityY: 350 } }] },
+    bossBoom: { layers: [ // a boss dies
+      { image: { texture: 'fx_rays', scale: [0.5, 3.5], alpha: [1, 0], ms: 800, tint: 0xffc400, add: true, spinDeg: 45 } },
+      { image: { texture: 'fx_ring', scale: [0.3, 5], alpha: [1, 0], ms: 650, tint: 0xff6d00 } },
+      { particles: { texture: 'fx_puff', count: 24, speed: [80, 300], lifeMs: 900, scale: [1, 2.5], alpha: [0.9, 0], tint: [0xff6d00, 0xffc400, 0x424242] } },
+      { particles: { texture: 'fx_spark', count: 20, speed: [200, 500], lifeMs: 600, scale: [1.2, 0], tint: 0xffe082, add: true } }] },
+    targetMark: { layers: [ // where the Sportakus will land, lasts about his warnMs
+      { image: { texture: 'fx_target', scale: [2, 1], alpha: [0.3, 1], ms: 700, tint: 0xff1744, spinDeg: 90, ease: 'Sine.easeInOut' } }] },
+    dashDust: { layers: [ // the Sportakus takes off
+      { particles: { texture: 'fx_puff', count: 10, speed: [40, 120], lifeMs: 420, scale: [0.4, 1.1], alpha: [0.6, 0], tint: 0xd7ccc8 } }] },
+    gemPickup: { minGapMs: 80, layers: [
+      { particles: { texture: 'fx_spark', count: 4, speed: [40, 90], lifeMs: 260, scale: [0.6, 0], tint: [0xffffff, 0x80deea], add: true } }] },
+    coinPickup: { minGapMs: 80, layers: [
+      { particles: { texture: 'fx_star', count: 5, speed: [60, 130], lifeMs: 420, scale: [0.6, 0], tint: 0xffd54f, gravityY: -80 } },
+      { image: { texture: 'fx_ring', scale: [0.2, 0.9], alpha: [1, 0], ms: 300, tint: 0xffd54f } }] },
+    starBurst: { layers: [ // a legendary card appears, any pickup is taken
+      { image: { texture: 'fx_rays', scale: [0.4, 2.2], alpha: [1, 0], ms: 650, tint: 0xfff176, add: true, spinDeg: 60 } },
+      { particles: { texture: 'fx_star', count: 10, speed: [100, 260], lifeMs: 650, scale: [0.8, 0], tint: [0xffeb3b, 0xffffff], spin: 180 } }] },
+    vacuumPull: { layers: [ // magnet pickup: two rings pulling in
+      { image: { texture: 'fx_ring', scale: [6, 0.3], alpha: [0, 0.9], ms: 550, tint: 0xe57373, ease: 'Cubic.easeIn' } },
+      { image: { texture: 'fx_ring', scale: [4, 0.2], alpha: [0, 0.9], ms: 450, tint: 0xcfd8dc, ease: 'Cubic.easeIn' } }] },
+    frostNova: { layers: [ // freeze pickup
+      { image: { texture: 'fx_ring', scale: [0.3, 9], alpha: [1, 0], ms: 650, tint: 0x81d4fa } },
+      { particles: { texture: 'fx_flake', count: 16, speed: [150, 400], lifeMs: 750, scale: [1.2, 0.4], tint: [0xe1f5fe, 0x81d4fa], spin: 180 } }] },
+    holyHeal: { layers: [ // pierogi: green pluses rising
+      { image: { texture: 'fx_ring', scale: [0.5, 2.2], alpha: [0.8, 0], ms: 500, tint: 0xfff59d } },
+      { particles: { texture: 'fx_plus', count: 8, speed: [20, 70], angle: -90, spread: 140, gravityY: -120, lifeMs: 850, scale: [0.9, 0.3], tint: 0x69f0ae } }] },
+    metalClang: { minGapMs: 40, layers: [ // the Captain's shield bounces off an enemy
+      { particles: { texture: 'fx_spark', count: 6, speed: [120, 260], lifeMs: 200, scale: [0.8, 0], tint: [0xffffff, 0xb0bec5, 0xffd54f], add: true } },
+      { image: { texture: 'fx_star', scale: [1.4, 0.2], alpha: [1, 0], ms: 140, add: true, spinDeg: 40 } }] },
+    chestOpen: { layers: [ // a boss chest opens
+      { image: { texture: 'fx_rays', scale: [0.3, 2.6], alpha: [1, 0], ms: 850, tint: 0xffc400, add: true, spinDeg: 90 } },
+      { particles: { texture: 'fx_star', count: 14, speed: [80, 240], angle: -90, spread: 160, gravityY: 300, lifeMs: 900, scale: [0.8, 0.2],
+        tint: [0xffd54f, 0xffffff, 0x40c4ff], spin: 180 } }] },
+    pumpRise: { layers: [ // pre-workout: chevrons rising off Bartek
+      { particles: { texture: 'fx_chevron', count: 1, speed: [50, 90], angle: -90, spread: 10, lifeMs: 650, scale: [1, 0.6], alpha: [1, 0],
+        tint: [0xff9100, 0xffc400, 0xffffff], add: true, depth: 1.1 } }] },
+    beeSting: { minGapMs: 30, layers: [ // a bee stings an enemy: yellow sparks and a small ring
+      { particles: { texture: 'fx_spark', count: 6, speed: [80, 190], lifeMs: 260, scale: [1, 0], tint: [0xffd400, 0xffffff], add: true } },
+      { image: { texture: 'fx_ring', scale: [0.15, 0.7], alpha: [1, 0], ms: 200, tint: 0xffd400 } }] },
+    // Pistol shot, played at the barrel tip turned at the target; the shell is played with angle +-30 (away from the aim).
+    muzzleFlash: { layers: [
+      { image: { texture: 'fx_flash', origin: [0, 0.5], scale: [1, 0.6], alpha: [1, 0], ms: 80, ease: 'Linear' } },
+      { particles: { texture: 'fx_dot', count: 3, speed: [80, 200], spread: 30, lifeMs: 120, scale: [0.6, 0], tint: 0xffe082, add: true } }] },
+    shell: { layers: [
+      { particles: { texture: 'fx_shell', count: 1, speed: [70, 120], angle: -90, spread: 30, gravityY: 600, lifeMs: 450, scale: [1, 1],
+        alpha: [1, 0], tint: 0xffffff, spin: 180, depth: 0.5 } }] }, // depth: under Bartek (layers default to 1.6, over him)
   },
   // Texture sizes in px. Images: `height` is the on-screen height, width follows the image, bodyRadius is on-screen too.
   textures: {
@@ -236,20 +311,26 @@ export const config = {
     chest: { width: 44, height: 34, lidHeight: 12, color: 0x8d5524, lidColor: 0x6d3f17, bandColor: 0xffc400, bandWidth: 5, lockSize: 10 },
     klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
-    bee: { radius: 7, color: 0xffd400, stripeWidth: 3, stripeColor: 0x000000 },
+    // Bee facing right (it turns along its orbit): striped body, two wings, a stinger at the back.
+    bee: { width: 24, height: 20, color: 0xffd400, stripeColor: 0x1b1b1b, wingColor: 0xffffff, wingAlpha: 0.75 },
     pickup: { size: 22, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },
     // Drawn auras around Bartek while a pickup's effect lasts. front: drawn over him, else under.
     // The aura pulses between 1 and pulseScale every pulseMs and turns spinDegPerSec.
+    // vfx (optional): a config.vfx id played every everyMs at a random point up to spread px around Bartek.
     auras: {
       bubble: { radius: 62, color: 0x4dd0e1, fillAlpha: 0.18, lineWidth: 3, front: true, pulseScale: 1.05, pulseMs: 500, spinDegPerSec: 0 },
-      rage: { radius: 46, spikes: 12, spikeLength: 26, color: 0xff3d00, tipColor: 0xffc400, fillAlpha: 0.2, front: false,
-        pulseScale: 1.15, pulseMs: 180, spinDegPerSec: 90 },
+      // Pre-workout: a warm glow and a ring under Bartek, with orange chevrons rising off him (a boost, not a hazard).
+      rage: { radius: 58, ringRadius: 44, color: 0xff9100, ringColor: 0xffc400, glowAlpha: 0.1, ringWidth: 3, front: false,
+        pulseScale: 1.08, pulseMs: 300, spinDegPerSec: 0, vfx: { id: 'pumpRise', everyMs: 110, spread: 34 } },
     },
     // Drawn icons of the timed pickups, size x size px.
     pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
-    // Muzzle flashes and shells (CC0): a TexturePacker atlas; each frame's anchor is the barrel tip.
-    muzzle: { image: './assets/muzzle-flash-pixel-fx-v1/sheets/fx-muzzle.png', atlas: './assets/muzzle-flash-pixel-fx-v1/sheets/fx-muzzle.atlas.json' },
+    // Effect shapes (systems/vfx.js), radius in px (flash: width and height, shell: height, twice as long).
+    fx: { dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9 },
+    // The pistol Bartek holds, drawn pointing right: width x height px, held at grip (fraction of the size).
+    gun: { width: 28, height: 15, grip: [0.3, 0.5], slide: 0x455a64, slideLight: 0x90a4ae, frame: 0x263238, handle: 0x6d4c41, handleLight: 0x8d6e63 },
+    captainShield: { file: './assets/captain_shield.png' }, // 50x50 pixel art, also the shield's HUD icon
     // Drawn weapon icons for the HUD, size x size px.
     weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41 },
     tank: { height: 110, bodyRadius: 45 }, // czołg.png: Bartek in a tank, barrel to the left

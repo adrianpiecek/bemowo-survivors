@@ -2,12 +2,14 @@ import { config } from '../config.js';
 
 // Permanent upgrades bought with protein. `stats` is run.player before the in-run upgrades,
 // `level` is how many levels were bought (1..maxLevel). Numbers live in config.gym.
+// icon: texture drawn in BootScene (drawIcons).
 const g = config.gym;
 const pct = (x) => `${Math.round(x * 100)}%`;
 
 export const gymUpgrades = [
   {
     id: 'chest',
+    icon: 'gym_chest',
     name: 'Klata',
     description: `+${pct(g.chest.damagePct)} obrażeń na poziom`,
     maxLevel: g.chest.maxLevel,
@@ -16,6 +18,7 @@ export const gymUpgrades = [
   },
   {
     id: 'legs',
+    icon: 'gym_legs',
     name: 'Nogi',
     description: `+${pct(g.legs.speedPct)} szybkości ruchu na poziom`,
     maxLevel: g.legs.maxLevel,
@@ -24,6 +27,7 @@ export const gymUpgrades = [
   },
   {
     id: 'back',
+    icon: 'gym_back',
     name: 'Plecy',
     description: `+${g.back.maxHp} max HP na poziom`,
     maxLevel: g.back.maxLevel,
@@ -32,6 +36,7 @@ export const gymUpgrades = [
   },
   {
     id: 'glasses',
+    icon: 'gym_glasses',
     name: 'Okulary do czytania',
     description: `+${pct(g.glasses.rangePct)} zasięgu pistoletu i magnesu na poziom`,
     maxLevel: g.glasses.maxLevel,
@@ -43,6 +48,7 @@ export const gymUpgrades = [
   },
   {
     id: 'warmup',
+    icon: 'gym_warmup',
     name: 'Rozgrzewka 15 minut',
     description: `Przez pierwsze ${g.warmup.durationSec} s ${pct(g.warmup.speedPct)} szybkości, potem +${pct(g.warmup.damagePct)} obrażeń`,
     maxLevel: g.warmup.maxLevel,
