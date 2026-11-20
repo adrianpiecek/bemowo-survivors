@@ -10,6 +10,7 @@ import ChestScene from './scenes/ChestScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
 import GymScene from './scenes/GymScene.js';
 import SettingsScene from './scenes/SettingsScene.js';
+import PlanScene from './scenes/PlanScene.js';
 
 applyLayout(); // portrait or landscape from the save, before the game size is read
 const game = new Phaser.Game({
@@ -19,7 +20,7 @@ const game = new Phaser.Game({
   backgroundColor: config.game.background,
   scale: { parent: 'game', mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { debug: false } },
-  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, GameOverScene, GymScene, SettingsScene], // SettingsScene last: drawn over the rest
+  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, GameOverScene, GymScene, PlanScene, SettingsScene], // SettingsScene last: drawn over the rest
 });
 
 // M mutes and unmutes in every scene; the choice is kept in the save.

@@ -4,6 +4,7 @@ import { save, writeSave, gymLevel } from '../state.js';
 import { playMusic, playSfx } from '../systems/audio.js';
 import { font, panel, drawPanel, button } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
+import { startRun } from './PlanScene.js';
 
 // Between runs: spend protein on permanent upgrades, then start the next run.
 // A purchase restarts the scene with { bought, cost }, so the new pip pops and the cost floats up from the protein.
@@ -106,7 +107,7 @@ export default class GymScene extends Phaser.Scene {
       fontStyle: 'italic', color: gs.definitionColor, wordWrap: { width: gs.quoteWidth + gs.padding * 2 },
     }));
 
-    const go = () => this.scene.start('GameScene');
+    const go = () => startRun(this); // the plan screen first
     const goX = gs.goRight ? x0 + totalW - gs.goWidth / 2 : cx;
     button(this, goX, height - gs.bottom - gs.goHeight / 2, 'Na Bemowo!', go, {
       width: gs.goWidth, height: gs.goHeight, fontSize: gs.goFontSize,

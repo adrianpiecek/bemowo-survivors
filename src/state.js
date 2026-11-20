@@ -78,6 +78,10 @@ export function newRun() {
     upgrades: {}, // upgrade id -> how many times taken
     banished: [], // card ids thrown out with Wywal: never drawn again this run
     evolutions: [], // evolution ids this run (save.evolutions gets the new ones at the end)
+    plan: null, // the training plan picked for this run (data/plans.js), null on the very first run
+    commonOnly: false, // plan Trening z Unc: every card is common
+    weightMult: {}, // card id -> draw weight multiplier (plan Bartkowanie)
+    enemyHpMult: 1, // plan Lenistwo: walking enemies' HP
     weapons: [], // the weapons Bartek carries: { def, level, ... }, see data/weapons.js
     passives: [], // the passives Bartek carries: { def, level }, see data/passives.js
   };
@@ -110,9 +114,10 @@ function freshSave() {
   return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, orientation: 'portrait', evolutions: [], runsPlayed: 0, stats: freshStats() };
 }
 
-// Totals over all runs, for the passives' unlocks. Added in GameOverScene.
+// Totals over all runs, for the passives' and plans' unlocks. Added in GameOverScene.
+// bartkowanie: Bartkowanie cards picked; earlyDeaths: runs lost before config.plans.lazy.earlyDeathSec.
 function freshStats() {
-  return { pierogi: 0, damageTaken: 0, goldCoins: 0, maxLevel: 0 };
+  return { pierogi: 0, damageTaken: 0, goldCoins: 0, maxLevel: 0, bartkowanie: 0, earlyDeaths: 0 };
 }
 
 // Unreadable save (corrupt JSON, private mode, blocked storage) gives a fresh one, never an error.

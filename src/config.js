@@ -140,6 +140,7 @@ export const config = {
     giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
     givePassives: null, // a list of passive ids (e.g. ['ticket', 'dumbbells']): unlocked in the save and given at level 1 every run
     drawCharges: null, // a number: every run starts with this many Odśwież, Pomiń and Wywal (gym included)
+    forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
     evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
@@ -232,6 +233,19 @@ export const config = {
   // Level-up draw control, charges per run at the start (the gym's Plan dnia adds more): Odśwież draws new cards,
   // Pomiń takes nothing and heals skipHeal HP, Wywal takes a card out of the pool for the rest of the run.
   draw: { rerolls: 2, skips: 2, banishes: 1, skipHeal: 15 },
+  // Training plans (data/plans.js), `cards` of the unlocked ones offered before a run (PlanScene). Pct: a share of the
+  // value after the gym (negative: a minus); fireRatePct changes shots per second (cooldown divided by 1 + it).
+  plans: {
+    cards: 3,
+    chestDay: { damagePct: 0.2, speedPct: -0.15 },
+    cardio: { speedPct: 0.2, maxHp: -20 },
+    bulk: { maxHp: 40, fireRatePct: -0.1 },
+    cut: { fireRatePct: 0.25, maxHp: -30 },
+    legDay: { magnetMult: 2, xpPct: 0.1, damagePct: -0.1 },
+    unc: { rerolls: 2, banishes: 2, unlockMaxedPassives: 3 },
+    bartkowanie: { weightMult: 3, unlockPicks: 10 },
+    lazy: { xpPct: 0.3, enemyHpPct: 0.15, earlyDeathSec: 120, unlockEarlyDeaths: 3 },
+  },
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
     dimAlpha: 0.6, card: { count: 3, row: false, width: 600, height: 230, gap: 44, hintFontSize: 20, hintColor: '#ffc400', evolutionColor: 0xffc400, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
       rarityBorderWidth: 5, rarityFontSize: 22 },
@@ -267,6 +281,9 @@ export const config = {
     // Odśwież / Pomiń / Wywal under the level-up cards, `top` px under the lowest card; the key hint line under them.
     drawButtons: { width: 200, height: 64, gap: 20, top: 40, fontSize: 24, hintFontSize: 18, hintGap: 14, hintColor: '#b0bec5',
       banishColor: '#ff5252', banishBorder: 0xff5252 },
+    // Plan screen: the title at titleY, the plan cards where the level-up cards go (card size), plus and minus lines.
+    planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12,
+      gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
       valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
       barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 56 },
@@ -317,6 +334,7 @@ export const config = {
         title: { bemowoY: 250, survivorsY: 410, pressBottom: 90 },
         bossBar: { y: 76 },
         chest: { titleY: 110 },
+        planScreen: { titleY: 60, lineFontSize: 17 },
         banner: { y: 150 },
         gymScreen: { titleY: 22, top: 104, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, rowHeight: 128, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30 },

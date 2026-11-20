@@ -251,6 +251,14 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 | Bartkowanie | Bartkowanie 3x częściej, start z losową pasywką | brak | wypadnij 10 razy na Bartkowanie |
 | Lenistwo | +30% XP | wrogowie +15% HP | zgiń przed 2:00 trzy razy |
 
+**Jak działa (krok 33):**
+- Liczby w `config.plans`, wygląd ekranu w `config.ui.planScreen`. Plan to `{ id, name, plus, minus, unlock, apply(player, run), passive? }`; `passive` to id pasywki na start albo `'random'` (losowa odblokowana).
+- Każde wejście do rundy (siłownia, „Jeszcze raz”) idzie przez `startRun` z `PlanScene.js`: przy `save.runsPlayed` 0 prosto do gry, potem przez ekran planów. Wybór kliknięciem albo klawiszami 1-3.
+- Plan działa po siłowni, przed kartami rundy (`GameScene.create`). Run-owe przełączniki: `run.commonOnly` (Unc), `run.weightMult` (Bartkowanie), `run.enemyHpMult` (Lenistwo, tylko zwykli wrogowie, nie bossowie).
+- Odblokowania sprawdzane na końcu rundy razem z bronią i pasywkami, trzymane w `save.unlocks`. Liczniki w `save.stats`: `bartkowanie` (wybrane karty Bartkowanie, za odblokowanie liczy się wybór karty) i `earlyDeaths` (przegrane przed 2:00).
+- Ekran końca gry pokazuje „Plan: …” i „Nowy plan treningowy: …!”.
+- Debug: `config.debug.forcePlan = 'id'` pomija ekran planów i każdą rundę poza pierwszą zaczyna z tym planem (odblokowuje go w zapisie).
+
 ### 5. Elity i wydarzenia rundy (krok 34, z Halls of Torment i VS)
 
 - **Elity.** Co `config.elites.everySec` jeden zwykły wróg staje się elitą z losową cechą (`src/data/elites.js`). Elita ma większe HP, kolorową obwódkę i nazwę cechy nad głową, a po śmierci zostawia **małą skrzynię** (1 karta albo ewolucja). Cechy:

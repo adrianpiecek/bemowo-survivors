@@ -36,6 +36,7 @@ src/data/upgrades.js     tablica ulepszeń jako dane
 src/data/enemies.js      typy wrogów jako dane (od kroku 15)
 src/data/pickups.js      znajdźki jako dane (od kroku 12)
 src/data/gym.js          ulepszenia siłowni jako dane (od kroku 11)
+src/data/plans.js        plany treningowe jako dane (od kroku 33)
 src/systems/             wspólne mechaniki: efekty czasowe, orbita, efekty wizualne rysowane w kodzie (vfx.js) itp.
 src/systems/ui.js        wspólny wygląd UI: font, panele, paski, przyciski
 src/scenes/BootScene.js
@@ -46,6 +47,7 @@ src/scenes/GameOverScene.js
 src/scenes/GymScene.js   (od kroku 11)
 src/scenes/SettingsScene.js pauza i głośność
 src/scenes/ChestScene.js (od kroku 26, skrzynia po bossie)
+src/scenes/PlanScene.js  (od kroku 33, wybór planu przed rundą)
 src/scenes/TitleScene.js (od kroku 19)
 assets/audio/            (od kroku 19)
 docs/mvp.md

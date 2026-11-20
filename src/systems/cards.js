@@ -12,6 +12,7 @@ export function rollRarity(up, run) {
   if (up.rarity === false) return null;
   const tiers = config.rarity, forced = tiers.find((t) => t.id === config.debug.forceRarity);
   if (forced) return forced;
+  if (run.commonOnly) return tiers[0]; // plan Trening z Unc
   const weight = (t, i) => (t.weight + t.perLevel * (run.level - 1)) * (i > 0 ? run.player.luck : 1);
   let roll = Math.random() * tiers.reduce((sum, t, i) => sum + weight(t, i), 0);
   return tiers.find((t, i) => (roll -= weight(t, i)) < 0) ?? tiers[0];
@@ -90,7 +91,7 @@ export function passiveCards(run) {
 export function drawUpgrades(run, count, exclude = []) {
   const pool = [...upgrades.filter((up) => (run.upgrades[up.id] ?? 0) < up.maxStack), ...weaponCards(run), ...passiveCards(run)]
     .filter((up) => !run.banished.includes(up.id) && !exclude.includes(up.id));
-  const weight = (up) => up.weight ?? 1;
+  const weight = (up) => (up.weight ?? 1) * (run.weightMult[up.id] ?? 1); // weightMult: plan Bartkowanie
   const picked = [];
   while (picked.length < count && pool.length) {
     let roll = Math.random() * pool.reduce((sum, up) => sum + weight(up), 0);

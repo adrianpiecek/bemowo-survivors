@@ -3,6 +3,8 @@ import { formatTime, proteinForRun, save, writeSave } from '../state.js';
 import { stopMusic } from '../systems/audio.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
+import { plans } from '../data/plans.js';
+import { startRun } from './PlanScene.js';
 import { button } from '../systems/ui.js';
 
 export default class GameOverScene extends Phaser.Scene {
@@ -21,9 +23,11 @@ export default class GameOverScene extends Phaser.Scene {
     st.damageTaken += r.damageTaken;
     st.goldCoins += r.goldCoins;
     st.maxLevel = Math.max(st.maxLevel, r.level);
+    st.bartkowanie += r.upgrades.bartkowanie ?? 0;
+    if (!this.won && r.elapsedMs < config.plans.lazy.earlyDeathSec * 1000) st.earlyDeaths++;
     // One at a time, in list order, so the shield (last weapon) already sees the others unlocked by this same run.
     this.newUnlocks = [];
-    for (const def of [...weapons, ...passives]) {
+    for (const def of [...weapons, ...passives, ...plans]) {
       if (!def.unlock || save.unlocks.includes(def.id) || !def.unlock.check(this.run, this.won)) continue;
       save.unlocks.push(def.id);
       this.newUnlocks.push(def);
@@ -44,6 +48,8 @@ export default class GameOverScene extends Phaser.Scene {
       : ['Tu spoczywa Bartosz', '(Bartłomiej)'];
     this.add.text(cx, cy - u.lineGap * 2, title, { fontFamily: config.ui.font, fontSize: `${u.titleFontSize}px` }).setOrigin(0.5);
     this.add.text(cx, cy - u.lineGap, subtitle, { fontFamily: config.ui.font, fontSize: `${u.subtitleFontSize}px`, color: '#aaaaaa' }).setOrigin(0.5);
+    const ps = u.planScreen;
+    if (r.plan) this.add.text(cx, cy - u.lineGap * 3, `Plan: ${r.plan.name}`, { fontFamily: config.ui.font, fontSize: `${ps.gameOverFontSize}px`, color: ps.gameOverColor }).setOrigin(0.5);
     this.add.text(cx, cy, `Czas: ${formatTime(r.elapsedMs)}   Zabici: ${r.kills}   Poziom: ${r.level}`, {
       fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`,
     }).setOrigin(0.5);
@@ -55,7 +61,7 @@ export default class GameOverScene extends Phaser.Scene {
     // GameScene.create() calls newRun(), so restarting it gives a clean run.
     const buttons = [['Siłownia', 'GymScene', -u.buttonOffsetX], ['Jeszcze raz', 'GameScene', u.buttonOffsetX]];
     for (const [label, scene, dx] of buttons) {
-      const btn = button(this, cx + dx, cy + u.lineGap * 2, label, () => this.scene.start(scene), {
+      const btn = button(this, cx + dx, cy + u.lineGap * 2, label, () => (scene === 'GameScene' ? startRun(this) : this.scene.start(scene)), {
         fontSize: u.buttonFontSize, variant: scene === 'GymScene' ? 'secondary' : 'primary',
       });
       // After the very first run (which skipped the gym) the gym button pulses, so the player finds where protein goes.
@@ -64,10 +70,11 @@ export default class GameOverScene extends Phaser.Scene {
       }
     }
     // Weapons and passives unlocked by this run (from now on they can drop as cards) and evolutions seen for the first time.
-    const lines = [];
-    if (this.newUnlocks.length) {
-      lines.push(`Odblokowane: ${this.newUnlocks.map((d) => d.name).join(', ')}! ${this.newUnlocks.length > 1 ? 'Mogą teraz wypaść jako karty.' : 'Może teraz wypaść jako karta.'}`);
+    const lines = [], newPlans = this.newUnlocks.filter((d) => plans.includes(d)), newCards = this.newUnlocks.filter((d) => !plans.includes(d));
+    if (newCards.length) {
+      lines.push(`Odblokowane: ${newCards.map((d) => d.name).join(', ')}! ${newCards.length > 1 ? 'Mogą teraz wypaść jako karty.' : 'Może teraz wypaść jako karta.'}`);
     }
+    if (newPlans.length) lines.push(`Nowy plan treningowy: ${newPlans.map((d) => d.name).join(', ')}!`);
     if (this.newEvolutions.length) lines.push(`Nowa ewolucja: ${this.newEvolutions.map((e) => e.name).join(', ')}!`);
     if (lines.length) {
       this.add.text(cx, cy + u.lineGap * 3, lines.join('\n'), {

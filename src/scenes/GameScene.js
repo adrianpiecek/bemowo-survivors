@@ -4,6 +4,7 @@ import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
+import { plans } from '../data/plans.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { updateLeaper } from '../systems/charge.js';
 import { playVfx } from '../systems/vfx.js';
@@ -14,8 +15,16 @@ import { openSettings } from './SettingsScene.js';
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
 
-  create() {
+  // data.plan: the training plan id picked in PlanScene (none on the very first run).
+  create(data = {}) {
     this.run = newRun();
+    // The plan goes after the gym (in newRun) and before any card of the run.
+    const plan = plans.find((p) => p.id === data.plan);
+    if (plan) {
+      this.run.plan = plan;
+      plan.apply(this.run.player, this.run);
+      this.run.player.hp = this.run.player.maxHp;
+    }
     playMusic(this, 'gameplay');
     const { width, height } = this.scale;
     const cam = this.cameras.main;
@@ -65,6 +74,12 @@ export default class GameScene extends Phaser.Scene {
         writeSave(save);
       }
       this.gainPassive(def);
+    }
+    // A plan's starting passive: a set one, or a random unlocked one ('random').
+    if (plan?.passive) {
+      const open = passives.filter((d) => (!d.unlock || save.unlocks.includes(d.id)) && !this.run.passives.some((p) => p.def === d));
+      const def = plan.passive === 'random' ? Phaser.Utils.Array.GetRandom(open) : passives.find((d) => d.id === plan.passive);
+      if (def) this.gainPassive(def);
     }
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
 
@@ -472,7 +487,7 @@ export default class GameScene extends Phaser.Scene {
     z.charge = null; // a pooled sprite may have died mid-leap
     z.leapMs = 0;
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
-    z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000);
+    z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000) * this.run.enemyHpMult;
     this.run.spawned++;
     if (def.behavior === 'line') {
       z.startX = x;
