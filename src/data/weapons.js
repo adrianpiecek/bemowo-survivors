@@ -71,6 +71,7 @@ export const weapons = [
         b.enableBody(true, tx, ty, true, true);
         b.setScale(area); // the circle body scales with the sprite
         b.damage = scene.weaponDamage(p.bulletDamage * (w.evolved ? p.evolution.damagePct : 1));
+        b.source = w; // whose damage it is, for the end screen
         b.pierce = w.evolved ? p.evolution.pierce : 0; // enemies it still goes through (GameScene.onBulletHit)
         b.lastHit = null;
         b.maxDist = Infinity; // only shotgun pellets fly a set distance
@@ -125,6 +126,7 @@ export const weapons = [
         b.enableBody(true, tx, ty, true, true);
         b.setScale(scene.weaponArea(sg.pelletScale));
         b.damage = scene.weaponDamage(w.damage);
+        b.source = w;
         b.pierce = w.evolved ? sg.evolution.pierce : 0;
         b.lastHit = null;
         // Even fan over the spread, a little jitter so the pellets do not look lined up.
@@ -254,6 +256,7 @@ export const weapons = [
       w.bees = bz.bees;
       w.damage = bz.damage;
       w.orbit = createOrbit(scene, {
+        source: w, // its hits count for this weapon on the end screen
         texture: 'bee', maxSize: config.pools.bees, damage: () => scene.weaponDamage(w.damage), hitCooldownMs: bz.hitCooldownMs,
         vfx: 'beeSting', hitScale: bz.hitScale, hitMs: bz.hitMs, faceTravel: true,
         onKill: (z) => { if (w.evolved && Math.random() < bz.evolution.pierogiChance) scene.dropPickupById('pierogi', z.x, z.y); },
@@ -331,6 +334,7 @@ export const weapons = [
     create(scene, w) {
       Object.assign(w, { damage: ax.damage, axes: ax.axes, radius: ax.radius, dir: 1, flipMs: 0 });
       w.orbit = createOrbit(scene, {
+        source: w, // its hits count for this weapon on the end screen
         texture: 'axe', maxSize: config.pools.axes, damage: () => scene.weaponDamage(w.damage), hitCooldownMs: ax.hitCooldownMs, vfx: 'metalClang',
         onHit: () => {
           if (w.flipMs > 0) return;

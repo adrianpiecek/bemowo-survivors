@@ -58,6 +58,18 @@ export function setVolume(kind, value) {
   if (kind === 'musicVolume') music?.sounds.forEach((s) => { s.volume = s.baseVolume * save.musicVolume; });
 }
 
+// The pause: sound effects still playing stop where they are and go on from there when the run resumes; the music plays on.
+let pausedSfx = [];
+export function pauseSfx(scene) {
+  const tracks = music?.sounds ?? [];
+  pausedSfx = scene.sound.getAllPlaying().filter((s) => !tracks.includes(s));
+  pausedSfx.forEach((s) => s.pause());
+}
+export function resumeSfx() {
+  pausedSfx.forEach((s) => s.resume());
+  pausedSfx = [];
+}
+
 // M key: mute or unmute everything, remembered in the save.
 export function toggleMute(game) {
   save.muted = !save.muted;

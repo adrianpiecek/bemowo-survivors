@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter, addCardHint } from '../systems/cards.js';
+import { rollRarity, drawUpgrades, applyUpgrade, cardCenter, makeCard } from '../systems/cards.js';
 import { font, button } from '../systems/ui.js';
 import { playSfx } from '../systems/audio.js';
 
@@ -23,25 +23,12 @@ export default class ShopScene extends Phaser.Scene {
       fontStyle: 'bold', color: sh.titleColor, stroke: '#000000', strokeThickness: u.chest.strokeThickness,
     })).setOrigin(0.5);
 
-    const wrap = { align: 'center', wordWrap: { width: c.width - 2 * u.margin } }, choices = drawUpgrades(this.run, z.cards);
+    const choices = drawUpgrades(this.run, z.cards);
     this.items = choices.map((up, i) => {
       const rarity = rollRarity(up, this.run), price = z.prices[rarity?.id ?? 'none'];
-      const { x, y } = cardCenter(this, i, choices.length), top = y - c.height / 2;
-      const card = this.add.rectangle(x, y, c.width, c.height, c.color)
-        .setStrokeStyle(rarity ? c.rarityBorderWidth : c.borderWidth, rarity?.color ?? c.borderColor)
-        .setInteractive({ useHandCursor: true }).on('pointerdown', () => this.buy(i));
-      const parts = [card];
-      if (rarity) {
-        parts.push(this.add.text(x, top - u.margin / 2, rarity.name.toUpperCase(), font(c.rarityFontSize, { fontStyle: 'bold', color: rarityHex(rarity) }))
-          .setOrigin(0.5, 1));
-      }
-      const name = this.add.text(x, top + u.margin, up.name, font(c.nameFontSize, wrap)).setOrigin(0.5, 0);
-      const desc = this.add.text(x, y, describe(up, rarity), font(c.textFontSize, wrap)).setOrigin(0.5);
-      const foot = this.add.text(x, top + c.height - u.margin, `${price} białka [${i + 1}]`, font(u.hudFontSize, { fontStyle: 'bold' })).setOrigin(0.5, 1);
-      addCardHint(this, up, x, name, desc, foot.y - foot.height);
-      parts.push(name, desc);
+      const card = makeCard(this, i, choices.length, () => this.buy(i)).fill(up, rarity, `${price} białka [${i + 1}]`);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.buy(i));
-      return { up, rarity, price, foot, parts, bought: false };
+      return { up, rarity, price, card, foot: card.foot, bought: false };
     });
 
     // Wyjdź under the lowest card (where the level up has its buttons), the coins left under it.
@@ -61,7 +48,7 @@ export default class ShopScene extends Phaser.Scene {
     this.items.forEach((it, i) => {
       if (it.bought) {
         it.foot.setText('KUPIONE').setColor(sh.boughtColor);
-        it.parts.forEach((p) => p.setAlpha(sh.boughtAlpha));
+        it.card.setAlpha(sh.boughtAlpha);
       } else {
         it.foot.setText(`${it.price} białka [${i + 1}]`).setColor(this.run.coinProtein >= it.price ? '#ffffff' : sh.poorColor);
       }

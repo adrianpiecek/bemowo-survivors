@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { upgrades, fallbackUpgrade } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
-import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter, evolutionCard, addCardHint } from '../systems/cards.js';
+import { rollRarity, drawUpgrades, applyUpgrade, evolutionCard, makeCard } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
 import { items, giveItem } from '../data/items.js';
@@ -38,30 +38,16 @@ export default class ChestScene extends Phaser.Scene {
     let stopped = 0;
 
     prizes.forEach((up, i) => {
-      const { x, y } = cardCenter(this, i, n), top = y - c.height / 2; // laid out as on level up
-      const wrap = { align: 'center', wordWrap: { width: c.width - 2 * u.margin } };
-      const card = this.add.rectangle(x, y, c.width, c.height, c.color).setStrokeStyle(c.borderWidth, c.borderColor);
-      const name = this.add.text(x, top + u.margin, '', { fontFamily: config.ui.font, fontSize: `${c.nameFontSize}px`, ...wrap }).setOrigin(0.5, 0);
-      const spin = this.time.addEvent({ delay: ch.spinStepMs, loop: true, callback: () => name.setText(Phaser.Utils.Array.GetRandom(names)) });
+      const card = makeCard(this, i, n); // laid out as on level up
+      const spin = this.time.addEvent({ delay: ch.spinStepMs, loop: true, callback: () => card.name.setText(Phaser.Utils.Array.GetRandom(names)) });
 
       this.time.delayedCall(ch.spinMs + i * ch.stopGapMs, () => {
         spin.remove();
         const rarity = this.items ? null : rollRarity(up, this.run);
         if (this.items) giveItem(this.run, up);
         else applyUpgrade(this.run, gs, up, rarity);
-        name.setText(up.name);
-        const desc = this.add.text(x, y, describe(up, rarity), { fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, ...wrap }).setOrigin(0.5);
-        addCardHint(this, up, x, name, desc, top + c.height - u.margin);
-        if (this.items) this.add.image(x, y + c.height * ch.itemIconY, up.icon).setDisplaySize(ch.itemIconSize, ch.itemIconSize); // under the text
-        // An evolution gets a gold frame and its own label in place of a rarity.
-        const frame = up.evolution ? { color: c.evolutionColor, name: up.levelText } : rarity;
-        card.setStrokeStyle(frame ? c.rarityBorderWidth : c.borderWidth, frame?.color ?? c.borderColor);
-        if (frame) {
-          this.add.text(x, top - u.margin / 2, frame.name.toUpperCase(), { fontFamily: config.ui.font, fontSize: `${c.rarityFontSize}px`, fontStyle: 'bold', color: rarityHex(frame) })
-            .setOrigin(0.5, 1);
-        }
-        if (up.evolution) playVfx(this, 'starBurst', x, top);
-        if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, top);
+        card.fill(up, rarity); // an evolution gets a gold frame and its own label in place of a rarity
+        if (up.evolution || rarity?.id === 'legendary') playVfx(this, 'starBurst', card.x, card.y - c.height / 2);
         this.tweens.add({ targets: card, scale: ch.popScale, duration: ch.popMs, yoyo: true });
         playSfx(this, 'pickup');
         if (++stopped === n) this.allowClose();

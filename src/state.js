@@ -58,6 +58,7 @@ export function newRun() {
     mapPickupMs: config.pickups.mapSpawn.everySec * 1000, // time to the next pickup lying down by itself
     spawned: 0, // enemies spawned, for the debug overlay
     damageDealt: 0, // by bullets and bees, for the debug overlay
+    weaponDamage: {}, // weapon id -> damage dealt this run, for the end screen
     coinProtein: 0, // protein from coins picked up this run, paid out at the end
     damageTaken: 0, // from enemy touches, for the Captain's shield unlock and save.stats
     pierogiEaten: 0, // for save.stats

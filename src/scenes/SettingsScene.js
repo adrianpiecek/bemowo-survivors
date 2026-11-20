@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { save } from '../state.js';
-import { setVolume, playSfx } from '../systems/audio.js';
+import { setVolume, playSfx, pauseSfx, resumeSfx, toggleMute } from '../systems/audio.js';
 import { font, panel, drawBar, button } from '../systems/ui.js';
 import { setOrientation } from '../systems/layout.js';
 
@@ -9,12 +9,14 @@ import { setOrientation } from '../systems/layout.js';
 export function openSettings(scene) {
   if (!scene.scene.isActive()) return;
   scene.scene.pause();
+  pauseSfx(scene);
   scene.scene.launch('SettingsScene', { from: scene.scene.key });
 }
 
 // Settings over a paused scene: music and sound effect volume, screen orientation (kept in the save). In a run it is the
 // pause screen, and the orientation only says where to change it: the run's world is built for one screen shape.
-// "Wróć", Esc or Enter close it and resume the scene under it.
+// "Wróć", Esc or Enter close it and resume the scene under it (in a run also P, the pause key). "Wycisz" mutes everything
+// (as M does); in a run "Wyjdź do menu" ends the run as a loss: the end screen counts the protein so far.
 export default class SettingsScene extends Phaser.Scene {
   constructor() { super('SettingsScene'); }
 
@@ -26,7 +28,7 @@ export default class SettingsScene extends Phaser.Scene {
   create() {
     const u = config.ui, st = u.settings, { width, height } = this.scale, cx = width / 2;
     const rows = [['Muzyka', 'musicVolume'], ['Efekty dźwiękowe', 'sfxVolume']];
-    const panelH = st.padding * 3 + st.titleFontSize * 1.2 + (rows.length + 1) * st.rowHeight + st.backHeight + st.hintFontSize * 2;
+    const panelH = st.padding * 4 + st.titleFontSize * 1.2 + (rows.length + 1) * st.rowHeight + st.actionHeight + st.backHeight + st.hintFontSize * 2;
     const x0 = cx - st.width / 2, y0 = (height - panelH) / 2;
     this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps meant for the HUD below
     panel(this, x0, y0, st.width, panelH);
@@ -78,9 +80,21 @@ export default class SettingsScene extends Phaser.Scene {
       });
     }
 
+    // Wycisz (and Wyjdź do menu in a run) in a row above the back button.
     const backY = y0 + panelH - st.padding - st.hintFontSize * 2 - st.backHeight / 2;
+    const actY = backY - st.backHeight / 2 - st.padding - st.actionHeight / 2, actW = (st.width - st.padding * 3) / 2;
+    const muteLabel = () => (save.muted ? 'Włącz dźwięk' : 'Wycisz');
+    const mute = button(this, inRun ? x0 + st.padding + actW / 2 : cx, actY, muteLabel(), () => {
+      toggleMute(this.game);
+      mute.setLabel(muteLabel());
+    }, { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
+    if (inRun) {
+      button(this, x0 + st.width - st.padding - actW / 2, actY, 'Wyjdź do menu', () => this.quit(),
+        { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
+      this.input.keyboard.once('keydown-P', () => this.close());
+    }
     button(this, cx, backY, inRun ? 'Wznów' : 'Wróć', () => this.close(), { width: st.backWidth, height: st.backHeight, fontSize: st.backFontSize });
-    this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
+    this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, inRun ? '[Esc / P]   M: wycisz wszystko' : '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
       .setOrigin(0.5, 0);
     this.input.keyboard.once('keydown-ESC', () => this.close());
     this.input.keyboard.once('keydown-ENTER', () => this.close());
@@ -91,5 +105,14 @@ export default class SettingsScene extends Phaser.Scene {
     this.closing = true;
     this.scene.stop();
     this.scene.resume(this.from);
+    resumeSfx();
+  }
+
+  quit() {
+    if (this.closing) return;
+    this.closing = true;
+    this.scene.stop();
+    const gs = this.scene.get(this.from);
+    gs.scene.start('GameOverScene', { run: gs.run, won: false, quit: true });
   }
 }

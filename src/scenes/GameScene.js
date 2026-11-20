@@ -110,6 +110,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.input.keyboard.on('keydown-ESC', () => openSettings(this)); // pause; the HUD has a button for it too
+    if (!config.debug.pickupKey) this.input.keyboard.on('keydown-P', () => openSettings(this)); // P drops pickups in debug
     this.input.keyboard.addCapture('SPACE');
     this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
     if (config.debug.klapaKey) this.input.keyboard.on('keydown-K', () => this.spawnEnemy(enemies.find((d) => d.id === 'klapa')));
@@ -196,6 +197,11 @@ export default class GameScene extends Phaser.Scene {
       });
     }
 
+    // Damage numbers (config.ui.damageNumbers): pooled texts, moved in updateDamageNumbers.
+    const dn = config.ui.damageNumbers;
+    this.damageNumbers = dn.enabled ? Array.from({ length: dn.pool }, () => this.add.text(0, 0, '', {
+      fontFamily: config.ui.font, fontStyle: 'bold', stroke: '#000000', strokeThickness: dn.stroke,
+    }).setOrigin(0.5, 1).setDepth(dn.depth).setVisible(false)) : [];
     this.scene.launch('UIScene', { run: this.run });
     // scene.start('GameOverScene') only stops this scene, so take the HUD down with it.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scene.stop('UIScene'));
@@ -243,7 +249,9 @@ export default class GameScene extends Phaser.Scene {
       bullet.disableBody(true, true);
     }
     playSfx(this, 'shotHit');
+    this.damageSource = bullet.source;
     this.hurtEnemy(enemy, bullet.damage, bullet.x, bullet.y);
+    this.damageSource = null;
   }
 
   // Shared by bullets and orbits: damage, a hit effect where it hit (vfx id, default a spark), death at 0 HP.
@@ -256,7 +264,10 @@ export default class GameScene extends Phaser.Scene {
       damage *= pl.critMult;
       playVfx(this, 'critHit', x, y);
     }
-    this.run.damageDealt += Math.min(damage, enemy.hp);
+    const dealt = Math.min(damage, enemy.hp), src = this.damageSource;
+    this.run.damageDealt += dealt;
+    if (src) this.run.weaponDamage[src.def.id] = (this.run.weaponDamage[src.def.id] ?? 0) + dealt;
+    this.showDamage(x, enemy.y - enemy.displayHeight / 2, damage, crit);
     enemy.hp -= damage;
     if (enemy.hp > 0) {
       enemy.flashMs = config.look.hitFlashMs; // a white (gold on a crit) flash, run in the enemy loop
@@ -265,6 +276,28 @@ export default class GameScene extends Phaser.Scene {
     }
     this.killEnemy(enemy);
     return true;
+  }
+
+  // A number rising over a hit, from the pool; none when the whole pool is in the air.
+  showDamage(x, y, amount, crit) {
+    const t = this.damageNumbers.find((d) => !d.visible);
+    if (!t) return;
+    const dn = config.ui.damageNumbers;
+    t.setText(Math.max(1, Math.round(amount))).setFontSize(crit ? dn.critFontSize : dn.fontSize).setColor(crit ? dn.critColor : dn.color)
+      .setPosition(x + Phaser.Math.Between(-dn.jitterX, dn.jitterX), y).setAlpha(1).setVisible(true);
+    t.startY = t.y;
+    t.ageMs = 0;
+  }
+
+  updateDamageNumbers(delta) {
+    const dn = config.ui.damageNumbers;
+    for (const t of this.damageNumbers) {
+      if (!t.visible) continue;
+      t.ageMs += delta;
+      const k = t.ageMs / dn.ms;
+      if (k >= 1) t.setVisible(false);
+      else t.setY(t.startY - dn.riseY * k).setAlpha(1 - k * k);
+    }
   }
 
   heal(hp) {
@@ -933,6 +966,7 @@ export default class GameScene extends Phaser.Scene {
       z.eliteLabel.setPosition(z.x, z.y - z.displayHeight / 2 - config.elites.labelGap);
     }
     this.updatePressure(delta, crowd);
+    this.updateDamageNumbers(delta);
     this.playerShadow.setPosition(this.player.x, this.player.y + this.player.displayHeight * lk.shadowY)
       .setDisplaySize(this.player.displayWidth * lk.shadowW, this.player.displayWidth * lk.shadowW * lk.shadowFlat);
     this.map.update(delta);
@@ -981,7 +1015,12 @@ export default class GameScene extends Phaser.Scene {
       pl.hp = Math.min(pl.maxHp, pl.hp + whole);
     }
 
-    for (const w of run.weapons) w.def.update(this, w, delta);
+    // damageSource: the weapon whose hits these are (hurtEnemy counts them per weapon for the end screen).
+    for (const w of run.weapons) {
+      this.damageSource = w;
+      w.def.update(this, w, delta);
+    }
+    this.damageSource = null;
 
     // Past the spawn ring there is nothing left to hit; a shotgun pellet stops after its range (b.maxDist).
     const maxDist = config.spawn.ringMaxRadius;

@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { save } from '../state.js';
 import { playSfx, playMusic } from '../systems/audio.js';
+import { font, button } from '../systems/ui.js';
 
 // Title with the intro. Browsers keep audio locked until the player does something, so the intro only starts
 // after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one,
@@ -10,7 +11,9 @@ export default class TitleScene extends Phaser.Scene {
 
   create() {
     const t = config.ui.title, { width, height } = this.scale;
-    const prompt = this.add.text(width / 2, height / 2, 'Kliknij, aby zacząć', { fontFamily: config.ui.font, fontSize: `${t.promptFontSize}px` }).setOrigin(0.5);
+    // A drawn button, pulsing; a click anywhere (or a key) counts, the button only shows where.
+    const prompt = button(this, width / 2, height / 2, 'Kliknij, aby zacząć', () => {}, { fontSize: t.promptFontSize });
+    this.tweens.add({ targets: prompt, scale: t.pulseScale, duration: t.blinkMs, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.onFirstInput(() => {
       prompt.destroy();
       this.intro();
@@ -63,8 +66,9 @@ export default class TitleScene extends Phaser.Scene {
   ready() {
     const t = config.ui.title, { width, height } = this.scale;
     playMusic(this, 'boss');
-    const press = this.add.text(width / 2, height - t.pressBottom, 'Naciśnij dowolny klawisz', { fontFamily: config.ui.font, fontSize: `${t.promptFontSize}px` })
-      .setOrigin(0.5);
+    const press = this.add.text(width / 2, height - t.pressBottom, 'Dotknij albo naciśnij dowolny klawisz',
+      font(t.promptFontSize, { fontStyle: 'bold', stroke: '#000000', strokeThickness: t.promptStroke, align: 'center',
+        wordWrap: { width: width - 2 * config.ui.margin } })).setOrigin(0.5);
     this.tweens.add({ targets: press, alpha: 0, duration: t.blinkMs, yoyo: true, repeat: -1 });
     this.onFirstInput(() => this.scene.start(save.runsPlayed ? 'GymScene' : 'GameScene'));
   }

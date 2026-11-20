@@ -13,7 +13,7 @@ Jedna 10-minutowa runda, która działa w przeglądarce i jest grywalna od pocz�
 - **Hosting:** GitHub Pages. Bez własnych nagłówków i bez problemu.
 - **Ekran: pion albo poziom.** Domyślnie pion 720×1280, w ustawieniach (w siłowni) można przełączyć na poziom 1280×720; wybór siedzi w `save.orientation`. Gra skaluje się do okna (`Scale.FIT`), przy innym kształcie okna są czarne pasy. Liczby zależne od kształtu ekranu: portretowe w zwykłym config, poziome nadpisania w `config.layouts.landscape`, wstawiane przez `src/systems/layout.js`. W pionie karty level upu i skrzyni leżą jedna pod drugą, w poziomie obok siebie; siłownia w poziomie ma dwie kolumny wierszy i przycisk startu w prawym dolnym rogu. W rundzie orientacji się nie zmienia (świat rundy jest zbudowany pod jeden kształt), pauza mówi, że robi się to w siłowni. Czcionka wszystkich tekstów: Not Jam Mono Clean 16 (CC0, `assets/font`).
 - **Ekran ładowania.** Od pierwszej chwili (zanim wczyta się Phaser) strona pokazuje kółko, „Ładowanie…” i pasek postępu z `index.html`; BootScene wypełnia pasek i usuwa ekran, gdy wszystko jest wczytane. Potem jest „Kliknij, aby zacząć”.
-- **Pauza i ustawienia** (`SettingsScene`). W rundzie przycisk pauzy obok zegara albo Esc zatrzymuje grę i otwiera ekran „Pauza”; w siłowni to samo robi zębatka obok tytułu. Na ekranie: głośność muzyki i efektów (−/+ co 10%, zapis w `save.musicVolume` i `save.sfxVolume`), „Wznów”/„Wróć” albo Esc. Gdy są otwarte karty level upu albo skrzynia, pauza się nie otwiera. Poza rundą jest tam też wybór ekranu: Pion / Poziom. M dalej wycisza wszystko. Liczby w `config.ui.settings`.
+- **Pauza i ustawienia** (`SettingsScene`). W rundzie przycisk pauzy obok zegara, Esc albo P zatrzymuje grę (i grające efekty dźwiękowe, muzyka gra dalej) i otwiera ekran „Pauza”; w siłowni to samo robi zębatka obok tytułu. Na ekranie: głośność muzyki i efektów (−/+ co 10%, zapis w `save.musicVolume` i `save.sfxVolume`), „Wznów”/„Wróć” albo Esc. Gdy są otwarte karty level upu albo skrzynia, pauza się nie otwiera. Przycisk „Wycisz” / „Włącz dźwięk” (to samo co M), a w rundzie też „Wyjdź do menu”: kończy rundę jak przegraną, ekran końca liczy białko zebrane do tej pory. Poza rundą jest tam też wybór ekranu: Pion / Poziom. Liczby w `config.ui.settings`.
 
 ## Zakres
 
@@ -400,6 +400,15 @@ Zgłoszenia: topór za mocny, czołg przydatny tylko na początku, siłownię da
 - **Skrzynie elit** dają teraz przedmiot (za darmo, jak dotąd otwierane wejściem). Skrzynie bossów bez zmian: karty i ewolucja. Skrzynia z Chordy dalej daje kartę.
 - **Debug:** `config.debug.startBCoins` (liczba monet B na start rundy); klawisz G (`gemKey`) rzuca też 10 monet B.
 
+### 12. UI (krok 36)
+
+- **Karty** level upu, skrzyni i Żabki to jeden wspólny kawałek (`makeCard` w `src/systems/cards.js`): panel z `ui.js` w ramce koloru rzadkości (złota przy ewolucji), nazwa rzadkości nad kartą, ikonka (broni, pasywki, przedmiotu; Bartkowanie ma twarz Bartka, Leczenie serce), w pionie po lewej, w poziomie pod nazwą. Nowa broń albo pasywka ma żółtą plakietkę „NOWA” na rogu. Karty wjeżdżają od dołu jedna po drugiej. Liczby w `config.ui.card`.
+- **Ekran tytułowy:** „Kliknij, aby zacząć” to pulsujący przycisk z `ui.js`, „Dotknij albo naciśnij dowolny klawisz” z obrysem.
+- **Pauza:** Esc albo P, przyciski „Wycisz” i „Wyjdź do menu” (opis w sekcji Zakres).
+- **Ekran końca gry:** panel z czasem, poziomem, zabitymi, bossami (x / 4), białkiem z rundy (z premiami zakładów i presji) i z monet, białkiem w siłowni, a pod nim obrażenia każdej broni: ikonka, nazwa (po ewolucji nowa), pasek względem najlepszej i liczba. Obrażenia liczy `run.weaponDamage`: broń ustawia `scene.damageSource` w swoim `update`, pocisk i orbita niosą swoją broń. Liczby w `config.ui.gameOver`.
+- **Liczby obrażeń** nad trafionym wrogiem: pula 40 tekstów, unoszą się i znikają w 650 ms, krytyk złoty i większy. Gdy cała pula jest w powietrzu, trafienie nie pokazuje liczby. Wyłącza je `config.ui.damageNumbers.enabled: false`.
+- Na telefonie (szerokość 375) karty, pauza i ekran końca mieszczą się w ekranie (gra skaluje się `Scale.FIT`).
+
 ### Później (po kroku 37 z mapą)
 
 - **Dzielnice** (z map z VS): Bemowo, Jelonki, Górce, z inną paletą ulic, innym miksem wrogów i inną pulą wydarzeń. Odblokowywane wygranymi.
@@ -407,10 +416,9 @@ Zgłoszenia: topór za mocny, czołg przydatny tylko na początku, siłownię da
 
 ## Plan na później
 
-### Ikonki na kartach (pomysł)
+### Ikonki na kartach (zrobione w kroku 36, sekcja 12)
 
 - Sloty z siłowni są już zrobione (krok 35d, sekcja 8).
-- **Ikonki na kartach:** karta level upu, skrzyni i Żabki pokazuje ikonkę broni albo pasywki (te same tekstury co w HUD).
 - Już działa i ma tak zostać:
   - przy pełnych slotach broni nie wypadają karty nowych broni, tylko poziomy posiadanych;
   - to samo z pasywkami;

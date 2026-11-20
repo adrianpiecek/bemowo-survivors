@@ -382,8 +382,11 @@ export const config = {
     lazy: { xpPct: 0.3, enemyHpPct: 0.15, earlyDeathSec: 120, unlockEarlyDeaths: 3 },
   },
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
-    dimAlpha: 0.6, card: { count: 3, row: false, width: 600, height: 230, gap: 44, hintFontSize: 20, hintColor: '#ffc400', evolutionColor: 0xffc400, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
-      rarityBorderWidth: 5, rarityFontSize: 22 },
+    // Cards (systems/cards.js makeCard): a panel framed in the rarity's colour, the icon (iconSize, left in portrait, under
+    // the name side by side), "NOWA" on the top right corner of a new weapon or passive; each slides in from below,
+    // slideMs long, card i slideGapMs after the one before.
+    dimAlpha: 0.6, card: { count: 3, row: false, width: 600, height: 230, gap: 44, hintFontSize: 20, hintColor: '#ffc400', evolutionColor: 0xffc400, color: 0x22252c, alpha: 0.96, nameFontSize: 30, textFontSize: 24,
+      rarityBorderWidth: 5, rarityFontSize: 22, iconSize: 80, slideMs: 380, slideGapMs: 90, badgeFontSize: 18, badgeColor: '#ffc400', badgeAngle: 14 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
     // Every text uses this font: Not Jam Mono Clean 16 (CC0, assets/font), loaded in BootScene under fontKey. The system
     // fonts behind it only fill in glyphs it lacks („ ”). fontFile has its spaces encoded: Phaser puts it in an unquoted url().
@@ -422,10 +425,19 @@ export const config = {
     drawButtons: { width: 200, height: 64, gap: 20, top: 40, fontSize: 24, hintFontSize: 18, hintGap: 14, hintColor: '#b0bec5',
       banishColor: '#ff5252', banishBorder: 0xff5252 },
     // Plan screen: the title at titleY, the plan cards where the level-up cards go (card size), plus and minus lines.
+    // Damage numbers over hit enemies: a pool of `pool` texts, each rising riseY px and fading for ms; a crit in gold and
+    // bigger. When all are in the air a hit shows none. enabled: false turns them off.
+    damageNumbers: { enabled: true, pool: 40, fontSize: 18, critFontSize: 26, color: '#ffffff', critColor: '#ffc400', stroke: 4,
+      riseY: 36, ms: 650, jitterX: 12, depth: 4 },
+    // End screen (GameOverScene): the title from `top`, a panel with the run's numbers and every weapon's damage (icon,
+    // name, a bar against the best one, the number), the buttons under it, then what the run unlocked.
+    gameOver: { top: 110, gap: 18, panelWidth: 600, padding: 18, fontSize: 22, rowHeight: 32, headerColor: '#ffc400', labelColor: '#b0bec5',
+      iconSize: 28, nameWidth: 230, barHeight: 14, barColor: 0xffc400, buttonsGap: 50 },
     planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
       valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
+      actionHeight: 60, actionFontSize: 22,
       barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 56 },
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
@@ -447,11 +459,10 @@ export const config = {
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: '"NotJam", Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 520, survivorsY: 660, dropMs: 450, gapMs: 600,
-      shakeMs: 250, shakeIntensity: 0.02, pressBottom: 160, blinkMs: 600 },
+      shakeMs: 250, shakeIntensity: 0.02, pressBottom: 160, blinkMs: 600, pulseScale: 1.08, promptStroke: 6 },
     bossBar: { y: 170, width: 600, height: 24, fontSize: 16, color: 0xd03030 }, // under the HUD panel and the stat pills; the effect rows go under it
     // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
-    // itemIconSize, itemIconY: an item's icon on its card, itemIconY x the card height below the middle.
-    chest: { itemIconSize: 48, itemIconY: 0.25, titleY: 190, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
+    chest: { titleY: 190, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
       popScale: 1.08, popMs: 120, promptBottom: 60 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
     // Pickup, Bartkowanie and boss banners: big text with a line under it, on a panel, faded in and out.
@@ -480,11 +491,12 @@ export const config = {
     landscape: {
       game: { width: 1280, height: 720 },
       ui: {
-        card: { row: true, width: 260, height: 320, gap: 40, nameFontSize: 22, textFontSize: 18, rarityFontSize: 18, hintFontSize: 16 },
+        card: { row: true, width: 260, height: 320, gap: 40, nameFontSize: 22, textFontSize: 18, rarityFontSize: 18, hintFontSize: 16, iconSize: 56 },
         title: { bemowoY: 250, survivorsY: 410, pressBottom: 90 },
         bossBar: { y: 76 },
         chest: { titleY: 110 },
         planScreen: { titleY: 60, lineFontSize: 17 },
+        gameOver: { top: 14, gap: 8, fontSize: 18, rowHeight: 25, iconSize: 22, buttonsGap: 34 },
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,
           stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },
         banner: { y: 150 },

@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { fallbackUpgrade } from '../data/upgrades.js';
-import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter, addCardHint } from '../systems/cards.js';
+import { rollRarity, drawUpgrades, applyUpgrade, cardCenter, makeCard } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { font, button } from '../systems/ui.js';
 
@@ -35,32 +35,12 @@ export default class LevelUpScene extends Phaser.Scene {
 
     const n = this.choices.length;
     this.cards = this.choices.map((up, i) => {
-      const { x, y } = cardCenter(this, i, n); // the rarity name sits in the gap above each card
-      const top = y - c.height / 2, bottom = y + c.height / 2;
       const level = up.levelText ? `${up.levelText}\n` // weapon cards: "NOWA BROŃ" or the level they reach
         : !Number.isFinite(up.maxStack) ? '' : `${taken[up.id] ?? 0}/${up.maxStack}\n`; // no counter without a limit (heal, Bartkowanie)
-
-      const rarity = this.rarities[i];
-      const card = this.add.rectangle(x, y, c.width, c.height, c.color)
-        .setStrokeStyle(rarity ? c.rarityBorderWidth : c.borderWidth, rarity?.color ?? c.borderColor)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this.choose(i));
-      if (rarity) {
-        this.add.text(x, top - u.margin / 2, rarity.name.toUpperCase(), { fontFamily: config.ui.font, fontSize: `${c.rarityFontSize}px`, fontStyle: 'bold', color: rarityHex(rarity) })
-          .setOrigin(0.5, 1);
-      }
-      if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, top);
-      const name = this.add.text(x, top + u.margin, up.name, {
-        fontFamily: config.ui.font, fontSize: `${c.nameFontSize}px`, align: 'center', wordWrap: { width: c.width - 2 * u.margin },
-      }).setOrigin(0.5, 0);
-      const desc = this.add.text(x, y, describe(up, rarity), {
-        fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, align: 'center', wordWrap: { width: c.width - 2 * u.margin },
-      }).setOrigin(0.5);
-      const foot = this.add.text(x, bottom - u.margin, `${level}[${i + 1}]`, { fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, align: 'center' })
-        .setOrigin(0.5, 1);
-      addCardHint(this, up, x, name, desc, foot.y - foot.height);
+      const rarity = this.rarities[i], { x, y } = cardCenter(this, i, n);
+      if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, y - c.height / 2);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.choose(i));
-      return card;
+      return makeCard(this, i, n, () => this.choose(i)).fill(up, rarity, `${level}[${i + 1}]`);
     });
 
     // The three draw buttons in a row under the lowest card, each with its charges left; greyed out at zero.
@@ -132,11 +112,8 @@ export default class LevelUpScene extends Phaser.Scene {
   toggleBanish() {
     if (this.picked || this.run.player.banishes <= 0) return;
     this.banishing = !this.banishing;
-    const c = config.ui.card, db = config.ui.drawButtons;
-    this.cards.forEach((card, i) => {
-      const r = this.rarities[i];
-      card.setStrokeStyle(r || this.banishing ? c.rarityBorderWidth : c.borderWidth, this.banishing ? db.banishBorder : r?.color ?? c.borderColor);
-    });
+    const db = config.ui.drawButtons;
+    this.cards.forEach((card) => card.highlight(this.banishing ? db.banishBorder : null));
     this.setHint();
   }
 

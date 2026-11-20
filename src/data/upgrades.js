@@ -11,6 +11,7 @@ export const upgrades = [
   {
     id: 'bartkowanie',
     name: 'Bartkowanie',
+    icon: 'bartek',
     description: 'Nikt nie wie, co się stanie. Bartek też nie.',
     maxStack: Infinity,
     weight: config.bartkowanie.weight,
@@ -23,6 +24,7 @@ export const upgrades = [
 export const fallbackUpgrade = {
   id: 'heal',
   name: 'Leczenie',
+  icon: 'icon_heart',
   description: (m) => `+${Math.round(u.fallbackHeal * m)} HP`,
   maxStack: Infinity,
   apply(player, scene, m = 1) { player.hp = Math.min(player.maxHp, player.hp + Math.round(u.fallbackHeal * m)); },

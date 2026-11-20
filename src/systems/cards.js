@@ -3,6 +3,7 @@ import { upgrades } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { save } from '../state.js';
+import { font, drawPanel } from './ui.js';
 
 // Upgrade cards, shared by the level-up screen and the boss chest.
 
@@ -44,7 +45,7 @@ export function evolutionCard(run) {
   if (!w) return null;
   const evo = w.def.evolution;
   return {
-    id: `evolution_${evo.id}`, name: evo.name, description: evo.description, maxStack: Infinity, rarity: false, evolution: true,
+    id: `evolution_${evo.id}`, name: evo.name, icon: evo.icon, description: evo.description, maxStack: Infinity, rarity: false, evolution: true,
     levelText: `${w.def.name} → EWOLUCJA`,
     apply(player, scene) { scene.evolveWeapon(w); },
   };
@@ -58,7 +59,7 @@ function weaponCards(run) {
     if (w.level >= w.def.maxLevel) continue;
     const level = w.level + 1;
     cards.push({
-      id: `weapon_${w.def.id}`, name: w.def.name, weight: w.def.weight, maxStack: Infinity, levelText: `Poziom ${w.level} → ${level}`,
+      id: `weapon_${w.def.id}`, name: w.def.name, icon: w.def.icon, weight: w.def.weight, maxStack: Infinity, levelText: `Poziom ${w.level} → ${level}`,
       hint: evolutionHint(run, w.def),
       description: (m) => w.def.description(level, m),
       apply(player, scene, m) { scene.levelUpWeapon(w, m); },
@@ -68,7 +69,7 @@ function weaponCards(run) {
   for (const def of weapons) {
     if (run.weapons.some((w) => w.def === def) || !isUnlocked(def)) continue;
     cards.push({
-      id: `weapon_${def.id}`, name: def.name, weight: def.weight, maxStack: Infinity, levelText: 'NOWA BROŃ', rarity: false,
+      id: `weapon_${def.id}`, name: def.name, icon: def.icon, weight: def.weight, maxStack: Infinity, levelText: 'NOWA BROŃ', rarity: false,
       hint: evolutionHint(run, def),
       description: def.description(1, 1),
       apply(player, scene) { scene.addWeapon(def); },
@@ -81,7 +82,7 @@ function weaponCards(run) {
 // he does not have while a passive slot is free.
 export function passiveCards(run) {
   const card = (def, level, levelText) => ({
-    id: `passive_${def.id}`, name: def.name, weight: def.weight, maxStack: Infinity, levelText, hint: passiveHint(run, def),
+    id: `passive_${def.id}`, name: def.name, icon: def.icon, weight: def.weight, maxStack: Infinity, levelText, hint: passiveHint(run, def),
     description: (m) => def.description(level, m),
     apply(player, scene, m) { scene.gainPassive(def, m); },
   });
@@ -119,15 +120,60 @@ export function applyUpgrade(run, scene, up, rarity) {
   run.ddaGraceMs = config.dda.graceSec * 1000; // the hidden pressure lets the new power be felt first
 }
 
-// The evolution hint at the bottom of a card (above `bottomY`), and the description moved to the middle of what is
-// left between the name and the hint. Shared by the level up and chest screens.
-export function addCardHint(scene, up, x, nameText, descText, bottomY) {
-  const c = config.ui.card;
-  if (!up.hint) return;
-  const hint = scene.add.text(x, bottomY, up.hint, {
-    fontFamily: config.ui.font, fontSize: `${c.hintFontSize}px`, color: c.hintColor, align: 'center', wordWrap: { width: c.width - 2 * config.ui.margin },
-  }).setOrigin(0.5, 1);
-  descText.setY((nameText.y + nameText.height + hint.y - hint.height) / 2);
+// Card i of n on the level up, chest and shop screens: a container in the card's place holding a panel, the rarity's name
+// over it, the icon, the name, the description, the evolution hint (up.hint) and a foot line, plus "NOWA" on the corner
+// of a new weapon or passive. It slides in from below. fill(up, rarity, foot) shows a card (the chest shows only a
+// spinning name first); highlight(color) frames it in that colour (Wywal), highlight(null) back to its own frame.
+// onClick: a click on the card. Positions are from the card's middle.
+export function makeCard(scene, i, n, onClick) {
+  const u = config.ui, c = u.card, m = u.margin, w = c.width, h = c.height, top = -h / 2, { x, y } = cardCenter(scene, i, n);
+  const g = scene.add.graphics(), box = scene.add.container(x, y, [g]).setSize(w, h);
+  // Portrait: the icon on the left, the text in the room right of it. Side by side: the icon under the name.
+  const tx = c.row ? 0 : (c.iconSize + m) / 2, wrap = { align: 'center', wordWrap: { width: c.row ? w - 2 * m : w - c.iconSize - 3 * m } };
+  const text = (size, extra = {}) => scene.add.text(tx, 0, '', font(size, { ...wrap, ...extra }));
+  box.name = text(c.nameFontSize, { fontStyle: 'bold' }).setOrigin(0.5, 0).setY(top + m);
+  box.desc = text(c.textFontSize).setOrigin(0.5);
+  box.hint = text(c.hintFontSize, { color: c.hintColor }).setOrigin(0.5, 1);
+  box.foot = text(u.hudFontSize, { fontStyle: 'bold' }).setOrigin(0.5, 1).setY(-top - m);
+  box.icon = scene.add.image(0, 0, '__WHITE').setVisible(false);
+  box.label = scene.add.text(0, top - m / 2, '', font(c.rarityFontSize, { fontStyle: 'bold' })).setOrigin(0.5, 1);
+  box.badge = scene.add.text(w / 2 - m, top, 'NOWA', font(c.badgeFontSize, { fontStyle: 'bold', color: '#1b1b1b', backgroundColor: c.badgeColor, padding: { x: 8, y: 3 } }))
+    .setOrigin(0.5).setAngle(c.badgeAngle).setVisible(false);
+  box.add([box.icon, box.name, box.desc, box.hint, box.foot, box.label, box.badge]);
+  let frame = null; // { color, width } of its rarity or evolution
+  const draw = (f) => {
+    g.clear();
+    drawPanel(g, -w / 2, -h / 2, w, h, { color: c.color, alpha: c.alpha, ...(f && { borderColor: f.color, borderWidth: f.width, borderAlpha: 1 }) });
+  };
+  draw(null);
+  box.highlight = (color) => draw(color == null ? frame : { color, width: c.rarityBorderWidth });
+  box.fill = (up, rarity, foot = '') => {
+    const f = up.evolution ? { color: c.evolutionColor, name: up.levelText } : rarity;
+    frame = f && { color: f.color, width: c.rarityBorderWidth };
+    draw(frame);
+    box.label.setText(f ? f.name.toUpperCase() : '').setColor(f ? rarityHex(f) : '#ffffff');
+    box.name.setText(up.name);
+    box.foot.setText(foot);
+    box.badge.setVisible(/^NOWA/.test(up.levelText ?? ''));
+    let upper = box.name.y + box.name.height;
+    box.icon.setVisible(!!up.icon);
+    if (up.icon) {
+      box.icon.setTexture(up.icon);
+      box.icon.setScale(c.iconSize / Math.max(box.icon.width, box.icon.height)); // fits any picture (Bartek for Bartkowanie)
+      if (c.row) {
+        box.icon.setPosition(0, upper + m / 2 + c.iconSize / 2);
+        upper += m / 2 + c.iconSize;
+      } else box.icon.setPosition(-w / 2 + m + c.iconSize / 2, 0);
+    }
+    box.hint.setText(up.hint ?? '').setY(foot ? box.foot.y - box.foot.height : -top - m);
+    const lower = up.hint ? box.hint.y - box.hint.height : foot ? box.foot.y - box.foot.height : -top - m;
+    box.desc.setText(describe(up, rarity)).setY((upper + lower) / 2);
+    return box;
+  };
+  if (onClick) box.setInteractive({ useHandCursor: true }).on('pointerdown', onClick);
+  box.setY(y + scene.scale.height / 2).setAlpha(0);
+  scene.tweens.add({ targets: box, y, alpha: 1, duration: c.slideMs, delay: i * c.slideGapMs, ease: 'Back.easeOut' });
+  return box;
 }
 
 // Middle of card i of n on the level up and chest screens: side by side in landscape (card.row), stacked in portrait.

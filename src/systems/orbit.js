@@ -3,7 +3,7 @@
 
 // opts: { texture, maxSize, damage (a number or a function returning it), hitCooldownMs,
 //         vfx? (hit effect id), hitScale?/hitMs? (the sprite swells on a hit), faceTravel? (turned along the orbit),
-//         onHit?(enemy) (after every hit), onKill?(enemy) (an orbit hit killed it) }.
+//         onHit?(enemy) (after every hit), onKill?(enemy) (an orbit hit killed it), source? (the weapon, for scene.damageSource) }.
 // scene must have `enemies` and `hurtEnemy(enemy, damage, x, y, vfx)` returning true on a kill.
 export function createOrbit(scene, opts) {
   const group = scene.physics.add.group({
@@ -17,7 +17,9 @@ export function createOrbit(scene, opts) {
     const last = orbit.lastHitMs.get(enemy);
     if (last !== undefined && orbit.clockMs - last < opts.hitCooldownMs) return;
     orbit.lastHitMs.set(enemy, orbit.clockMs);
+    scene.damageSource = opts.source; // the overlap runs in the physics step, outside the weapon's update
     const killed = scene.hurtEnemy(enemy, typeof opts.damage === 'function' ? opts.damage() : opts.damage, enemy.x, enemy.y, opts.vfx);
+    scene.damageSource = null;
     opts.onHit?.(enemy);
     if (killed) opts.onKill?.(enemy);
     if (opts.hitScale && !s.stinging) {
