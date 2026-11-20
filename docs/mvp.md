@@ -11,7 +11,7 @@ Jedna 10-minutowa runda, która działa w przeglądarce i jest grywalna od pocz�
 - **Phaser 3 + czysty JS, bez bundlera.** Phaser ładowany z pliku lub CDN, fizyka Arcade.
 - **Dlaczego Phaser 3, a nie nowszy:** modele AI znają go najlepiej, co przy vibe codingu ma znaczenie.
 - **Hosting:** GitHub Pages. Bez własnych nagłówków i bez problemu.
-- **Ekran: pion wszędzie.** Gra ma 720×1280 i skaluje się do okna (`Scale.FIT`): telefon trzymany pionowo ma cały ekran, komputer i telefon trzymany poziomo mają czarne pasy po bokach. Karty level upu i skrzyni leżą jedna pod drugą, siłownia ma wiersze w dwóch liniach, zegar siedzi w prawej kolumnie nad licznikami. Czcionka wszystkich tekstów: Not Jam Giant UI 28 (CC0, `assets/font`).
+- **Ekran: pion wszędzie.** Gra ma 720×1280 i skaluje się do okna (`Scale.FIT`): telefon trzymany pionowo ma cały ekran, komputer i telefon trzymany poziomo mają czarne pasy po bokach. Karty level upu i skrzyni leżą jedna pod drugą, siłownia ma wiersze w dwóch liniach, zegar siedzi w prawej kolumnie nad licznikami. Czcionka wszystkich tekstów: Not Jam Mono Clean 16 (CC0, `assets/font`).
 
 ## Zakres
 

@@ -219,7 +219,7 @@ export const config = {
     dimAlpha: 0.6, card: { count: 3, width: 600, height: 210, gap: 44, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
       rarityBorderWidth: 5, rarityFontSize: 22 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
-    // Every text uses this font: Not Jam Giant UI 28 (CC0, assets/font), loaded in BootScene under fontKey. The system
+    // Every text uses this font: Not Jam Mono Clean 16 (CC0, assets/font), loaded in BootScene under fontKey. The system
     // fonts behind it only fill in glyphs it lacks („ ”). fontFile has its spaces encoded: Phaser puts it in an unquoted url().
     font: '"NotJam", "Trebuchet MS", "Segoe UI", Roboto, Arial, sans-serif',
     fontKey: 'NotJam',
