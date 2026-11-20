@@ -1,13 +1,14 @@
 export const config = {
   game: { width: 1280, height: 720, background: '#000000' },
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
-  pistol: { fireRateMs: 500, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1 },
+  pistol: { fireRateMs: 600, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1 },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
-    zombie: { speed: 80, hp: 10, contactDamage: 15, appearsAtSec: 0, spawnWeight: 0.6 },
-    runner: { speed: 160, hp: 4, contactDamage: 15, appearsAtSec: 60, spawnWeight: 0.4 },
-    joker: { speed: 90, hp: 30, contactDamage: 20, appearsAtSec: 180, spawnWeight: 0.15 },
-    homelander: { speed: 100, hp: 80, contactDamage: 30, appearsAtSec: 300, spawnWeight: 0.08 },
+    // Contact damage is low on purpose: the horde is meant to build up around Bartek, a single touch should not end the run.
+    zombie: { speed: 80, hp: 10, contactDamage: 6, appearsAtSec: 0, spawnWeight: 0.6 },
+    runner: { speed: 160, hp: 4, contactDamage: 6, appearsAtSec: 60, spawnWeight: 0.4 },
+    joker: { speed: 90, hp: 30, contactDamage: 12, appearsAtSec: 180, spawnWeight: 0.15 },
+    homelander: { speed: 100, hp: 80, contactDamage: 20, appearsAtSec: 300, spawnWeight: 0.08 },
     klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // 2.5x zombie speed
   },
   // Boss "golf": once a run. Cycle: drive at Bartek, stop and flash red, charge where he stood, open the trunk and fire klapas.
@@ -20,16 +21,30 @@ export const config = {
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
-  spawn: { startPerSec: 1, endPerSec: 9, curvePow: 1.6, hpPerMinutePct: 0.2, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
-  wave: { everySec: 60, baseCount: 10, perWave: 8 }, // burst of extra enemies every minute, all around Bartek
+  spawn: { startPerSec: 1.3, endPerSec: 14, curvePow: 0.9, hpPerMinutePct: 0.35, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
+  wave: { everySec: 45, baseCount: 6, perWave: 10 }, // a ring of extra enemies all around Bartek, bigger each time
   // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value. Sheets are 4 frames of 16x16.
   // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
-  xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, perLevelSq: 0.4, gemFrameSize: 16, gemScale: 1.25, gemFps: 8,
+  xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, perLevelSq: 0.6, gemFrameSize: 16, gemScale: 1.25, gemFps: 8,
     gems: {
       green: { value: 1, file: './assets/Coin_Gems/spr_coin_strip4.png' },
       blue: { value: 3, file: './assets/Coin_Gems/spr_coin_azu.png' },
       yellow: { value: 5, file: './assets/Coin_Gems/spr_coin_ama.png' },
-      red: { value: 10, file: './assets/Coin_Gems/spr_coin_roj.png' },
+      grey: { value: 10, file: './assets/Coin_Gems/spr_coin_gri.png' },
+      red: { value: 25, file: './assets/Coin_Gems/spr_coin_roj.png' },
+    },
+    // Too many gems on the map: the oldest `count` (not coins, not already flying) merge into one worth their sum,
+    // coloured as the most valuable kind not above it.
+    merge: { above: 200, count: 40 },
+  },
+  // Protein coins: a rare drop from any killed enemy, collected like gems. Their protein is added at the end of the run.
+  // Sheets are 5 frames of 16x16. weight: how often each kind comes up when a coin drops.
+  coins: {
+    dropChance: 0.02, fps: 10,
+    kinds: {
+      red: { protein: 1, weight: 0.75, file: './assets/Coin_Gems/MonedaR.png' },
+      silver: { protein: 3, weight: 0.2, file: './assets/Coin_Gems/MonedaP.png' },
+      gold: { protein: 10, weight: 0.05, file: './assets/Coin_Gems/MonedaD.png' },
     },
   },
   run: { durationSec: 600 },
@@ -45,6 +60,7 @@ export const config = {
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
     balanceOverlay: false, // true: numbers for balancing in the top right (enemies, spawn/s, kills/s, DPS)
     timeSkipKey: false, // true: the J key moves the run clock 60 s forward
+    gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
   // Ultimate: charged by kills, Space (or a tap on its bar) turns Bartek into a tank.
@@ -166,12 +182,13 @@ export const config = {
     hitSpark: { path: 'impacts/hit-spark', scale: 0.5 }, // bullet hits an enemy
     deathPoof: { path: 'impacts/death-poof', scale: 1 }, // enemy dies
     golfBoom: { path: 'explosions/big-explosion', scale: 2 }, // the Golf is scrapped
+    // minGapMs: an effect that fires in bursts plays at most once per this many ms.
+    gemPickup: { path: 'ui/gem-pickup', scale: 1, minGapMs: 80 },
+    coinPickup: { path: 'ui/coin-pickup', scale: 1, minGapMs: 80 },
     starBurst: { path: 'ui/star-burst-pickup', scale: 3 }, // a legendary card appears, any pickup is taken
     vacuumPull: { path: 'wind/vacuum-pull', scale: 2 }, // magnet pickup
     frostNova: { path: 'ice/frost-nova', scale: 4 }, // freeze pickup
     holyHeal: { path: 'holy/holy-heal', scale: 1.5 }, // pierogi
-    shieldBubble: { path: 'holy/shield-bubble', scale: 1.4 }, // aura while the bubble lasts
-    berserk: { path: 'status/berserk', scale: 1.6 }, // aura while the pre-workout lasts
   },
   // Texture sizes in px. Images: `height` is the on-screen height, width follows the image, bodyRadius is on-screen too.
   textures: {
@@ -186,6 +203,13 @@ export const config = {
     bullet: { radius: 3, color: 0xffffff },
     bee: { radius: 7, color: 0xffd400, stripeWidth: 3, stripeColor: 0x000000 },
     pickup: { size: 22, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },
+    // Drawn auras around Bartek while a pickup's effect lasts. front: drawn over him, else under.
+    // The aura pulses between 1 and pulseScale every pulseMs and turns spinDegPerSec.
+    auras: {
+      bubble: { radius: 62, color: 0x4dd0e1, fillAlpha: 0.18, lineWidth: 3, front: true, pulseScale: 1.05, pulseMs: 500, spinDegPerSec: 0 },
+      rage: { radius: 46, spikes: 12, spikeLength: 26, color: 0xff3d00, tipColor: 0xffc400, fillAlpha: 0.2, front: false,
+        pulseScale: 1.15, pulseMs: 180, spinDegPerSec: 90 },
+    },
     // Drawn icons of the timed pickups, size x size px.
     pickupIcons: { size: 30, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
       preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },

@@ -37,7 +37,12 @@ export function createVfxPool(scene) {
   return scene.add.group({ classType: Phaser.GameObjects.Sprite, defaultKey: ids()[0], maxSize: config.pools.vfx });
 }
 
+const lastPlayedMs = new Map();
+
 export function playVfx(scene, id, x, y) {
+  const gap = config.vfx[id].minGapMs, now = performance.now();
+  if (gap && now - (lastPlayedMs.get(id) ?? -Infinity) < gap) return;
+  lastPlayedMs.set(id, now);
   const s = scene.vfx.get(x, y);
   if (!s) return;
   s.setActive(true).setVisible(true).setDepth(1).setScale(config.vfx[id].scale).play(id);

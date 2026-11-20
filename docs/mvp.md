@@ -36,13 +36,13 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 | Biegacz | 2x szybszy | 4 | 15 | 1:00 |
 
 - Spawn poza ekranem, w pierścieniu wokół gracza. Częstotliwość rośnie z czasem.
-- Krzywa trudności (wersja 3): spawn na sekundę rośnie po krzywej, spokojnie na początku i najmocniej pod koniec. HP zwykłych wrogów rośnie z każdą minutą rundy (boss ma stałe HP). Kolejne poziomy drożeją szybciej niż liniowo. Cel: pierwsza minuta bez ulepszeń to 10-25 wrogów na ekranie, a minuty 8-10 są najtrudniejsze także z dobrymi kartami.
+- Krzywa trudności (wersja 3): spawn na sekundę rośnie po krzywej, spokojnie na początku i najmocniej pod koniec. HP zwykłych wrogów rośnie z każdą minutą rundy (boss ma stałe HP). Kolejne poziomy drożeją szybciej niż liniowo. Spawn jest szybszy, niż pistolet nadąża zabijać, więc wokół Bartka zbiera się horda; za to pojedynczy dotyk zwykłego wroga boli mało. Co 45 s pierścień wrogów otacza Bartka, większy z każdą falą. Cel: horda rośnie przez całą rundę (ok. 10-30 wrogów na ekranie w 1.-2. minucie, ponad 100 w drugiej połowie), gracz bez siłowni przeżywa ok. 4-5 minut, a pełna siłownia z dobrymi kartami wygrywa.
 - **Zmiana planu (v2):** wrogowie to warianty Bartka. Zombie to zombie-Bartek, biegacz to Uncanny, a silniejsze zombie to kolejne warianty: Joker (od 3:00) i Homelander (od 5:00). Większy obrazek = silniejszy wróg. Nowi wrogowie w przyszłości to też warianty Bartka. Do tego klapa bagażnika (od 4:00) i boss Golf (8:00). Liczby w `config.enemies` i `config.boss`.
 - Limit 250 wrogów na ekranie, żeby gra nie klatkowała.
 
 ### XP i level up
 
-Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. W v2 kryształy to animowane gemy (CC0, `assets/Coin_Gems`) o różnej wartości: każdy typ wroga wypada innym kolorem. Zielony = 1 XP (zombie, biegacz, klapa), niebieski = 3 (Joker), żółty = 5 (Homelander), czerwony = 10 (Golf). Szary gem i monety (`Moneda*.png`) czekają na pomysł, np. białko jako znajdźka albo skarb z bossa. Przy level upie gra się pauzuje i pokazuje 3 losowe karty z 5 ulepszeń.
+Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. W v2 kryształy to animowane gemy (CC0, `assets/Coin_Gems`) o różnej wartości: każdy typ wroga wypada innym kolorem. Zielony = 1 XP (zombie, biegacz, klapa), niebieski = 3 (Joker), żółty = 5 (Homelander), szary = 10, czerwony = 25 (Golf). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (`Moneda*.png`: czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty z 5 ulepszeń.
 
 | Ulepszenie | Efekt na poziom | Max poziomów |
 | --- | --- | --- |

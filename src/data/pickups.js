@@ -8,7 +8,7 @@ import { addEffect } from '../systems/effects.js';
 //   icon   texture key (drawn in BootScene), default 'pickup'
 //   onMap  also spawns by itself on the map now and then (config.pickups.mapSpawn)
 //   effect id of the timed effect it starts: UIScene shows the icon and the time left
-//   aura   config.vfx id looped around Bartek while that effect lasts
+//   aura   config.textures.auras id drawn around Bartek while that effect lasts
 //   vfx    config.vfx id played on Bartek when picked up
 const pk = config.pickups, o = pk.olx, ps = pk.photoshop;
 const fr = pk.freeze, pw = pk.preworkout, bb = pk.bubble, pi = pk.pierogi, mg = pk.magnet;
@@ -78,7 +78,7 @@ export const pickups = [
     icon: 'pickup_preworkout',
     onMap: true,
     effect: 'preworkout',
-    aura: 'berserk',
+    aura: 'rage',
     apply(scene) {
       addEffect(scene.run, { id: 'preworkout', durationMs: pw.durationSec * 1000, apply(pl) { pl.fireRateMs /= pw.fireRateMult; } });
     },
@@ -93,7 +93,7 @@ export const pickups = [
     icon: 'pickup_bubble',
     onMap: true,
     effect: 'bubble',
-    aura: 'shieldBubble',
+    aura: 'bubble',
     apply(scene) { addEffect(scene.run, { id: 'bubble', durationMs: bb.durationSec * 1000, apply() {} }); },
   },
   {

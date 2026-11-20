@@ -56,11 +56,10 @@ export default class GameScene extends Phaser.Scene {
 
     this.pickups = this.physics.add.group({ defaultKey: 'pickup', maxSize: config.pools.pickups });
     // Looped effects around Bartek while a pickup's effect lasts (bubble, pre-workout).
-    this.auras = pickups.filter((d) => d.aura).map((d) => ({
-      effect: d.effect,
-      sprite: this.add.sprite(0, 0, d.aura).setScale(config.vfx[d.aura].scale).setDepth(2).setVisible(false)
-        .play({ key: d.aura, repeat: -1 }),
-    }));
+    this.auras = pickups.filter((d) => d.aura).map((d) => {
+      const cfg = config.textures.auras[d.aura];
+      return { effect: d.effect, cfg, image: this.add.image(0, 0, `aura_${d.aura}`).setDepth(cfg.front ? 2 : 0.5).setVisible(false) };
+    });
     this.physics.add.overlap(this.player, this.pickups, this.collectPickup, null, this);
     if (config.debug.pickupKey) {
       // Each press drops the next pickup in data order, so every one is easy to reach.
@@ -88,6 +87,16 @@ export default class GameScene extends Phaser.Scene {
         this.bartkowanieArmed = false;
         doBartkowanie(this, bartkowanie[i]);
       }));
+    }
+    if (config.debug.gemKey) {
+      this.input.keyboard.on('keydown-G', () => {
+        const { x, y } = this.player;
+        for (let i = 0; i < 250; i++) {
+          const a = Phaser.Math.FloatBetween(0, Math.PI * 2), r = Phaser.Math.FloatBetween(150, 600);
+          this.dropGem(x + Math.cos(a) * r, y + Math.sin(a) * r, 'green');
+        }
+        Object.keys(config.coins.kinds).forEach((kind, i) => this.dropCoin(x + 60 + i * 30, y, kind));
+      });
     }
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
     if (config.debug.timeSkipKey) {
@@ -151,6 +160,7 @@ export default class GameScene extends Phaser.Scene {
     this.run.kills++;
     if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, config.tank.killsToCharge);
     this.dropGem(enemy.x, enemy.y, enemy.stats.gem);
+    if (Math.random() < config.coins.dropChance) this.dropCoin(enemy.x, enemy.y, this.pickCoinKind());
     playVfx(this, 'deathPoof', enemy.x, enemy.y);
     this.maybeDropPickup(enemy.x, enemy.y);
     if (enemy.stats.isBoss) this.bossKilled(enemy);
@@ -244,19 +254,51 @@ export default class GameScene extends Phaser.Scene {
     for (const gem of this.gems.getChildren()) if (gem.active) gem.magnet = true;
   }
 
-  dropGem(x, y, kind) {
+  dropGem(x, y, kind) { this.dropCollectible(x, y, `gem_${kind}`, config.xp.gems[kind].value, false); }
+
+  dropCoin(x, y, kind) { this.dropCollectible(x, y, `coin_${kind}`, config.coins.kinds[kind].protein, true); }
+
+  pickCoinKind() {
+    const kinds = Object.entries(config.coins.kinds);
+    let roll = Math.random() * kinds.reduce((sum, [, k]) => sum + k.weight, 0);
+    return (kinds.find(([, k]) => (roll -= k.weight) < 0) ?? kinds[0])[0];
+  }
+
+  // Gems and coins share one pool, the magnet and the pickup; value is XP for a gem, protein for a coin.
+  dropCollectible(x, y, anim, value, coin) {
+    if (this.gems.countActive(true) >= config.xp.merge.above) this.mergeGems();
     const gem = this.gems.get(x, y);
-    if (!gem) return; // shortcut: pool full means the drop is lost, fine while gems stay well under the cap
+    if (!gem) return; // full even after merging (only coins and flying gems left): this one drop is lost
     gem.enableBody(true, x, y, true, true);
-    gem.value = config.xp.gems[kind].value;
-    gem.setScale(config.xp.gemScale).play(`gem_${kind}`);
+    gem.value = value;
+    gem.coin = coin;
+    gem.dropMs = this.run.elapsedMs;
+    gem.setScale(config.xp.gemScale).play(anim);
     gem.magnet = false;
+  }
+
+  // The oldest gems lying still merge into one worth their sum, where the oldest lay. Coins never merge.
+  mergeGems() {
+    const m = config.xp.merge;
+    const old = this.gems.getChildren().filter((g) => g.active && !g.coin && !g.magnet)
+      .sort((a, b) => a.dropMs - b.dropMs).slice(0, m.count);
+    if (old.length < 2) return;
+    const sum = old.reduce((s, g) => s + g.value, 0), { x, y } = old[0];
+    for (const g of old) g.disableBody(true, true);
+    const [kind] = Object.entries(config.xp.gems).filter(([, k]) => k.value <= sum).sort((a, b) => b[1].value - a[1].value)[0];
+    this.dropCollectible(x, y, `gem_${kind}`, sum, false);
   }
 
   collectGem(player, gem) {
     if (!gem.active) return;
     gem.disableBody(true, true);
     playSfx(this, 'pick');
+    if (gem.coin) {
+      this.run.coinProtein += gem.value;
+      playVfx(this, 'coinPickup', gem.x, gem.y);
+      return;
+    }
+    playVfx(this, 'gemPickup', gem.x, gem.y);
     this.run.xp += gem.value;
     const wasPending = this.run.pendingLevelUps > 0;
     for (let need = xpToNextLevel(this.run.level); this.run.xp >= need; need = xpToNextLevel(this.run.level)) {
@@ -456,8 +498,12 @@ export default class GameScene extends Phaser.Scene {
       else p.setAlpha(Math.floor(p.ageMs / pk.blinkMs) % 2 ? pk.blinkAlpha : 1);
     }
 
-    for (const a of this.auras) {
-      a.sprite.setVisible(isEffectActive(run, a.effect)).setPosition(this.player.x, this.player.y + this.player.displayHeight / 2);
+    for (const { effect, cfg, image } of this.auras) {
+      image.setVisible(isEffectActive(run, effect));
+      if (!image.visible) continue;
+      const pulse = 1 + (cfg.pulseScale - 1) * (0.5 + 0.5 * Math.sin((run.elapsedMs / cfg.pulseMs) * Math.PI * 2));
+      image.setPosition(this.player.x, this.player.y).setScale(pulse * pl.scale)
+        .setAngle(image.angle + (cfg.spinDegPerSec * delta) / 1000);
     }
 
     // Bees: a small B gets a denser swarm on a tighter orbit, so it fits his size.

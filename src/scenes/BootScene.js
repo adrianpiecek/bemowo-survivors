@@ -14,9 +14,9 @@ export default class BootScene extends Phaser.Scene {
     this.load.image('golab', config.pickups.olx.photo);
     for (let i = 1; i <= config.textures.pigeon.frames; i++) this.load.image(`pigeon${i}`, `./assets/Pigeons/pigeon${i}.png`);
     const x = config.xp;
-    for (const [kind, gem] of Object.entries(x.gems)) {
-      this.load.spritesheet(`gem_${kind}`, gem.file, { frameWidth: x.gemFrameSize, frameHeight: x.gemFrameSize });
-    }
+    const sheet = { frameWidth: x.gemFrameSize, frameHeight: x.gemFrameSize };
+    for (const [kind, gem] of Object.entries(x.gems)) this.load.spritesheet(`gem_${kind}`, gem.file, sheet);
+    for (const [kind, coin] of Object.entries(config.coins.kinds)) this.load.spritesheet(`coin_${kind}`, coin.file, sheet);
     preloadVfx(this);
     preloadAudio(this);
   }
@@ -25,11 +25,12 @@ export default class BootScene extends Phaser.Scene {
     const t = config.textures, x = config.xp;
     const pixel = (key) => this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
 
-    for (const kind of Object.keys(x.gems)) {
-      const key = `gem_${kind}`;
+    const spin = (key, fps) => {
       pixel(key);
-      this.anims.create({ key, frames: this.anims.generateFrameNumbers(key), frameRate: x.gemFps, repeat: -1 });
-    }
+      this.anims.create({ key, frames: this.anims.generateFrameNumbers(key), frameRate: fps, repeat: -1 });
+    };
+    for (const kind of Object.keys(x.gems)) spin(`gem_${kind}`, x.gemFps);
+    for (const kind of Object.keys(config.coins.kinds)) spin(`coin_${kind}`, config.coins.fps);
     const pigeonFrames = [];
     for (let i = 1; i <= t.pigeon.frames; i++) {
       pixel(`pigeon${i}`);
@@ -81,6 +82,24 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(pk.color).fillRect(0, 0, pk.size, pk.size);
     g.lineStyle(pk.borderWidth, pk.borderColor).strokeRect(0, 0, pk.size, pk.size);
     g.generateTexture('pickup', pk.size, pk.size).clear();
+
+    // Auras: a bubble (translucent ball with a shine) and a rage ring (spikes, red at the base, yellow at the tip).
+    const ab = t.auras.bubble, bubD = (ab.radius + ab.lineWidth) * 2, bubC = bubD / 2;
+    g.fillStyle(ab.color, ab.fillAlpha).fillCircle(bubC, bubC, ab.radius);
+    g.lineStyle(ab.lineWidth, ab.color).strokeCircle(bubC, bubC, ab.radius);
+    g.lineStyle(ab.lineWidth, 0xffffff, 0.7).beginPath().arc(bubC, bubC, ab.radius * 0.8, Math.PI * 1.1, Math.PI * 1.4).strokePath();
+    g.generateTexture('aura_bubble', bubD, bubD).clear();
+    const ar = t.auras.rage, outer = ar.radius + ar.spikeLength, rd = outer * 2;
+    g.fillStyle(ar.color, ar.fillAlpha).fillCircle(outer, outer, ar.radius);
+    const half = Math.PI / ar.spikes * 0.6; // half the base of a spike, as an angle
+    for (let i = 0; i < ar.spikes; i++) {
+      const a = (i / ar.spikes) * Math.PI * 2, p = (ang, r) => [outer + Math.cos(ang) * r, outer + Math.sin(ang) * r];
+      const [x1, y1] = p(a - half, ar.radius), [x2, y2] = p(a + half, ar.radius), [tx, ty] = p(a, outer);
+      g.fillStyle(ar.color).fillTriangle(x1, y1, x2, y2, tx, ty);
+      const [mx, my] = p(a, ar.radius + ar.spikeLength * 0.55);
+      g.fillStyle(ar.tipColor).fillTriangle(mx + (x1 - x2) * 0.2, my + (y1 - y2) * 0.2, mx - (x1 - x2) * 0.2, my - (y1 - y2) * 0.2, tx, ty);
+    }
+    g.generateTexture('aura_rage', rd, rd).clear();
 
     // Timed pickup icons. Shapes are proportions of the icon size.
     const ic = t.pickupIcons, s = ic.size, c = s / 2;

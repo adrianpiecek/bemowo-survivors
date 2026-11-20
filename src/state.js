@@ -39,6 +39,7 @@ export function newRun() {
     mapPickupMs: config.pickups.mapSpawn.everySec * 1000, // time to the next pickup lying down by itself
     spawned: 0, // enemies spawned, for the debug overlay
     damageDealt: 0, // by bullets and bees, for the debug overlay
+    coinProtein: 0, // protein from coins picked up this run, paid out at the end
     pendingLevelUps: 0, // level-ups still waiting for a card pick
     pickupDropMs: {}, // pickup id -> run time of its last drop, for the cooldown
     effects: {}, // timed effects, see systems/effects.js

@@ -8,7 +8,7 @@ export default class GameOverScene extends Phaser.Scene {
   init(data) {
     this.run = data.run;
     this.won = data.won;
-    this.earned = proteinForRun(this.run, this.won);
+    this.earned = proteinForRun(this.run, this.won) + this.run.coinProtein;
     save.protein += this.earned;
     save.runsPlayed += 1;
     writeSave(save);
@@ -27,7 +27,8 @@ export default class GameOverScene extends Phaser.Scene {
     this.add.text(cx, cy, `Czas: ${formatTime(r.elapsedMs)}   Zabici: ${r.kills}   Poziom: ${r.level}`, {
       fontSize: `${u.hudFontSize}px`,
     }).setOrigin(0.5);
-    this.add.text(cx, cy + u.lineGap, `Zdobyte białko: ${this.earned}   Razem: ${save.protein}`, {
+    const coins = r.coinProtein ? ` (z monet: ${r.coinProtein})` : '';
+    this.add.text(cx, cy + u.lineGap, `Zdobyte białko: ${this.earned}${coins}   Razem: ${save.protein}`, {
       fontSize: `${u.hudFontSize}px`,
     }).setOrigin(0.5);
 
