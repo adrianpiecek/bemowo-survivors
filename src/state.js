@@ -83,6 +83,15 @@ export function newRun() {
     bossEarlySec: 0, // bosses walk in this much earlier
     noPickupHeal: false, // pickups that heal do not drop
     cardCount: config.ui.card.count, // cards on a level up
+    // Hidden pressure (config.dda), GameScene.updatePressure:
+    pressure: 0, // 0..config.dda.max
+    pressureMsSum: 0, // pressure x ms, for the run's average (the protein bonus)
+    ddaSampleMs: 0, // time since the last sample
+    ddaCrowdSum: 0, // enemies near Bartek summed over this sample's frames
+    ddaFrames: 0,
+    ddaDamage: [], // run.damageTaken at each sample of the window
+    ddaGraceMs: 0, // no rise while above 0: set when a card is taken
+    ddaLast: null, // the last sample, for the balance overlay: { hurt, crowd }
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
@@ -115,7 +124,12 @@ export function proteinForRun(run, won) {
   const p = config.protein;
   const base = Math.floor(run.kills / p.perKills) + Math.floor(run.elapsedMs / 60000) * p.perMinute + (won ? p.winBonus : 0)
     + run.bossProtein;
-  return Math.floor(base * (1 + run.betPct)); // Zakłady z Unc
+  return Math.floor(base * (1 + run.betPct + pressureBonus(run))); // Zakłady z Unc, presja Bemowa
+}
+
+// The protein bonus for the run's hidden pressure: its average over the run x config.dda.proteinPct, in whole percent.
+export function pressureBonus(run) {
+  return Math.floor((run.pressureMsSum / Math.max(1, run.elapsedMs)) * config.dda.proteinPct * 100) / 100;
 }
 
 // Persistent progress in localStorage. Bump SAVE_VERSION and migrate in loadSave() when the schema changes.

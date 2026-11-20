@@ -6,7 +6,7 @@ import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
 
-// Boss chest over the paused GameScene: `count` cards spin through upgrade names and stop one by one.
+// Boss (or elite) chest over the paused GameScene: `count` cards spin through upgrade names and stop one by one.
 // Each card's upgrade (with a rolled rarity) is applied the moment it stops. Once all stop, Space, Enter or a click closes it.
 export default class ChestScene extends Phaser.Scene {
   constructor() { super('ChestScene'); }
@@ -14,6 +14,7 @@ export default class ChestScene extends Phaser.Scene {
   init(data) {
     this.run = data.run;
     this.count = data.count;
+    this.evolution = data.evolution ?? true; // false: an elite's chest, never an evolution
     this.closing = false;
   }
 
@@ -26,7 +27,7 @@ export default class ChestScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // An evolution ready (weapon at max level + its passive) takes the first card; one per chest, the rest as usual.
-    const evo = evolutionCard(this.run);
+    const evo = this.evolution ? evolutionCard(this.run) : null;
     const prizes = evo ? [evo, ...drawUpgrades(this.run, this.count - 1)] : drawUpgrades(this.run, this.count);
     while (prizes.length < this.count) prizes.push(fallbackUpgrade); // everything maxed: the heal fills in
     // The spin shows every card name there is: upgrades, weapons, passives.

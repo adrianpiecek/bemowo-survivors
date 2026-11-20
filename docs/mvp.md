@@ -213,7 +213,7 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 ### 3. Ewolucje broni (krok 32, z VS)
 
 - **Warunek:** broń na maksymalnym poziomie plus jej pasywka w slocie.
-- **Skąd:** najbliższa skrzynia (boss albo elita) zamiast kart daje **ewolucję**. Broń zmienia się w mocniejszą wersję w tym samym slocie, a pasywka zostaje.
+- **Skąd:** najbliższa skrzynia bossa zamiast kart daje **ewolucję** (od kroku 35b skrzynia elity już nie). Broń zmienia się w mocniejszą wersję w tym samym slocie, a pasywka zostaje.
 - **Podpowiedzi:** karta broni pokazuje „Ewolucja: + Pasywka”. Ekran końca gry pokazuje odkryte ewolucje.
 - Dane to pole `evolution` w `src/data/weapons.js`.
 
@@ -261,7 +261,7 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 
 ### 5. Elity i wydarzenia rundy (krok 34, z Halls of Torment i VS)
 
-- **Elity.** Co `config.elites.everySec` jeden zwykły wróg staje się elitą z losową cechą (`src/data/elites.js`). Elita ma większe HP, kolorową obwódkę i nazwę cechy nad głową, a po śmierci zostawia **małą skrzynię** (1 karta albo ewolucja). Cechy:
+- **Elity.** Co `config.elites.everySec` jeden zwykły wróg staje się elitą z losową cechą (`src/data/elites.js`). Elita ma większe HP, kolorową obwódkę i nazwę cechy nad głową, a po śmierci zostawia **małą skrzynię** (1 karta; od kroku 35b bez ewolucji). Cechy:
 
 | Cecha | Działanie |
 | --- | --- |
@@ -287,7 +287,7 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 - **Bossowie.** Pierwsze trzy sloty losują bossa z puli (`config.boss.slots`). Wielki Homelander jako ostatni zostaje stały.
 
 **Jak działa (krok 34):**
-- Elity: liczby w `config.elites`. Co 40 s następny wróg, który pojawia się sam (bez bossów, paczek goblinów i klap), staje się elitą: x5 HP, 1.25x większy, poświata w kolorze cechy (WebGL) i nazwa nad głową. Po śmierci zostawia skrzynię z 1 kartą (albo ewolucją). Cechy: Szybki +60% prędkości, Pancerny x4 HP (razem x20), Dzielący się: 3 kopie w skali 0.7 z połową HP, Wampir: co sekundę leczy wrogów w promieniu 160 px o 15% ich max HP (bez bossów), Złodziej: idzie do najbliższego kryształu w promieniu 450 px, zabiera te w promieniu 40 px, po śmierci zostawia jeden kryształ wart ich sumę +50%.
+- Elity: liczby w `config.elites`. Co 40 s następny wróg, który pojawia się sam (bez bossów, paczek goblinów i klap), staje się elitą: x5 HP, 1.25x większy, poświata w kolorze cechy (WebGL) i nazwa nad głową. Po śmierci zostawia skrzynię z 1 kartą (od kroku 35b nigdy z ewolucją). Cechy: Szybki +60% prędkości, Pancerny x4 HP (razem x20), Dzielący się: 3 kopie w skali 0.7 z połową HP, Wampir: co sekundę leczy wrogów w promieniu 160 px o 15% ich max HP (bez bossów), Złodziej: idzie do najbliższego kryształu w promieniu 450 px, zabiera te w promieniu 40 px, po śmierci zostawia jeden kryształ wart ich sumę +50%.
 - Wydarzenia: liczby w `config.events`. Runda bierze 3 wydarzenia, najpierw te, których nie było w poprzedniej rundzie. Każde startuje w losowej sekundzie między 0:50 a 9:00, co najmniej 60 s po poprzednim i 30 s od każdego slotu bossa. Wydarzenie z czasem trwania ma pasek pod HUD-em.
 - Liczby wydarzeń: Burza uderza co 400 ms za 30 obrażeń (przez mnożnik obrażeń broni). Deszcz kryształów to niebieski kryształ co 60 ms do 380 px od Bartka. Festyn kładzie 3 różne znajdźki 250-450 px od Bartka.
 - Promocja w Żabce: sklep stoi 500-700 px od Bartka przez 45 s, strzałka HUD-u wskazuje go przed innymi znajdźkami. Wejście otwiera `ShopScene`: 3 karty z rzadkością, cena w białku z monet tej rundy (`run.coinProtein`): bez rzadkości 15, zwykła 8, rzadka 15, epicka 25, legendarna 40. Można kupić ile się da, każdą kartę raz. Wydane białko nie wraca na koniec rundy. Jedna wizyta na promocję.
@@ -318,6 +318,22 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 - Premia mnoży białko z rundy (zabici, minuty, wygrana, bossowie), monet nie: `proteinForRun` × (1 + suma).
 - Nagrody za wygraną (dodatkowa droga, własne warunki zostają): premia od 50% odblokowuje plan Trening z Unc, od 100% wszystkie wciąż zablokowane pasywki.
 - Debug: `config.debug.betsUnlocked` pokazuje zakłady bez wygranej.
+
+### 7. Balans późnej gry (krok 35b)
+
+Problem: z nowymi brońmi i ewolucjami po ~2 minutach gra robiła się za łatwa. Rozwiązanie: trudność rośnie z czasem i dostosowuje się po cichu do gracza, a gracz nadal czuje, że rośnie w siłę.
+
+- **Ewolucje tylko od bossów.** Skrzynia elity ma zawsze 1 zwykłą kartę. Ewolucja jest nagrodą za bossa, nie za co drugą elitę.
+- **Czytelność ewolucji.** Podpowiedź na kartach pokazuje stan: „Ewolucja: Pistolet 3/5 + Bilet miesięczny ZTM (brak)”, a przy posiadanej pasywce „(masz)”. Gdy broń jest gotowa (max poziom i pasywka w slocie), jej slot i slot pasywki w HUD dostają pulsującą złotą ramkę. Pojawia się też raz baner „BROŃ: GOTOWE DO EWOLUCJI / Pokonaj bossa: jego skrzynia zamieni to w …”. Baner czeka, aż zejdzie baner bossa albo wydarzenia.
+- **Elity z dwiema cechami.** Od 5:00 połowa elit ma dwie różne cechy („Szybki + Pancerny”), dwie poświaty i oba efekty. Dotyczy to też Kontroli biletów (`config.elites.doubleAfterSec`, `doubleChance`).
+- **Rosnące obrażenia wrogów.** Dotyk każdego wroga (także bossa) zadaje +8% bazowych obrażeń za każdą minutę rundy, czyli x1.8 w 10:00. Pancerz odejmuje się po tym (`config.spawn.damagePerMinutePct`).
+- **Ukryta presja Bemowa** (`config.dda`), wartość 0..1. Co 5 s gra patrzy na ostatnie 30 s:
+  - **Za łatwo** (Bartek stracił < 10% max HP i średnio < 8 wrogów w promieniu 300 px): presja rośnie o 0.2 na minutę. Działa to dopiero od 1:00 i nie przez 20 s po każdej wziętej karcie (level up, skrzynia, Żabka), żeby gracz poczuł nowe ulepszenie.
+  - **Ciężko** (> 30% HP straconego, HP < 35% albo > 30 wrogów wokół): presja spada o 0.1 na minutę.
+  - Presja nigdy nie spada poniżej 0, czyli poniżej obecnie ustawionej gry.
+  - **Działanie:** spawn i liczebność fal x(1 + presja), HP zwykłych wrogów x(1 + 0.4 × presja). Bossowie bez zmian. Spawn wciąż ogranicza `maxEnemies`.
+  - **Nagroda:** średnia presja z rundy × 30% dochodzi do białka (np. +15% przy średniej 0.5). Gracz widzi ją tylko na ekranie końca gry: „Bemowo się zbroiło +X%”. Sama presja jest ukryta.
+  - Debug: `config.debug.forcePressure` (liczba) trzyma presję na stałe. Nakładka balansu (`debug.balanceOverlay`) pokazuje presję, mnożniki, utratę HP w oknie, tłok, premię i mnożnik dotyku.
 
 ### Później (po kroku 37 z mapą)
 

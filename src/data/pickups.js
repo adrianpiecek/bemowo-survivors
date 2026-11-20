@@ -99,14 +99,15 @@ export const pickups = [
     apply(scene) { addEffect(scene.run, { id: 'bubble', durationMs: bb.durationSec * 1000, apply() {} }); },
   },
   {
-    // Only bosses drop it, with count = their config chest; the debug P key drops one with a single upgrade.
+    // Bosses drop it with count = their slot's chest, elites with one card and evolution false (no evolution inside);
+    // the debug P key drops one with a single upgrade.
     id: 'chest',
     name: 'Skrzynia',
     dropChance: 0,
     cooldownSec: 0,
     icon: 'chest',
     vfx: 'chestOpen',
-    apply(scene, p) { scene.openChest(p.count); },
+    apply(scene, p) { scene.openChest(p.count, p.evolution); },
   },
   {
     id: 'pierogi',

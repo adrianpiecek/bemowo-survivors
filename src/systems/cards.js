@@ -20,20 +20,27 @@ export function rollRarity(up, run) {
 
 const isUnlocked = (def) => !def.unlock || save.unlocks.includes(def.id);
 
-// "Ewolucja: Broń + Pasywka" under a weapon card and under the card of a passive some weapon evolves with;
-// nothing once that weapon has evolved this run.
+// "Ewolucja: Broń 3/5 + Pasywka (brak)" under a weapon card and under the card of a passive some weapon evolves with,
+// so the player sees what is still missing; nothing once that weapon has evolved this run.
 function evolutionHint(run, weapon) {
   const evo = weapon?.evolution;
   if (!evo || run.weapons.some((w) => w.def === weapon && w.evolved)) return undefined;
-  return `Ewolucja: ${weapon.name} + ${passives.find((d) => d.id === evo.passive).name}`;
+  const w = run.weapons.find((it) => it.def === weapon), passive = passives.find((d) => d.id === evo.passive);
+  const has = run.passives.some((p) => p.def === passive);
+  return `Ewolucja: ${weapon.name} ${w ? `${w.level}/${weapon.maxLevel}` : '(brak)'} + ${passive.name} ${has ? '(masz)' : '(brak)'}`;
+}
+
+// A carried weapon at its max level with its evolution passive in a slot, not evolved yet: the next boss chest evolves it.
+export function evolutionReady(run, w) {
+  const evo = w.def.evolution;
+  return !!evo && !w.evolved && w.level >= w.def.maxLevel && run.passives.some((p) => p.def.id === evo.passive);
 }
 const passiveHint = (run, def) => evolutionHint(run, weapons.find((w) => w.evolution?.passive === def.id));
 
-// The chest's evolution card: the first carried weapon at its max level whose evolution passive is in a slot.
-// Not in the level-up pool; ChestScene puts it first, one per chest.
+// The boss chest's evolution card: the first carried weapon ready to evolve (evolutionReady).
+// Not in the level-up pool; ChestScene puts it first, one per boss chest (elite chests have none).
 export function evolutionCard(run) {
-  const w = run.weapons.find((it) => !it.evolved && it.def.evolution && it.level >= it.def.maxLevel
-    && run.passives.some((p) => p.def.id === it.def.evolution.passive));
+  const w = run.weapons.find((it) => evolutionReady(run, it));
   if (!w) return null;
   const evo = w.def.evolution;
   return {
@@ -109,6 +116,7 @@ export function describe(up, rarity) {
 export function applyUpgrade(run, scene, up, rarity) {
   up.apply(run.player, scene, rarity?.mult ?? 1);
   run.upgrades[up.id] = (run.upgrades[up.id] ?? 0) + 1;
+  run.ddaGraceMs = config.dda.graceSec * 1000; // the hidden pressure lets the new power be felt first
 }
 
 // The evolution hint at the bottom of a card (above `bottomY`), and the description moved to the middle of what is

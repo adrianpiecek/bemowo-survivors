@@ -5,6 +5,8 @@ import { pickups } from '../data/pickups.js';
 import { events } from '../data/events.js';
 import { font, drawPanel, drawBar } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
+import { evolutionReady } from '../systems/cards.js';
+import { pressureBonus } from '../state.js';
 
 // HUD on its own layer above GameScene. It reads `run` every frame, so GameScene never has to notify it.
 // Static panels are drawn once into this.panels; bars and anything that changes are redrawn into this.bars every frame.
@@ -73,6 +75,9 @@ export default class UIScene extends Phaser.Scene {
     this.createJoystick();
     this.weaponSlots = this.add.graphics();
     this.slotBadges = this.add.graphics().setDepth(1); // level badges over the icons
+    // Frames on a weapon ready to evolve and on its passive, pulsing.
+    this.readyFrames = this.add.graphics().setDepth(1);
+    this.tweens.add({ targets: this.readyFrames, alpha: 0.25, duration: u.weaponHud.readyPulseMs, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.weaponHud = {}; // `${row}_${slot}` -> icon and level text, filled by updateWeaponHud as items come
     this.weaponSig = null;
 
@@ -211,7 +216,8 @@ export default class UIScene extends Phaser.Scene {
   updateWeaponHud() {
     const wh = config.ui.weaponHud, m = config.ui.margin, bottom = this.scale.height - m - wh.size;
     const rows = [[this.run.weapons, config.weapons.maxSlots, bottom], [this.run.passives, config.passives.maxSlots, bottom - wh.size - wh.gap]];
-    const sig = rows.map(([items]) => items.map((it) => `${it.level}${it.evolved ? 'e' : ''}`).join()).join('|');
+    const ready = this.run.weapons.filter((w) => evolutionReady(this.run, w));
+    const sig = rows.map(([items]) => items.map((it) => `${it.level}${it.evolved ? 'e' : ''}`).join()).join('|') + `|${ready.length}`;
     if (sig === this.weaponSig) return;
     this.weaponSig = sig;
     const g = this.weaponSlots.clear(), badges = this.slotBadges.clear();
@@ -230,6 +236,13 @@ export default class UIScene extends Phaser.Scene {
         if (it.evolved) this.weaponHud[key].icon.setTexture(it.def.evolution.icon).setDisplaySize(wh.iconSize, wh.iconSize);
       }
     });
+    // Ready to evolve: the weapon's slot and its passive's slot in gold.
+    const frames = this.readyFrames.clear().lineStyle(wh.readyWidth, wh.readyColor), r = config.ui.panel.radius;
+    for (const w of ready) {
+      const wi = this.run.weapons.indexOf(w), pi = this.run.passives.findIndex((p) => p.def.id === w.def.evolution.passive);
+      frames.strokeRoundedRect(m + wi * (wh.size + wh.gap), rows[0][2], wh.size, wh.size, r);
+      frames.strokeRoundedRect(m + pi * (wh.size + wh.gap), rows[1][2], wh.size, wh.size, r);
+    }
   }
 
   // Arrow on the screen edge toward the Żabka shop, else the nearest pickup lying off screen; hidden when none is.
@@ -272,6 +285,11 @@ export default class UIScene extends Phaser.Scene {
       `obrażenia ${x(pl.damageMult)}   odnowienie ${x(pl.cooldownMult)}   obszar ${x(pl.area)}   czas ${x(pl.duration)}`,
       `ilość +${pl.amount}   pancerz ${pl.armor}   regen ${pl.regen.toFixed(1)}/s   szczęście ${x(pl.luck)}`,
       `XP ${x(pl.growth)}   magnes ${pl.magnetRadius.toFixed(0)} px   prędkość ${pl.speed.toFixed(0)}`,
+      // Hidden pressure: its value, what it does now, the last sample (share of max HP lost in the window, crowd) and the bonus.
+      `presja ${r.pressure.toFixed(2)} (spawn x${(1 + r.pressure * config.dda.spawnBonus).toFixed(2)}, HP x${(1 + r.pressure * config.dda.hpBonus).toFixed(2)})`
+        + `${r.ddaGraceMs > 0 ? '  [po karcie]' : ''}`,
+      `  utrata HP ${r.ddaLast ? Math.round(r.ddaLast.hurt * 100) : 0}%/${config.dda.windowSec}s   tłok ${r.ddaLast ? r.ddaLast.crowd.toFixed(1) : 0}   premia +${Math.round(pressureBonus(r) * 100)}%`,
+      `dotyk wrogów x${(1 + config.spawn.damagePerMinutePct * r.elapsedMs / 60000).toFixed(2)}`,
     ].join('\n'));
   }
 

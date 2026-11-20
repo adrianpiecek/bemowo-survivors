@@ -104,9 +104,10 @@ export const config = {
   },
   // Elites (data/elites.js): every everySec the next walking enemy that spawns alone (no boss, pack or klapa) becomes an
   // elite with a random trait: hpMult x HP, scale x size, a glow in the trait's colour and its name over its head.
-  // It drops a chest with one card (an evolution when one is ready).
+  // It drops a chest with one card; evolutions come only from boss chests.
   elites: {
     everySec: 40, hpMult: 5, scale: 1.25, glowStrength: 4, glowPadding: 8, labelFontSize: 14, labelGap: 2, debugOffset: 200,
+    doubleAfterSec: 300, doubleChance: 0.5, // from then on an elite has two traits this often (the name shows both)
     fast: { speedPct: 0.6, color: 0x40c4ff },
     armored: { hpMult: 4, color: 0xb0bec5 },
     splitter: { copies: 3, scale: 0.7, hpPct: 0.5, spread: 30, color: 0x9ccc65 }, // on death: copies of its type, smaller
@@ -145,7 +146,16 @@ export const config = {
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
-  spawn: { startPerSec: 1.6, endPerSec: 14, curvePow: 0.9, hpPerMinutePct: 0.35, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
+  // Every enemy's touch (bosses too) hits harder by damagePerMinutePct of its base damage for every minute of the run.
+  spawn: { startPerSec: 1.6, endPerSec: 14, curvePow: 0.9, hpPerMinutePct: 0.35, damagePerMinutePct: 0.08, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
+  // Hidden pressure (presja Bemowa), 0..max: every sampleSec it looks at the last windowSec. Easy (Bartek lost under calmPct
+  // of his max HP and fewer than calmCrowd enemies stood within crowdRadius on average): up by upPerMin a minute, but not
+  // for graceSec after any card is taken, so an upgrade is felt first. Struggling (lost over hurtPct, HP under lowHpPct,
+  // or more than busyCrowd around): down by downPerMin. Never below 0 (the game as tuned), not before startSec.
+  // Pressure p adds p * spawnBonus to the spawn rate and the waves, p * hpBonus to walking enemies' HP (not bosses),
+  // and the run's average pressure * proteinPct to its protein.
+  dda: { sampleSec: 5, windowSec: 30, startSec: 60, graceSec: 20, crowdRadius: 300, calmCrowd: 8, busyCrowd: 30,
+    calmPct: 0.1, hurtPct: 0.3, lowHpPct: 0.35, upPerMin: 0.2, downPerMin: 0.1, max: 1, spawnBonus: 1, hpBonus: 0.4, proteinPct: 0.3 },
   wave: { everySec: 45, baseCount: 6, perWave: 10 }, // a ring of extra enemies all around Bartek, bigger each time
   // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value.
   // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
@@ -191,10 +201,11 @@ export const config = {
     givePassives: null, // a list of passive ids (e.g. ['ticket', 'dumbbells']): unlocked in the save and given at level 1 every run
     drawCharges: null, // a number: every run starts with this many Odśwież, Pomiń and Wywal (gym included)
     forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
-    evolveKey: false,
+    evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
     eventKey: false, // true: V, then a digit 1-8, starts that run event (data/events.js order)
-    betsUnlocked: false, // true: the gym shows Zakłady z Unc without a won run // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
+    betsUnlocked: false, // true: the gym shows Zakłady z Unc without a won run
+    forcePressure: null, // a number 0..dda.max: the hidden pressure stays there all run (the balance overlay shows it)
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -354,7 +365,8 @@ export const config = {
     effectHud: { width: 230, height: 38, iconSize: 28, barHeight: 6, gap: 6, fontSize: 15, color: 0xffcc00 },
     // Weapon slots, bottom left (maxSlots, empty ones dimmed): icon with a level badge in its corner.
     // The passive slots are a second row of the same slots right above them.
-    weaponHud: { size: 52, iconSize: 40, gap: 8, fontSize: 15, badgeRadius: 11, emptyAlpha: 0.35 },
+    // readyColor: a pulsing frame on a weapon ready to evolve and on the passive it needs (readyPulseMs a beat).
+    weaponHud: { size: 52, iconSize: 40, gap: 8, fontSize: 15, badgeRadius: 11, emptyAlpha: 0.35, readyColor: 0xffc400, readyWidth: 3, readyPulseMs: 500 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: '"NotJam", Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 520, survivorsY: 660, dropMs: 450, gapMs: 600,

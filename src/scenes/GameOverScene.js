@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { formatTime, proteinForRun, save, writeSave } from '../state.js';
+import { formatTime, proteinForRun, pressureBonus, save, writeSave } from '../state.js';
 import { stopMusic } from '../systems/audio.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
@@ -56,7 +56,10 @@ export default class GameOverScene extends Phaser.Scene {
     this.add.text(cx, cy, `Czas: ${formatTime(r.elapsedMs)}   Zabici: ${r.kills}   Poziom: ${r.level}`, {
       fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`,
     }).setOrigin(0.5);
-    const extra = [r.coinProtein ? `z monet: ${r.coinProtein}` : '', r.betPct ? `zakłady +${Math.round(r.betPct * 100)}%` : ''].filter(Boolean);
+    // The hidden pressure only ever shows here, as a reward: "Bemowo się zbroiło".
+    const pb = Math.round(pressureBonus(r) * 100);
+    const extra = [r.coinProtein ? `z monet: ${r.coinProtein}` : '', r.betPct ? `zakłady +${Math.round(r.betPct * 100)}%` : '',
+      pb ? `Bemowo się zbroiło +${pb}%` : ''].filter(Boolean);
     const coins = extra.length ? ` (${extra.join(', ')})` : '';
     this.add.text(cx, cy + u.lineGap, `Zdobyte białko: ${this.earned}${coins}   Razem: ${save.protein}`, {
       fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`,

@@ -8,6 +8,7 @@ import { plans } from '../data/plans.js';
 import { elites } from '../data/elites.js';
 import { events } from '../data/events.js';
 import { font } from '../systems/ui.js';
+import { evolutionReady } from '../systems/cards.js';
 import { applyBets } from '../data/bets.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { updateLeaper } from '../systems/charge.js';
@@ -165,7 +166,12 @@ export default class GameScene extends Phaser.Scene {
     }
     if (config.debug.eliteKey) {
       let next = 0; // each press: the next trait in data order
-      this.input.keyboard.on('keydown-L', () => this.spawnElite(elites[next++ % elites.length], this.player.x + config.elites.debugOffset, this.player.y));
+      // From doubleAfterSec on (J skips time) a second random trait comes with it.
+      this.input.keyboard.on('keydown-L', () => {
+        const trait = elites[next++ % elites.length], late = this.run.elapsedMs >= config.elites.doubleAfterSec * 1000;
+        const traits = late ? [trait, Phaser.Utils.Array.GetRandom(elites.filter((t) => t !== trait))] : [trait];
+        this.spawnElite(traits, this.player.x + config.elites.debugOffset, this.player.y);
+      });
     }
     if (config.debug.eventKey) {
       // V arms it, then 1-8 starts that event.
@@ -210,7 +216,9 @@ export default class GameScene extends Phaser.Scene {
     }
     if (this.time.now < this.run.invulnUntilMs || isEffectActive(this.run, 'bubble')) return;
     if (this.isWalker(enemy) && isEffectActive(this.run, 'freeze')) return; // frozen walkers do not bite
-    const pl = this.run.player, damage = Math.max(1, enemy.stats.contactDamage - pl.armor); // armor: Kurtka puchowa
+    // Touches hit harder as the run goes on; armor (Kurtka puchowa) takes off a flat amount.
+    const grow = 1 + config.spawn.damagePerMinutePct * this.run.elapsedMs / 60000;
+    const pl = this.run.player, damage = Math.max(1, Math.round(enemy.stats.contactDamage * grow) - pl.armor);
     pl.hp = Math.max(0, pl.hp - damage);
     this.run.damageTaken += damage;
     playSfx(this, 'playerDamage');
@@ -251,8 +259,8 @@ export default class GameScene extends Phaser.Scene {
   killEnemy(enemy) {
     enemy.disableBody(true, true);
     if (enemy.elite) {
-      enemy.elite.onDeath?.(this, enemy);
-      this.dropChest(enemy.x, enemy.y, 1);
+      for (const t of enemy.elite) t.onDeath?.(this, enemy);
+      this.dropChest(enemy.x, enemy.y, 1, false); // a card, never an evolution: those come from bosses
       this.clearElite(enemy);
     }
     this.run.kills++;
@@ -291,32 +299,41 @@ export default class GameScene extends Phaser.Scene {
     if (!this.boss) playMusic(this, 'gameplay');
   }
 
-  // A chest (bosses, elites) stays until taken; count: upgrades inside.
-  dropChest(x, y, count) {
+  // A chest (bosses, elites) stays until taken; count: upgrades inside; evolution: false for an elite's (no evolution card).
+  dropChest(x, y, count, evolution = true) {
     const chest = this.dropPickup(pickups.find((d) => d.id === 'chest'), x, y, Infinity);
-    if (chest) chest.count = count;
+    if (!chest) return;
+    chest.count = count;
+    chest.evolution = evolution;
   }
 
   // Chests and the Żabka shop open in update(), so never in the middle of a physics step that also opened the level-up cards.
-  openChest(count) { this.openScreen('ChestScene', { count }); }
+  openChest(count, evolution = true) { this.openScreen('ChestScene', { count, evolution }); }
 
   openScreen(scene, data = {}) { this.run.screenQueue.push({ scene, data }); }
 
-  // Elites (data/elites.js): an enemy just spawned gets more HP, a bigger size, a glow and its trait's name over its head.
-  makeElite(z, trait) {
+  // Elites (data/elites.js): an enemy just spawned gets more HP, a bigger size, a glow and its traits' names over its head.
+  // z.elite is the list of its traits (one, or two late in the run).
+  makeElite(z, traits) {
     const c = config.elites;
-    z.elite = trait;
+    z.elite = traits;
     z.eliteMs = 0;
     z.stolen = 0;
     z.hp *= c.hpMult;
     z.setScale(z.scaleX * c.scale);
-    trait.apply?.(z);
+    for (const t of traits) t.apply?.(z);
     z.maxHp = z.hp;
     z.preFX?.setPadding(c.glowPadding);
-    z.preFX?.addGlow(trait.color, c.glowStrength, 0); // WebGL only; the name still marks it on canvas
-    z.eliteLabel = this.add.text(z.x, z.y, trait.name, font(c.labelFontSize, {
-      fontStyle: 'bold', color: `#${trait.color.toString(16).padStart(6, '0')}`, stroke: '#000000', strokeThickness: 3,
+    for (const t of traits) z.preFX?.addGlow(t.color, c.glowStrength, 0); // WebGL only; the name still marks it on canvas
+    z.eliteLabel = this.add.text(z.x, z.y, traits.map((t) => t.name).join(' + '), font(c.labelFontSize, {
+      fontStyle: 'bold', color: `#${traits[0].color.toString(16).padStart(6, '0')}`, stroke: '#000000', strokeThickness: 3,
     })).setOrigin(0.5, 1).setDepth(2);
+  }
+
+  // One random trait, or two different ones from config.elites.doubleAfterSec on (doubleChance of the time).
+  rollEliteTraits() {
+    const c = config.elites, two = this.run.elapsedMs >= c.doubleAfterSec * 1000 && Math.random() < c.doubleChance;
+    return Phaser.Utils.Array.Shuffle(elites.slice()).slice(0, two ? 2 : 1);
   }
 
   clearElite(z) {
@@ -331,10 +348,51 @@ export default class GameScene extends Phaser.Scene {
   canBeElite(def) { return !def.isBoss && !def.pack && def.behavior !== 'line'; }
 
   // An elite of a random walking type already in the run, right at x, y (Kontrola biletów, debug).
-  spawnElite(trait, x, y) {
+  spawnElite(traits, x, y) {
     const open = enemies.filter((d) => this.canBeElite(d) && this.run.elapsedMs >= d.appearsAtSec * 1000);
     const z = this.spawnEnemy(Phaser.Utils.Array.GetRandom(open), x, y);
-    if (z) this.makeElite(z, trait);
+    if (z) this.makeElite(z, traits);
+  }
+
+  // Hidden pressure (config.dda): sampled every sampleSec from the damage Bartek took over the last windowSec and how
+  // crowded it was around him (crowd: enemies within crowdRadius this frame). See config.dda for the rules.
+  updatePressure(delta, crowd) {
+    const d = config.dda, run = this.run, pl = run.player;
+    run.ddaGraceMs = Math.max(0, run.ddaGraceMs - delta);
+    run.pressureMsSum += run.pressure * delta;
+    run.ddaCrowdSum += crowd;
+    run.ddaFrames++;
+    run.ddaSampleMs += delta;
+    if (run.ddaSampleMs < d.sampleSec * 1000) return;
+    run.ddaSampleMs -= d.sampleSec * 1000;
+    const hist = run.ddaDamage;
+    hist.push(run.damageTaken);
+    if (hist.length > d.windowSec / d.sampleSec + 1) hist.shift();
+    const hurt = (run.damageTaken - hist[0]) / pl.maxHp, avgCrowd = run.ddaCrowdSum / run.ddaFrames;
+    run.ddaCrowdSum = run.ddaFrames = 0;
+    run.ddaLast = { hurt, crowd: avgCrowd };
+    if (config.debug.forcePressure != null) {
+      run.pressure = config.debug.forcePressure;
+      return;
+    }
+    if (run.elapsedMs < d.startSec * 1000) return;
+    const step = d.sampleSec / 60;
+    if (hurt > d.hurtPct || pl.hp < pl.maxHp * d.lowHpPct || avgCrowd > d.busyCrowd) {
+      run.pressure = Math.max(0, run.pressure - d.downPerMin * step);
+    } else if (hurt < d.calmPct && avgCrowd < d.calmCrowd && run.ddaGraceMs <= 0) {
+      run.pressure = Math.min(d.max, run.pressure + d.upPerMin * step);
+    }
+  }
+
+  // A weapon that just became ready to evolve gets a banner once, after any card screen has closed and no other banner shows.
+  announceEvolutions() {
+    if (this.scene.get('UIScene').banner.visible) return; // waits for a boss or event banner, never covers it or gets covered
+    for (const w of this.run.weapons) {
+      if (w.evoAnnounced || !evolutionReady(this.run, w)) continue;
+      w.evoAnnounced = true;
+      this.scene.get('UIScene').showBanner(`${w.def.name.toUpperCase()}: GOTOWE DO EWOLUCJI`,
+        `Pokonaj bossa: jego skrzynia zamieni to w ${w.def.evolution.name}`);
+    }
   }
 
   // This run's bosses: one from each slot's pool (config.boss.slots), none twice, not last run's line-up when the pools
@@ -476,6 +534,7 @@ export default class GameScene extends Phaser.Scene {
     p.ageMs = 0;
     p.lifetimeMs = lifetimeSec * 1000;
     p.count = 1; // upgrades inside, only a chest uses it
+    p.evolution = true; // an evolution card allowed inside (a chest; elites set false)
     this.run.pickupDropMs[def.id] = this.run.elapsedMs;
     return p;
   }
@@ -644,7 +703,8 @@ export default class GameScene extends Phaser.Scene {
     z.charge = null; // a pooled sprite may have died mid-leap
     z.leapMs = 0;
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
-    z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000) * this.run.enemyHpMult;
+    z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000) * this.run.enemyHpMult
+      * (1 + this.run.pressure * config.dda.hpBonus);
     z.maxHp = z.hp; // what a vampire elite heals up to
     this.run.spawned++;
     if (def.behavior === 'line') {
@@ -707,9 +767,10 @@ export default class GameScene extends Phaser.Scene {
       const z = this.spawnPick();
       if (z && run.eliteMs <= 0 && this.canBeElite(z.stats)) {
         run.eliteMs = config.elites.everySec * 1000;
-        this.makeElite(z, Phaser.Utils.Array.GetRandom(elites));
+        this.makeElite(z, this.rollEliteTraits());
       }
-      run.spawnCooldownMs += 1000 / (Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow) * run.spawnRateMult);
+      const pressure = 1 + run.pressure * config.dda.spawnBonus;
+      run.spawnCooldownMs += 1000 / (Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow) * run.spawnRateMult * pressure);
     }
 
     // Bosses walk in at their minute; the banner and the boss music come bannerSec earlier.
@@ -725,6 +786,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.updateEvents(delta);
+    this.announceEvolutions();
 
     // Now and then a timed pickup lies down by itself somewhere off screen, a few seconds' walk away.
     const ms = config.pickups.mapSpawn;
@@ -739,7 +801,7 @@ export default class GameScene extends Phaser.Scene {
     // Every wave.everySec a ring of enemies spawns at once; each wave is bigger. The enemy cap still applies.
     const w = config.wave;
     if (Math.floor(run.elapsedMs / (w.everySec * 1000)) > run.wave) {
-      const count = w.baseCount + w.perWave * run.wave;
+      const count = Math.round((w.baseCount + w.perWave * run.wave) * (1 + run.pressure * config.dda.spawnBonus));
       run.wave++;
       for (let i = 0; i < count; i++) this.spawnEnemy();
     }
@@ -779,8 +841,11 @@ export default class GameScene extends Phaser.Scene {
     const bk = config.bartkowanie, squats = isEffectActive(run, 'squats'), moonwalk = isEffectActive(run, 'moonwalk');
     const frozen = isEffectActive(run, 'freeze'), freezeTint = config.pickups.freeze.tint;
     const hopW = Math.PI * 2 * bk.squatHz, hopT = run.elapsedMs / 1000;
+    const crowdR2 = config.dda.crowdRadius ** 2, px = this.player.x, py = this.player.y;
+    let crowd = 0; // enemies near Bartek, for the hidden pressure
     for (const z of this.enemies.getChildren()) {
       if (!z.active) continue;
+      if ((z.x - px) ** 2 + (z.y - py) ** 2 < crowdR2) crowd++;
       const walker = this.isWalker(z);
       // Freeze: walkers stand still in blue; flying klapas and a Sportakus mid-leap are not affected.
       if (walker && (frozen || z.isTinted)) frozen ? z.setTint(freezeTint) : z.clearTint();
@@ -791,9 +856,10 @@ export default class GameScene extends Phaser.Scene {
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
       else z.angle += z.stats.spinDegPerSec * delta / 1000;
       if (!z.elite) continue;
-      if (walker && !frozen && !squats && !moonwalk) z.elite.update?.(this, z, delta);
+      if (walker && !frozen && !squats && !moonwalk) for (const t of z.elite) t.update?.(this, z, delta);
       z.eliteLabel.setPosition(z.x, z.y - z.displayHeight / 2 - config.elites.labelGap);
     }
+    this.updatePressure(delta, crowd);
 
     // The scar follows Bartek's head and his size; the tank hides it.
     const sc = config.scar;

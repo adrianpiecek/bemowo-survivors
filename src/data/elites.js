@@ -3,7 +3,7 @@ import { enemies } from './enemies.js';
 import { playVfx } from '../systems/vfx.js';
 
 // Elite traits. GameScene.makeElite turns a fresh enemy into an elite (more HP, bigger, a glow, the name over its head)
-// and then calls apply. `scene` is GameScene, `z` the enemy sprite (z.speed is its own walking speed, z.stats shared).
+// with one trait, or two later in the run (config.elites.doubleAfterSec), and calls each one's apply. `scene` is GameScene, `z` the enemy sprite (z.speed is its own walking speed, z.stats shared).
 //   apply(z)                  optional: changes the elite once
 //   update(scene, z, delta)   optional: every frame while it walks (not while frozen, squatting or mid-leap)
 //   onDeath(scene, z)         optional: when it dies, before its chest drops

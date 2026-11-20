@@ -1,7 +1,6 @@
 import { config } from '../config.js';
 import { enemies } from './enemies.js';
 import { pickups } from './pickups.js';
-import { elites } from './elites.js';
 import { playVfx } from '../systems/vfx.js';
 
 // Run events: GameScene draws config.events.perRun of them for each run and starts each at its second, with a banner
@@ -66,10 +65,10 @@ export const events = [
     id: 'ticketControl', name: 'Kontrola biletów', durationSec: 0,
     description: `${c.ticketControl.elites} elity naraz. Bilety do kontroli!`,
     start(scene) {
-      Phaser.Utils.Array.Shuffle(elites.slice()).slice(0, c.ticketControl.elites).forEach((trait) => {
+      for (let i = 0; i < c.ticketControl.elites; i++) {
         const { x, y } = scene.ringPoint();
-        scene.spawnElite(trait, x, y);
-      });
+        scene.spawnElite(scene.rollEliteTraits(), x, y);
+      }
     },
   },
   {
