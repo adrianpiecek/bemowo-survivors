@@ -77,12 +77,12 @@ export const plans = [
   {
     id: 'bartkowanie', name: 'Bartkowanie', passive: 'random',
     unlock: {
-      text: `Wybierz kartę Bartkowanie ${c.bartkowanie.unlockPicks} razy`,
-      check: () => save.stats.bartkowanie >= c.bartkowanie.unlockPicks,
+      text: `Przeżyj Bartkowanie ${c.bartkowanie.unlockCount} razy`,
+      check: () => save.stats.bartkowanie >= c.bartkowanie.unlockCount,
     },
-    plus: `Bartkowanie ${c.bartkowanie.weightMult}x częściej, start z losową pasywką`,
+    plus: `Bartkowanie ${c.bartkowanie.chanceMult}x częściej, start z losową pasywką`,
     minus: null,
-    apply(pl, run) { run.weightMult.bartkowanie = c.bartkowanie.weightMult; },
+    apply(pl, run) { run.bartkowanieChance = Math.min(1, run.bartkowanieChance * c.bartkowanie.chanceMult); },
   },
   {
     id: 'lazy', name: 'Lenistwo',

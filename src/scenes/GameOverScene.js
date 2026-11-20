@@ -26,7 +26,7 @@ export default class GameOverScene extends Phaser.Scene {
     st.damageTaken += r.damageTaken;
     st.goldCoins += r.goldCoins;
     st.maxLevel = Math.max(st.maxLevel, r.level);
-    st.bartkowanie += r.upgrades.bartkowanie ?? 0;
+    st.bartkowanie += r.bartkowanieCount;
     if (!this.won && r.elapsedMs < config.plans.lazy.earlyDeathSec * 1000) st.earlyDeaths++;
     if (this.won) st.wins++;
     // One at a time, in list order, so the shield (last weapon) already sees the others unlocked by this same run.
@@ -84,20 +84,24 @@ export default class GameOverScene extends Phaser.Scene {
     row('Białko z rundy', `${fromRun}${bonus ? ` (${bonus})` : ''}`, go.headerColor);
     row('Białko z monet', `${r.coinProtein}`, go.headerColor);
     row('Razem w siłowni', `${save.protein}`);
-    const dealt = r.weapons.map((w) => ({ w, dmg: Math.round(r.weaponDamage[w.def.id] ?? 0) })).sort((a, b) => b.dmg - a.dmg);
+    // DPS: the weapon's damage over the time Bartek carried it.
+    const dealt = r.weapons.map((w) => {
+      const dmg = Math.round(r.weaponDamage[w.def.id] ?? 0), sec = Math.max(1, (r.elapsedMs - (w.sinceMs ?? 0)) / 1000);
+      return { w, dmg, dps: Math.round(dmg / sec) };
+    }).sort((a, b) => b.dmg - a.dmg);
     if (dealt.length) {
       y += go.gap / 2;
       this.add.text(x0 + go.padding, y, 'Obrażenia broni', font(go.fontSize, { fontStyle: 'bold', color: go.headerColor }));
       y += go.rowHeight;
       const bars = this.add.graphics().setDepth(1), best = Math.max(1, dealt[0].dmg);
-      const barX = x0 + go.padding + go.iconSize + go.nameWidth, barW = inner - go.iconSize - go.nameWidth - go.padding * 4;
-      for (const { w, dmg } of dealt) {
+      const barX = x0 + go.padding + go.iconSize + go.nameWidth, barW = inner - go.iconSize - go.nameWidth - go.valueWidth;
+      for (const { w, dmg, dps } of dealt) {
         const mid = y + go.rowHeight / 2, icon = w.evolved ? w.def.evolution.icon : w.def.icon;
         const img = this.add.image(x0 + go.padding + go.iconSize / 2, mid, icon).setDepth(1);
         img.setScale(go.iconSize / Math.max(img.width, img.height));
         this.add.text(x0 + go.padding + go.iconSize + go.padding / 2, mid, w.evolved ? w.def.evolution.name : w.def.name, font(go.fontSize)).setOrigin(0, 0.5).setDepth(1);
         drawBar(bars, barX, mid - go.barHeight / 2, barW, go.barHeight, dmg / best, go.barColor);
-        this.add.text(x0 + go.panelWidth - go.padding, mid, dmg.toLocaleString('pl-PL'), font(go.fontSize, { fontStyle: 'bold' })).setOrigin(1, 0.5).setDepth(1);
+        this.add.text(x0 + go.panelWidth - go.padding, mid, `${dmg.toLocaleString('pl-PL')} (${dps.toLocaleString('pl-PL')}/s)`, font(go.fontSize, { fontStyle: 'bold' })).setOrigin(1, 0.5).setDepth(1);
         y += go.rowHeight;
       }
     }

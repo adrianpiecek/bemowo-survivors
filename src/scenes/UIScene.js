@@ -163,9 +163,9 @@ export default class UIScene extends Phaser.Scene {
     const bar = (row, color, fill) => drawBar(this.bars, this.barX, this.rowY[row] - h.barHeight / 2, h.barWidth, h.barHeight, fill, color);
     bar(0, h.hpColor, pl.hp / pl.maxHp);
     bar(1, h.xpColor, r.xp / xpNeed);
-    const t = config.tank, full = r.tankCharge >= t.killsToCharge;
+    const t = config.tank, full = r.tankCharge >= r.tankCost;
     const blink = full && Math.floor(this.time.now / t.barBlinkMs) % 2;
-    bar(2, blink ? h.tankBlinkColor : h.tankColor, r.tankMs > 0 ? r.tankMs / (t.durationSec * 1000) : r.tankCharge / t.killsToCharge);
+    bar(2, blink ? h.tankBlinkColor : h.tankColor, r.tankMs > 0 ? r.tankMs / (t.durationSec * 1000) : r.tankCharge / r.tankCost);
 
     // Level badge: a blue disc with a white rim behind the level number.
     const iconX = config.ui.margin + h.padding + h.iconSize / 2;
@@ -196,7 +196,7 @@ export default class UIScene extends Phaser.Scene {
     this.updatePickupArrow();
     if (this.balanceText) this.updateBalance();
     this.tankText.setText(r.tankMs > 0 ? `CZOŁG ${Math.ceil(r.tankMs / 1000)} s`
-      : full ? 'CZOŁG GOTOWY! [Spacja]' : `Czołg ${r.tankCharge} / ${t.killsToCharge}`);
+      : full ? 'CZOŁG GOTOWY! [Spacja]' : `Czołg ${r.tankCharge} / ${r.tankCost}`);
   }
 
   // Active timed effects, stacked under the HUD panel: a small panel with the icon, the name and a bar of the time left.

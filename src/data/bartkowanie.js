@@ -3,7 +3,7 @@ import { save, writeSave } from '../state.js';
 import { addEffect } from '../systems/effects.js';
 import { passiveCards } from '../systems/cards.js'; // only used inside apply, so the import cycle through upgrades.js is fine
 
-// Effects of the "Bartkowanie" card. `scene` is GameScene. apply may return a banner subtext.
+// Bartkowanie effects, one at random after a level up now and then (LevelUpScene). `scene` is GameScene. apply may return a banner subtext.
 // None of them may kill Bartek or break the save. Timed ones go through systems/effects.js;
 // GameScene and UIScene check them by id (squats, moonwalk, yellowSweater).
 const b = config.bartkowanie, timedMs = b.durationSec * 1000;
@@ -65,6 +65,7 @@ export const bartkowanie = [
 
 // Runs one effect and shows on the banner what happened.
 export function doBartkowanie(scene, effect) {
+  scene.run.bartkowanieCount++;
   const subtext = effect.apply(scene) ?? '';
   scene.scene.get('UIScene').showBanner(effect.name, subtext);
 }

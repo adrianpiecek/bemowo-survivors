@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { fallbackUpgrade } from '../data/upgrades.js';
 import { rollRarity, drawUpgrades, applyUpgrade, cardCenter, makeCard } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
+import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
 import { font, button } from '../systems/ui.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -37,7 +38,7 @@ export default class LevelUpScene extends Phaser.Scene {
     const n = this.choices.length;
     this.cards = this.choices.map((up, i) => {
       const level = up.levelText ? `${up.levelText}\n` // weapon cards: "NOWA BROŃ" or the level they reach
-        : !Number.isFinite(up.maxStack) ? '' : `${taken[up.id] ?? 0}/${up.maxStack}\n`; // no counter without a limit (heal, Bartkowanie)
+        : !Number.isFinite(up.maxStack) ? '' : `${taken[up.id] ?? 0}/${up.maxStack}\n`; // no counter without a limit (heal)
       const rarity = this.rarities[i], { x, y } = cardCenter(this, i, n);
       if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, y - c.height / 2);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.choose(i));
@@ -87,6 +88,7 @@ export default class LevelUpScene extends Phaser.Scene {
 
   // This level up is used: the next waiting one, or back to the run.
   done() {
+    if (Math.random() < this.run.bartkowanieChance) doBartkowanie(this.scene.get('GameScene'), Phaser.Utils.Array.GetRandom(bartkowanie));
     this.run.pendingLevelUps--;
     if (this.run.pendingLevelUps > 0) {
       this.scene.restart({ run: this.run });

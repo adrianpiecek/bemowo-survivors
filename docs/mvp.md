@@ -113,7 +113,7 @@ Każdy mem jest podpięty pod istniejący system, żeby nie mnożyć kodu. Do MV
 | Likwidacja rasy | Znajdźka "Ogłoszenie z OLX": rzadko wypada, duży napis LIKWIDACJA RASY przy ogłoszeniu ze zdjęciem gołębia, stado gołębi zabija wszystko na ekranie. Hasło nigdy bez gołębia | v2 |
 | Mały B | Znajdźka "Photoshop": duży napis MAŁY B jak przy LIKWIDACJA, Bartek kurczy się na 15 s (mniejszy hitbox, szybszy, słabsze strzały). Opis: "Nie każdy w Gigantach jest gigantem." | v2 |
 | Pszczoły (B = Bee, Valheim) | Ulepszenie "Ul": pszczoły krążą wokół Bartka (ten sam kod orbity co Kratos). Opis: "Pszczoły są szczęśliwe." Gdy Bartek jest małym B, pszczół jest 2x więcej | v2 |
-| Bartkowanie | Karta z losowym absurdalnym efektem i definicje na ekranie ładowania | v2 |
+| Bartkowanie | Losowy absurdalny efekt, który czasem dzieje się sam po level upie, i definicje na ekranie ładowania | v2 |
 | Praworządność | Pasywka: zombie przechodzące na czerwonym dostają 2x obrażenia | v2 |
 
 Nazwa i logo Gigantów Programowania oraz cudze postacie zostają tylko w wersji dla znajomych z prywatnym linkiem.
@@ -178,7 +178,7 @@ Gracz bierze wszystko po kolei, więc buildy się nie różnią.
 
   Bronie czytają je przez helpery sceny (tak jak dziś `weaponDamage` i `weaponCooldown`). Dzięki temu każda pasywka działa na każdą broń.
 - **Ul przechodzi do broni.** Z pszczołami na orbicie to broń, nie ulepszenie, więc trafia do `src/data/weapons.js`.
-- **Bartkowanie zostaje kartą bez slotu.**
+- **Bartkowanie zostaje kartą bez slotu.** (Po playtestach to już nie karta, patrz sekcja 14.)
 - **Pasywki** (`src/data/passives.js`):
 
 | Pasywka | Statystyka | Na poziom (startowo) | Max | Odblokowanie |
@@ -257,14 +257,14 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 | Rzeźba | +25% szybkostrzelności | -30 max HP | wygraj rundę |
 | Dzień nóg | 2x zasięg przyciągania, +10% XP | -10% obrażeń | od startu |
 | Trening z Unc | +2 Odśwież, +2 Wywal | karty tylko zwykłe | wygraj z 3 pasywkami na max |
-| Bartkowanie | Bartkowanie 3x częściej, start z losową pasywką | brak | wypadnij 10 razy na Bartkowanie |
+| Bartkowanie | Bartkowanie 3x częściej, start z losową pasywką | brak | przeżyj Bartkowanie 10 razy |
 | Lenistwo | +30% XP | wrogowie +15% HP | zgiń przed 2:00 trzy razy |
 
 **Jak działa (krok 33):**
 - Liczby w `config.plans`, wygląd ekranu w `config.ui.planScreen`. Plan to `{ id, name, plus, minus, unlock, apply(player, run), passive? }`; `passive` to id pasywki na start albo `'random'` (losowa odblokowana).
 - Każde wejście do rundy (siłownia, „Jeszcze raz”) idzie przez `startRun` z `PlanScene.js`: przy `save.runsPlayed` 0 prosto do gry, potem przez ekran planów. Wybór kliknięciem albo klawiszami 1-3.
-- Plan działa po siłowni, przed kartami rundy (`GameScene.create`). Run-owe przełączniki: `run.commonOnly` (Unc), `run.weightMult` (Bartkowanie), `run.enemyHpMult` (Lenistwo, tylko zwykli wrogowie, nie bossowie).
-- Odblokowania sprawdzane na końcu rundy razem z bronią i pasywkami, trzymane w `save.unlocks`. Liczniki w `save.stats`: `bartkowanie` (wybrane karty Bartkowanie, za odblokowanie liczy się wybór karty) i `earlyDeaths` (przegrane przed 2:00).
+- Plan działa po siłowni, przed kartami rundy (`GameScene.create`). Run-owe przełączniki: `run.commonOnly` (Unc), `run.bartkowanieChance` (Bartkowanie), `run.enemyHpMult` (Lenistwo, tylko zwykli wrogowie, nie bossowie).
+- Odblokowania sprawdzane na końcu rundy razem z bronią i pasywkami, trzymane w `save.unlocks`. Liczniki w `save.stats`: `bartkowanie` (Bartkowania, które się wydarzyły) i `earlyDeaths` (przegrane przed 2:00).
 - Ekran końca gry pokazuje „Plan: …” i „Nowy plan treningowy: …!”.
 - Debug: `config.debug.forcePlan = 'id'` pomija ekran planów i każdą rundę poza pierwszą zaczyna z tym planem (odblokowuje go w zapisie).
 
@@ -405,7 +405,7 @@ Zgłoszenia: topór za mocny, czołg przydatny tylko na początku, siłownię da
 - **Karty** level upu, skrzyni i Żabki to jeden wspólny kawałek (`makeCard` w `src/systems/cards.js`): panel z `ui.js` w ramce koloru rzadkości (złota przy ewolucji), nazwa rzadkości nad kartą, ikonka (broni, pasywki, przedmiotu; Bartkowanie ma twarz Bartka, Leczenie serce), w pionie po lewej, w poziomie pod nazwą. Nowa broń albo pasywka ma żółtą plakietkę „NOWA” na rogu. Karty wjeżdżają od dołu jedna po drugiej. Liczby w `config.ui.card`.
 - **Ekran tytułowy:** „Kliknij, aby zacząć” to pulsujący przycisk z `ui.js`, „Dotknij albo naciśnij dowolny klawisz” z obrysem.
 - **Pauza:** Esc albo P, przyciski „Wycisz” i „Wyjdź do menu” (opis w sekcji Zakres).
-- **Ekran końca gry:** panel z czasem, poziomem, zabitymi, bossami (x / 4), białkiem z rundy (z premiami zakładów i presji) i z monet, białkiem w siłowni, a pod nim obrażenia każdej broni: ikonka, nazwa (po ewolucji nowa), pasek względem najlepszej i liczba. Obrażenia liczy `run.weaponDamage`: broń ustawia `scene.damageSource` w swoim `update`, pocisk i orbita niosą swoją broń. Liczby w `config.ui.gameOver`.
+- **Ekran końca gry:** panel z czasem, poziomem, zabitymi, bossami (x / 4), białkiem z rundy (z premiami zakładów i presji) i z monet, białkiem w siłowni, a pod nim obrażenia każdej broni: ikonka, nazwa (po ewolucji nowa), pasek względem najlepszej, liczba i DPS (obrażenia przez czas, odkąd Bartek ma tę broń: `w.sinceMs`). Obrażenia liczy `run.weaponDamage`: broń ustawia `scene.damageSource` w swoim `update`, pocisk i orbita niosą swoją broń. Liczby w `config.ui.gameOver`.
 - **Liczby obrażeń** nad trafionym wrogiem: pula 40 tekstów, unoszą się i znikają w 650 ms, krytyk złoty i większy. Gdy cała pula jest w powietrzu, trafienie nie pokazuje liczby. Wyłącza je `config.ui.damageNumbers.enabled: false`.
 - Na telefonie (szerokość 375) karty, pauza i ekran końca mieszczą się w ekranie (gra skaluje się `Scale.FIT`).
 
@@ -447,6 +447,14 @@ Dodane w kroku 38:
 - `heavyHit`: większe iskry, gdy jedno trafienie zabiera co najmniej `look.heavyHitPct` (połowę) życia wroga. `splatGreen` i `splatPurple`: plama na ziemi po Goblinie i Jokerze.
 - `evolution`: duży błysk ekranu i promienie przy ewolucji broni, nazwa nowej broni w banerze. `eliteSpawn`: elita się pojawia. `eventStart`: wydarzenie się zaczyna.
 - `firework`: fajerwerki na ekranie wygranej, co `ui.fireworkEveryMs`, za panelem.
+
+### 14. Poprawki po playtestach (po kroku 38)
+
+- **Bartkowanie nie jest kartą.** Słaba karta nie była brana i żart przepadał. Teraz po każdym level upie (karta wzięta albo pominięta) jest szansa `bartkowanie.levelUpChance` (25%), że dodatkowo dzieje się losowe Bartkowanie z banerem (`LevelUpScene.done`). Plan Bartkowanie mnoży tę szansę 3x i odblokowuje się po 10 Bartkowaniach. Klawisz debug N + cyfra działa jak wcześniej.
+- **Czołg drożeje.** Pierwszy kosztuje 100 zabitych, każdy kolejny 1,5x więcej (`tank.chargeGrowth`: 100, 150, 225...), więc później gracz polega głównie na broniach. Koszt bieżący w `run.tankCost`.
+- **Trudność wolniej.** Spawn pod koniec 14 → 12 wrogów na sekundę, HP wrogów +35% → +30% bazowego na minutę. Zasięg przyciągania bez zmian.
+- **DPS** na ekranie końca obok obrażeń broni (sekcja 12).
+- **Obrys.** Zielone zombie i Goblin oraz kryształy XP mają ciemną krawędź (`look.outline`), żeby nie zlewały się z trawą. Kryształy rysują ją w swojej teksturze, obrazki dostają kopię z obrysem w `BootScene.outlineSprites`.
 
 ## Architektura
 

@@ -75,7 +75,8 @@ export function newRun() {
     pickupDropMs: {}, // pickup id -> run time of its last drop, for the cooldown
     effects: {}, // timed effects, see systems/effects.js
     flashMs: 0, // time left on Bartek's blink after an effect ends
-    tankCharge: 0, // kills toward the tank, 0..config.tank.killsToCharge
+    tankCharge: 0, // kills toward the tank, 0..tankCost
+    tankCost: config.tank.killsToCharge, // kills the next tank needs; grows with every use (config.tank.chargeGrowth)
     tankMs: 0, // time left as a tank, 0 = Bartek on foot
     scarred: false, // hit by a klapa this run
     nextBoss: 0, // index of the next boss in order of appearance
@@ -111,7 +112,8 @@ export function newRun() {
     evolutions: [], // evolution ids this run (save.evolutions gets the new ones at the end)
     plan: null, // the training plan picked for this run (data/plans.js), null on the very first run
     commonOnly: false, // plan Trening z Unc: every card is common
-    weightMult: {}, // card id -> draw weight multiplier (plan Bartkowanie)
+    bartkowanieChance: config.bartkowanie.levelUpChance, // after each level up; plan Bartkowanie raises it
+    bartkowanieCount: 0, // Bartkowania this run, for the plan's unlock
     enemyHpMult: 1, // plan Lenistwo: walking enemies' HP
     weapons: [], // the weapons Bartek carries: { def, level, ... }, see data/weapons.js
     passives: [], // the passives Bartek carries: { def, level }, see data/passives.js
@@ -153,7 +155,7 @@ function freshSave() {
 }
 
 // Totals over all runs, for the passives' and plans' unlocks. Added in GameOverScene.
-// bartkowanie: Bartkowanie cards picked; earlyDeaths: runs lost before config.plans.lazy.earlyDeathSec; wins: runs won.
+// bartkowanie: Bartkowania seen; earlyDeaths: runs lost before config.plans.lazy.earlyDeathSec; wins: runs won.
 function freshStats() {
   return { pierogi: 0, damageTaken: 0, goldCoins: 0, maxLevel: 0, bartkowanie: 0, earlyDeaths: 0, wins: 0 };
 }

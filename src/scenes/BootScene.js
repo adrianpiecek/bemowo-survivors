@@ -25,6 +25,38 @@ export default class BootScene extends Phaser.Scene {
     this.load.once('complete', () => document.getElementById('loading')?.remove());
   }
 
+  // Green pictures (config.look.outline.sprites) get a dark edge so they show on grass: the picture is redrawn under
+  // the same key, bigger by p px all round, over its silhouette stamped in a disc of radius p. p is in picture px,
+  // so it comes out about spriteWidth px on screen at the sprite's config height.
+  outlineSprites() {
+    const ol = config.look.outline;
+    for (const key of ol.sprites) {
+      const src = this.textures.get(key).getSourceImage();
+      const p = Math.ceil(ol.spriteWidth * src.height / config.textures[key].height);
+      const w = src.width + p * 2, h = src.height + p * 2;
+      const sil = document.createElement('canvas');
+      sil.width = w;
+      sil.height = h;
+      const sc = sil.getContext('2d');
+      sc.drawImage(src, p, p);
+      sc.globalCompositeOperation = 'source-in';
+      sc.fillStyle = `#${ol.color.toString(16).padStart(6, '0')}`;
+      sc.fillRect(0, 0, w, h);
+      const ring = document.createElement('canvas');
+      ring.width = w;
+      ring.height = h;
+      const rc = ring.getContext('2d');
+      for (let dx = -p; dx <= p; dx++) for (let dy = -p; dy <= p; dy++) if (dx * dx + dy * dy <= p * p) rc.drawImage(sil, dx, dy);
+      this.textures.remove(key);
+      const tex = this.textures.createCanvas(key, w, h), ctx = tex.getContext();
+      ctx.globalAlpha = ol.alpha;
+      ctx.drawImage(ring, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.drawImage(src, p, p);
+      tex.refresh();
+    }
+  }
+
   create() {
     const t = config.textures;
     const pixel = (key) => this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
@@ -39,11 +71,13 @@ export default class BootScene extends Phaser.Scene {
     pixel('shotgun');
     createVfxTextures(this);
     createMapTextures(this);
+    this.outlineSprites();
 
     const g = this.add.graphics();
 
     // XP gems: a faceted polygon (or a cut gem) with an inner face and a sparkle.
-    const gs = config.xp.gemSize, gc = gs / 2;
+    // A dark outline (config.look.outline) around each, so green gems show on grass: the texture is ow px bigger all round.
+    const gs = config.xp.gemSize, gc = gs / 2, ol = config.look.outline, ow = Math.ceil(ol.gemWidth);
     for (const [kind, k] of Object.entries(config.xp.gems)) {
       const outer = k.cut
         ? [[0.25, 0.12], [0.75, 0.12], [0.98, 0.4], [0.5, 0.98], [0.02, 0.4]].map(([px, py]) => ({ x: px * gs, y: py * gs }))
@@ -52,13 +86,16 @@ export default class BootScene extends Phaser.Scene {
           return { x: gc + Math.cos(a) * (gc - 1) / k.stretch, y: gc + Math.sin(a) * (gc - 1) };
         });
       const inner = outer.map((p) => ({ x: gc + (p.x - gc) * 0.5, y: gc + (p.y - gc) * 0.5 - (k.cut ? gs * 0.08 : 0) }));
+      g.save().translateCanvas(ow, ow);
+      g.lineStyle(ol.gemWidth * 2, ol.color, ol.alpha).strokePoints(outer, true); // the inner half is covered by the fill
       g.fillStyle(k.color).fillPoints(outer, true);
       g.lineStyle(1, k.dark, 0.8);
       outer.forEach((p, i) => g.lineBetween(p.x, p.y, inner[i].x, inner[i].y)); // facets from each corner to the inner face
       g.fillStyle(k.light, 0.85).fillPoints(inner, true);
       g.lineStyle(1.5, k.dark).strokePoints(outer, true);
       g.fillStyle(0xffffff).fillRect(gs * 0.3, gs * 0.22, 2, 2).fillRect(gs * 0.3 - 2, gs * 0.22 + 0.5, 6, 1).fillRect(gs * 0.3 + 0.5, gs * 0.22 - 2, 1, 6);
-      g.generateTexture(`gem_${kind}`, gs, gs).clear();
+      g.restore();
+      g.generateTexture(`gem_${kind}`, gs + ow * 2, gs + ow * 2).clear();
     }
 
     // Protein coins (gold, three sizes): a dark rim, the face with a shine, a dumbbell in the middle.

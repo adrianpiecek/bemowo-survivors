@@ -99,7 +99,7 @@ export function passiveCards(run) {
 export function drawUpgrades(run, count, exclude = []) {
   const pool = [...upgrades.filter((up) => (run.upgrades[up.id] ?? 0) < up.maxStack), ...weaponCards(run), ...passiveCards(run)]
     .filter((up) => !run.banished.includes(up.id) && !exclude.includes(up.id));
-  const weight = (up) => (up.weight ?? 1) * (run.weightMult[up.id] ?? 1); // weightMult: plan Bartkowanie
+  const weight = (up) => up.weight ?? 1;
   const picked = [];
   while (picked.length < count && pool.length) {
     let roll = Math.random() * pool.reduce((sum, up) => sum + weight(up), 0);
@@ -159,7 +159,7 @@ export function makeCard(scene, i, n, onClick) {
     box.icon.setVisible(!!up.icon);
     if (up.icon) {
       box.icon.setTexture(up.icon);
-      box.icon.setScale(c.iconSize / Math.max(box.icon.width, box.icon.height)); // fits any picture (Bartek for Bartkowanie)
+      box.icon.setScale(c.iconSize / Math.max(box.icon.width, box.icon.height)); // fits any picture 
       if (c.row) {
         box.icon.setPosition(0, upper + m / 2 + c.iconSize / 2);
         upper += m / 2 + c.iconSize;

@@ -190,12 +190,15 @@ export const config = {
   },
   // Characters: a shadow under each (shadowW x its width, shadowFlat as tall, shadowY x its height below its middle),
   // a sway of bobDeg at bobHz while walking, a white flash for hitFlashMs when hit and still alive.
-  look: { evolutionFlashMs: 400, heavyHitPct: 0.5, critFlashColor: 0xffc400, shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
+  // outline: a dark edge so green things stand out on grass. Gems get gemWidth px in their texture; the `sprites`
+  // (loaded pictures) get spriteWidth px on screen, drawn into a copy of the picture in BootScene.
+  look: { outline: { color: 0x102010, alpha: 0.9, gemWidth: 1.5, spriteWidth: 1.5, sprites: ['zombie', 'goblin'] },
+    evolutionFlashMs: 400, heavyHitPct: 0.5, critFlashColor: 0xffc400, shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
   // Every enemy's touch (bosses too) hits harder by damagePerMinutePct of its base damage for every minute of the run.
-  spawn: { startPerSec: 1.6, endPerSec: 14, curvePow: 0.9, hpPerMinutePct: 0.35, damagePerMinutePct: 0.08, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
+  spawn: { startPerSec: 1.6, endPerSec: 12, curvePow: 0.9, hpPerMinutePct: 0.3, damagePerMinutePct: 0.08, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
   // Hidden pressure (presja Bemowa), 0..max: every sampleSec it looks at the last windowSec. Easy (Bartek lost under calmPct
   // of his max HP and fewer than calmCrowd enemies stood within crowdRadius on average): up by upPerMin a minute, but not
   // for graceSec after any card is taken, so an upgrade is felt first. Struggling (lost over hurtPct, HP under lowHpPct,
@@ -276,7 +279,8 @@ export const config = {
   // Tank: a boss it touches loses bossDamagePct of its max HP a second (so it helps against late bosses too); on the way
   // in it crushes every walking enemy within crushRadius px.
   // dustEveryMs, dustBack: dust from the tracks while it drives, dustBack px behind it.
-  tank: { killsToCharge: 100, durationSec: 10, bossDamagePct: 0.05, crushRadius: 260, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200,
+  // killsToCharge is the first tank; every use multiplies the next one's cost by chargeGrowth (100, 150, 225...).
+  tank: { killsToCharge: 100, chargeGrowth: 1.5, durationSec: 10, bossDamagePct: 0.05, crushRadius: 260, shakeMs: 300, shakeIntensity: 0.01, barBlinkMs: 200,
     dustEveryMs: 90, dustBack: 40 },
   // Rare drops from killed enemies. Each pickup's own numbers sit under its id.
   pickups: {
@@ -315,9 +319,10 @@ export const config = {
       'Okulary? To do czytania etykiet odżywek.',
     ],
   },
-  // "Bartkowanie" card: a random effect from data/bartkowanie.js on every pick, no stack limit.
+  // Bartkowanie: not a card. After every level up (a card taken or skipped) there is levelUpChance of a random effect
+  // from data/bartkowanie.js on top, with a banner.
   bartkowanie: {
-    weight: 0.5, durationSec: 5, damagePct: 0.2, allStatsPct: 0.01, protein: 5,
+    levelUpChance: 0.25, durationSec: 5, damagePct: 0.2, allStatsPct: 0.01, protein: 5,
     spins: 3, spinMs: 1500, squatAmp: 8, squatHz: 3, // squats: enemies hop squatAmp px up and down squatHz times a second
     fxEveryMs: 200, fxPerTick: 3, // squats and moonwalk: every fxEveryMs that many walkers on screen get stars or a trail
     yellowColor: 0xffd400, yellowAlpha: 0.25,
@@ -382,7 +387,7 @@ export const config = {
     cut: { fireRatePct: 0.25, maxHp: -30 },
     legDay: { magnetMult: 2, xpPct: 0.1, damagePct: -0.1 },
     unc: { rerolls: 2, banishes: 2, unlockMaxedPassives: 3 },
-    bartkowanie: { weightMult: 3, unlockPicks: 10 },
+    bartkowanie: { chanceMult: 3, unlockCount: 10 },
     lazy: { xpPct: 0.3, enemyHpPct: 0.15, earlyDeathSec: 120, unlockEarlyDeaths: 3 },
   },
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
@@ -435,9 +440,9 @@ export const config = {
       riseY: 36, ms: 650, jitterX: 12, depth: 4 },
     fireworkEveryMs: 350, // a won run's end screen: a firework this often
     // End screen (GameOverScene): the title from `top`, a panel with the run's numbers and every weapon's damage (icon,
-    // name, a bar against the best one, the number), the buttons under it, then what the run unlocked.
+    // name, a bar against the best one, the damage and DPS in valueWidth px), the buttons under it, then what the run unlocked.
     gameOver: { top: 110, gap: 18, panelWidth: 600, padding: 18, fontSize: 22, rowHeight: 32, headerColor: '#ffc400', labelColor: '#b0bec5',
-      iconSize: 28, nameWidth: 230, barHeight: 14, barColor: 0xffc400, buttonsGap: 50 },
+      iconSize: 28, nameWidth: 230, valueWidth: 170, barHeight: 14, barColor: 0xffc400, buttonsGap: 50 },
     planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,

@@ -189,7 +189,7 @@ export default class GameScene extends Phaser.Scene {
         this.startEvent(events[i]);
       }));
     }
-    if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = config.tank.killsToCharge; });
+    if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = this.run.tankCost; });
     if (config.debug.timeSkipKey) {
       this.input.keyboard.on('keydown-J', () => {
         this.run.elapsedMs += 60000;
@@ -330,7 +330,7 @@ export default class GameScene extends Phaser.Scene {
     }
     this.run.kills++;
     this.run.killsByType[enemy.stats.id] = (this.run.killsByType[enemy.stats.id] ?? 0) + 1;
-    if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, config.tank.killsToCharge);
+    if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, this.run.tankCost);
     this.dropGem(enemy.x, enemy.y, enemy.stats.gem);
     if (Math.random() < config.coins.dropChance * this.run.player.luck) this.dropCoin(enemy.x, enemy.y, this.pickCoinKind());
     if (Math.random() < config.coins.b.dropChance * this.run.player.luck) this.dropCollectible(enemy.x + config.coins.size, enemy.y, 'coin_b', 1, 'b');
@@ -569,8 +569,9 @@ export default class GameScene extends Phaser.Scene {
   // Space or a tap on the HUD bar. Ignored while paused, already a tank, or not fully charged.
   activateTank() {
     const run = this.run, t = config.tank;
-    if (!this.scene.isActive() || run.tankMs > 0 || run.tankCharge < t.killsToCharge) return;
+    if (!this.scene.isActive() || run.tankMs > 0 || run.tankCharge < run.tankCost) return;
     run.tankCharge = 0;
+    run.tankCost = Math.round(run.tankCost * t.chargeGrowth);
     run.tankMs = t.durationSec * 1000;
     const r = config.textures.tank.bodyRadius / this.tankScale; // body sizes are in texture px, before scale
     this.player.setTexture('tank').body.setCircle(r, this.player.width / 2 - r, this.player.height / 2 - r);
@@ -734,7 +735,7 @@ export default class GameScene extends Phaser.Scene {
 
   // Weapons (data/weapons.js): Bartek gets a new one, or one he carries goes up a level.
   addWeapon(def) {
-    const w = { def, level: 1 };
+    const w = { def, level: 1, sinceMs: this.run.elapsedMs }; // sinceMs: for the DPS on the end screen
     this.run.weapons.push(w);
     def.create(this, w);
   }
