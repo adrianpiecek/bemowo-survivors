@@ -1,19 +1,20 @@
 import { config } from '../config.js';
 import { upgrades } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
+import { passives } from '../data/passives.js';
 import { save } from '../state.js';
 
 // Upgrade cards, shared by the level-up screen and the boss chest.
 
-// A rarity tier from config.rarity for this card, drawn by weight; the weights of rarer tiers grow with the level.
-// Cards with `rarity: false` get none (null).
-export function rollRarity(up, level) {
+// A rarity tier from config.rarity for this card, drawn by weight; the weights of rarer tiers grow with the level
+// and with luck (Koniczyna z trawnika). Cards with `rarity: false` get none (null).
+export function rollRarity(up, run) {
   if (up.rarity === false) return null;
   const tiers = config.rarity, forced = tiers.find((t) => t.id === config.debug.forceRarity);
   if (forced) return forced;
-  const weight = (t) => t.weight + t.perLevel * (level - 1);
-  let roll = Math.random() * tiers.reduce((sum, t) => sum + weight(t), 0);
-  return tiers.find((t) => (roll -= weight(t)) < 0) ?? tiers[0];
+  const weight = (t, i) => (t.weight + t.perLevel * (run.level - 1)) * (i > 0 ? run.player.luck : 1);
+  let roll = Math.random() * tiers.reduce((sum, t, i) => sum + weight(t, i), 0);
+  return tiers.find((t, i) => (roll -= weight(t, i)) < 0) ?? tiers[0];
 }
 
 const isUnlocked = (def) => !def.unlock || save.unlocks.includes(def.id);
@@ -43,10 +44,26 @@ function weaponCards(run) {
   return cards;
 }
 
-// Up to `count` different cards (upgrades still under their maxStack, weapon cards), drawn by weight (default 1).
-// May return fewer.
+// Passive cards for this draw, with a rarity: the next level of each passive Bartek carries, and every unlocked passive
+// he does not have while a passive slot is free.
+export function passiveCards(run) {
+  const card = (def, level, levelText) => ({
+    id: `passive_${def.id}`, name: def.name, weight: def.weight, maxStack: Infinity, levelText,
+    description: (m) => def.description(level, m),
+    apply(player, scene, m) { scene.gainPassive(def, m); },
+  });
+  const cards = run.passives.filter((p) => p.level < p.def.maxLevel).map((p) => card(p.def, p.level + 1, `Poziom ${p.level} → ${p.level + 1}`));
+  if (run.passives.length >= config.passives.maxSlots) return cards;
+  for (const def of passives) {
+    if (!run.passives.some((p) => p.def === def) && isUnlocked(def)) cards.push(card(def, 1, 'NOWA PASYWKA'));
+  }
+  return cards;
+}
+
+// Up to `count` different cards (upgrades still under their maxStack, weapon and passive cards), drawn by weight
+// (default 1). May return fewer.
 export function drawUpgrades(run, count) {
-  const pool = [...upgrades.filter((up) => (run.upgrades[up.id] ?? 0) < up.maxStack), ...weaponCards(run)];
+  const pool = [...upgrades.filter((up) => (run.upgrades[up.id] ?? 0) < up.maxStack), ...weaponCards(run), ...passiveCards(run)];
   const weight = (up) => up.weight ?? 1;
   const picked = [];
   while (picked.length < count && pool.length) {

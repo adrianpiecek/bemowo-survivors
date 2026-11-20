@@ -1,5 +1,5 @@
 export const config = {
-  game: { width: 1280, height: 720, background: '#000000' },
+  game: { width: 720, height: 1280, background: '#000000' }, // portrait everywhere: phones fill the screen, desktops get side bars
   player: { speed: 200, maxHp: 100, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3 },
   // Weapons (data/weapons.js). Bartek starts with `start` and carries up to maxSlots; new ones and levels come as cards.
   weapons: {
@@ -28,6 +28,30 @@ export const config = {
     laser: { damage: 15, beams: 1, cooldownMs: 2500, range: 520, width: 12, beamMs: 260, eyeOffsetY: -14, eyeGap: 7,
       color: 0xff1744, glowColor: 0xff8a80, glowAlpha: 0.35, unlockBoss: 'bigHomelander',
       levels: [{ damage: 8 }, { beams: 1 }, { width: 8 }, { damage: 10 }, { beams: 1 }, { range: 120 }] },
+    // Ul: bees circling Bartek (systems/orbit.js); a bee hurts an enemy it touches at most once per hitCooldownMs.
+    // A bees level adds bees whatever the card's rarity (a rarer card adds damagePct * (mult - 1) of the base damage on top);
+    // a damage level is multiplied by it. While Bartek is a small B there are smallMult times more, on the smaller smallRadius.
+    // On a hit the bee swells to hitScale for hitMs and the enemy gets the 'beeSting' effect.
+    bees: { bees: 2, damage: 4, damagePct: 0.5, hitCooldownMs: 500, radius: 70, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
+      smallMult: 2, smallRadius: 42, hitScale: 1.7, hitMs: 90,
+      levels: [{ bees: 1 }, { damage: 2 }, { bees: 1 }, { damage: 3 }, { bees: 1 }] },
+  },
+  // Passives (data/passives.js): items that raise one stat each level, up to maxSlots at once. The numbers are one level
+  // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
+  passives: {
+    maxSlots: 4,
+    creatine: { damagePct: 0.1, maxLevel: 5 },
+    coffee: { cooldownPct: 0.08, maxLevel: 5 },
+    shoes: { speedPct: 0.08, maxLevel: 5 },
+    gainer: { maxHp: 20, maxLevel: 5 },
+    dumbbells: { areaPct: 0.1, maxLevel: 5 },
+    ticket: { amount: 1, maxLevel: 2 },
+    gymPass: { durationPct: 0.1, maxLevel: 5 },
+    broth: { regenPerSec: 0.3, maxLevel: 5, unlockPierogi: 20 },
+    jacket: { armor: 1, maxLevel: 5, unlockDamageTaken: 2000 },
+    clover: { luckPct: 0.1, maxLevel: 5, unlockGoldCoins: 10 },
+    notebook: { xpPct: 0.08, maxLevel: 5, unlockLevel: 30 },
+    bag: { magnetPct: 0.2, maxLevel: 5 },
   },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
@@ -60,7 +84,7 @@ export const config = {
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
-  spawn: { startPerSec: 1.6, endPerSec: 14, curvePow: 0.9, hpPerMinutePct: 0.35, ringMinRadius: 780, ringMaxRadius: 800, maxEnemies: 250 },
+  spawn: { startPerSec: 1.6, endPerSec: 14, curvePow: 0.9, hpPerMinutePct: 0.35, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
   wave: { everySec: 45, baseCount: 6, perWave: 10 }, // a ring of extra enemies all around Bartek, bigger each time
   // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value.
   // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
@@ -103,6 +127,7 @@ export const config = {
     bossKey: false, // true: B, then a digit 1-4, calls that boss (in order of appearance) after its banner
     enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
     giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
+    givePassives: null, // a list of passive ids (e.g. ['ticket', 'dumbbells']): unlocked in the save and given at level 1 every run
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },
@@ -141,11 +166,6 @@ export const config = {
       'Okulary? To do czytania etykiet odżywek.',
     ],
   },
-  // "Ul" upgrade: bees on an orbit (systems/orbit.js). Every card adds perLevel bees whatever its rarity; a rarer card
-  // adds damagePct * (rarity mult - 1) to the bees' damage instead. While Bartek is a small B there are smallMult times
-  // more, on the smaller smallRadius. On a hit the bee swells to hitScale for hitMs and the enemy gets the 'beeSting' effect.
-  bees: { perLevel: 1, damage: 4, damagePct: 0.5, hitCooldownMs: 500, radius: 70, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
-    smallMult: 2, smallRadius: 42, hitScale: 1.7, hitMs: 90 },
   // "Bartkowanie" card: a random effect from data/bartkowanie.js on every pick, no stack limit.
   bartkowanie: {
     weight: 0.5, durationSec: 5, damagePct: 0.2, allStatsPct: 0.01, protein: 5,
@@ -185,7 +205,7 @@ export const config = {
     },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
-  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 12, gas: 12 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
+  pools: { bullets: 100, enemies: 270, gems: 300, pickups: 12, vfx: 60, bees: 20, gas: 12 }, // enemies: spawn.maxEnemies + room for bosses; pickups: room for boss chests
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -194,13 +214,16 @@ export const config = {
     { id: 'epic', name: 'Epicka', mult: 2, color: 0xb04cff, weight: 4, perLevel: 1 },
     { id: 'legendary', name: 'Legendarna', mult: 3, color: 0xff9800, weight: 0.5, perLevel: 0.3 },
   ],
-  upgrade: { maxStack: 5, damagePct: 0.25, fireRatePct: 0.15, moveSpeedPct: 0.1, maxHp: 20, fallbackHeal: 20 },
+  upgrade: { fallbackHeal: 20 }, // the heal card when nothing else is left to draw
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
-    dimAlpha: 0.6, card: { count: 3, width: 260, height: 320, gap: 40, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 22, textFontSize: 18,
-      rarityBorderWidth: 5, rarityFontSize: 18 },
+    dimAlpha: 0.6, card: { count: 3, width: 600, height: 210, gap: 44, color: 0x2a2a2a, borderColor: 0xffffff, borderWidth: 2, nameFontSize: 30, textFontSize: 24,
+      rarityBorderWidth: 5, rarityFontSize: 22 },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
-    // Every text uses this font (system fonts only, nothing to load). The title logo has its own.
-    font: '"Trebuchet MS", "Segoe UI", Roboto, Arial, sans-serif',
+    // Every text uses this font: Not Jam Giant UI 28 (CC0, assets/font), loaded in BootScene under fontKey. The system
+    // fonts behind it only fill in glyphs it lacks („ ”). fontFile has its spaces encoded: Phaser puts it in an unquoted url().
+    font: '"NotJam", "Trebuchet MS", "Segoe UI", Roboto, Arial, sans-serif',
+    fontKey: 'NotJam',
+    fontFile: './assets/font/Not%20Jam%20Mono%20Clean%2016.ttf',
     // Drawn UI (systems/ui.js): panels, bars and buttons with rounded corners and a drop shadow.
     panel: { color: 0x14161c, alpha: 0.75, radius: 10, borderColor: 0xffffff, borderAlpha: 0.18, borderWidth: 2, shadow: 3, shadowAlpha: 0.4 },
     bar: { radius: 6, bg: 0x000000, bgAlpha: 0.6, borderColor: 0x000000, borderWidth: 2, shineAlpha: 0.3 },
@@ -210,7 +233,11 @@ export const config = {
       disabled: { color: 0x3a3a3a, hover: 0x3a3a3a, border: 0x222222, text: '#8a8a8a' } },
     // Drawn icons (heart, skull, clock, gym upgrades), size x size px; shown at the size each place asks for.
     icons: { size: 48, heart: 0xe53935, heartLight: 0xff8a80, skull: 0xeceff1, skullDark: 0x263238, clock: 0xfafafa, clockDark: 0x263238,
-      metal: 0xb0bec5, metalDark: 0x37474f, accent: 0xffc400 },
+      metal: 0xb0bec5, metalDark: 0x37474f, accent: 0xffc400, outline: 0x1b1b1b,
+      // Passive icons (passive_<id>).
+      tub: 0xeceff1, coffee: 0x8d6e63, cup: 0xfff8e1, shoe: 0x1e88e5, gainer: 0x6d4c41, backpack: 0x388e3c, ticket: 0xffd54f,
+      ticketStripe: 0xd32f2f, pass: 0xff7043, soup: 0xffca28, bowl: 0xfafafa, jacket: 0x546e7a, jacketLine: 0x37474f,
+      clover: 0x43a047, cloverDark: 0x1b5e20, page: 0xfafafa, grid: 0x90caf9, sack: 0xa1887f, sackDark: 0x5d4037, gem: 0x43a047 },
     // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.
     hud: { width: 330, padding: 10, rowHeight: 30, iconSize: 26, barWidth: 270, barHeight: 20, barGap: 8, barFontSize: 15,
       levelFontSize: 15, hpColor: 0xe53935, xpColor: 0x3a8dff, tankColor: 0x2e7d32, tankBlinkColor: 0x9ccc65, levelColor: 0x1565c0,
@@ -223,30 +250,33 @@ export const config = {
     // Active timed effects under the HUD panel: icon, name, a bar of the time left.
     effectHud: { width: 230, height: 38, iconSize: 28, barHeight: 6, gap: 6, fontSize: 15, color: 0xffcc00 },
     // Weapon slots, bottom left (maxSlots, empty ones dimmed): icon with a level badge in its corner.
+    // The passive slots are a second row of the same slots right above them.
     weaponHud: { size: 52, iconSize: 40, gap: 8, fontSize: 15, badgeRadius: 11, emptyAlpha: 0.35 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
-    title: { promptFontSize: 32, logoFontSize: 140, fontFamily: 'Impact, "Arial Black", sans-serif', strokeThickness: 10,
-      bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 250, survivorsY: 410, dropMs: 450, gapMs: 600,
-      shakeMs: 250, shakeIntensity: 0.02, pressBottom: 90, blinkMs: 600 },
-    bossBar: { y: 76, width: 600, height: 24, fontSize: 16, color: 0xd03030 }, // under the clock pill
+    title: { promptFontSize: 32, logoFontSize: 140, fontFamily: '"NotJam", Impact, "Arial Black", sans-serif', strokeThickness: 10,
+      bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 520, survivorsY: 660, dropMs: 450, gapMs: 600,
+      shakeMs: 250, shakeIntensity: 0.02, pressBottom: 160, blinkMs: 600 },
+    bossBar: { y: 170, width: 600, height: 24, fontSize: 16, color: 0xd03030 }, // under the HUD panel and the stat pills; the effect rows go under it
     // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
-    chest: { titleY: 110, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
+    chest: { titleY: 190, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
       popScale: 1.08, popMs: 120, promptBottom: 60 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
     // Pickup, Bartkowanie and boss banners: big text with a line under it, on a panel, faded in and out.
-    banner: { y: 150, fontSize: 52, strokeThickness: 6, durationMs: 3200, fadeMs: 250, subFontSize: 26, subStrokeThickness: 4, padX: 30, padY: 14, gap: 6 },
+    // y: under the effect rows (room for four), above Bartek in the middle of the screen.
+    banner: { y: 400, fontSize: 52, strokeThickness: 6, durationMs: 3200, fadeMs: 250, subFontSize: 26, subStrokeThickness: 4, padX: 30, padY: 14, gap: 6 },
     olxCard: { width: 420, height: 440, padding: 24, photoSize: 200, titleFontSize: 34, textFontSize: 20, bigFontSize: 38 },
     buttonOffsetX: 160, // two buttons side by side sit this far left and right of center
     gymPulse: { scale: 1.12, ms: 500 }, // game over gym button after the first run
-    // Gym: a row per upgrade (icon, name, description, level pips, cost, buy button), Bartek with a speech bubble under it.
+    // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
+    // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
-    gymScreen: { titleY: 22, titleFontSize: 56, top: 104, rowWidth: 1040, rowHeight: 76, rowGap: 10, padding: 14, iconSize: 50,
-      nameFontSize: 24, descFontSize: 16, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipX: 610, pipColor: 0xffc400, pipEmpty: 0x37474f,
-      costX: 780, costFontSize: 22, costIconSize: 24, shortFontSize: 14, shortColor: '#ff8a80', maxColor: '#ffc400',
-      buyWidth: 150, buyHeight: 46, buyFontSize: 22, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
-      protein: { width: 230, height: 50, fontSize: 28, iconSize: 32 },
-      bartekHeight: 120, quoteFontSize: 20, quoteWidth: 560, quoteGap: 16, tail: 14, definitionColor: '#b0bec5', definitionFontSize: 16,
-      bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30 },
+    gymScreen: { titleY: 40, titleFontSize: 56, top: 140, rowWidth: 680, rowHeight: 128, rowGap: 12, padding: 14, iconSize: 56,
+      nameFontSize: 24, descFontSize: 16, descGap: 6, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipColor: 0xffc400, pipEmpty: 0x37474f,
+      costGap: 24, costFontSize: 22, costIconSize: 24, shortFontSize: 16, shortColor: '#ff8a80', maxColor: '#ffc400',
+      buyWidth: 140, buyHeight: 50, buyFontSize: 22, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
+      protein: { width: 200, height: 50, fontSize: 28, iconSize: 32 },
+      bartekHeight: 120, quoteFontSize: 20, quoteWidth: 460, quoteGap: 16, tail: 14, definitionColor: '#b0bec5', definitionFontSize: 16,
+      sectionGap: 40, bottom: 40, goWidth: 400, goHeight: 80, goFontSize: 34 },
   },
   // Effects drawn in code (systems/vfx.js), textures fx_* from textures.fx. minGapMs: an effect that fires in bursts
   // plays at most once per this many ms. Each layer is

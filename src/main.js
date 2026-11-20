@@ -24,7 +24,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyM' && !e.repeat) toggleMute(game);
 });
 
-// In portrait Scale.FIT letterboxes the game with black bars above and below, so no rotation is forced.
+// The game is portrait; Scale.FIT puts black bars at the sides on a desktop or a phone held sideways, so no rotation is forced.
 // Android: the first touch goes full screen. iPhone Safari has no full screen API, so this is skipped there.
 addEventListener('pointerdown', function goFullscreen(e) {
   if (e.pointerType !== 'touch') return;

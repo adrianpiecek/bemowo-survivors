@@ -11,6 +11,7 @@ Jedna 10-minutowa runda, która działa w przeglądarce i jest grywalna od pocz�
 - **Phaser 3 + czysty JS, bez bundlera.** Phaser ładowany z pliku lub CDN, fizyka Arcade.
 - **Dlaczego Phaser 3, a nie nowszy:** modele AI znają go najlepiej, co przy vibe codingu ma znaczenie.
 - **Hosting:** GitHub Pages. Bez własnych nagłówków i bez problemu.
+- **Ekran: pion wszędzie.** Gra ma 720×1280 i skaluje się do okna (`Scale.FIT`): telefon trzymany pionowo ma cały ekran, komputer i telefon trzymany poziomo mają czarne pasy po bokach. Karty level upu i skrzyni leżą jedna pod drugą, siłownia ma wiersze w dwóch liniach, zegar siedzi w prawej kolumnie nad licznikami. Czcionka wszystkich tekstów: Not Jam Giant UI 28 (CC0, `assets/font`).
 
 ## Zakres
 
@@ -45,25 +46,35 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 ### XP i level up
 
-Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. Kryształy są rysowane w kodzie jako wielokąty z fasetami i białym błyskiem, każdy typ wroga wypada innym: zielony romb = 1 XP (zombie, biegacz, klapa), niebieski sześciokąt = 3 (Joker), żółty pięciokąt = 5 (Homelander), szary ośmiokąt = 10, czerwony szlifowany klejnot = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (rysowane: obwódka i hantla; czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty: ulepszenia z tabeli poniżej i karty broni (sekcja "Bronie").
+Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. Kryształy są rysowane w kodzie jako wielokąty z fasetami i białym błyskiem, każdy typ wroga wypada innym: zielony romb = 1 XP (zombie, biegacz, klapa), niebieski sześciokąt = 3 (Joker), żółty pięciokąt = 5 (Homelander), szary ośmiokąt = 10, czerwony szlifowany klejnot = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (rysowane: obwódka i hantla; czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty: pasywki (tabela poniżej), karty broni (sekcja "Bronie") i Bartkowanie (karta bez slotu). Wersja 3 (krok 30): karty statystyk Obrażenia, Szybkostrzelność, Szybkość ruchu i Max HP zastąpiły pasywki, a Ul jest bronią (start: 2 pszczoły).
 
-| Ulepszenie | Efekt na poziom | Max poziomów |
-| --- | --- | --- |
-| Obrażenia (wszystkich broni) | +25% | 5 |
-| Szybkostrzelność (wszystkich broni) | +15% | 5 |
-| Szybkość ruchu | +10% | 5 |
-| Max HP | +20 HP i leczenie | 5 |
+Pasywki (`src/data/passives.js`, liczby w `config.passives`): karty z rzadkością (rzadsza = większy skok), do 4 naraz; po zapełnieniu slotów wypadają tylko kolejne poziomy posiadanych. HUD pokazuje je w rzędzie nad slotami broni. Odblokowania liczy `save.stats` (łącznie ze wszystkich rund), sprawdzane na końcu rundy. Debug: `config.debug.givePassives` (lista id) daje je na start i odblokowuje; nakładka balansu (`config.debug.balanceOverlay`) pokazuje wszystkie statystyki.
+
+| Pasywka | Na poziom (zwykła karta) | Max | Odblokowanie |
+| --- | --- | --- | --- |
+| Kreatyna | +10% obrażeń | 5 | od startu |
+| Kawa z Żabki | -8% czasu odnowienia | 5 | od startu |
+| Buty z bazaru | +8% szybkości | 5 | od startu |
+| Gainer | +20 max HP i leczenie | 5 | od startu |
+| Hantle w plecaku | +10% obszaru (pociski, chmury, promienie, tarcze, orbita pszczół) | 5 | od startu |
+| Bilet miesięczny ZTM | +1 pocisk, chmura, promień, tarcza i pszczoła | 2 | od startu |
+| Karnet na siłownię | +10% czasu działania (chmury gazu i znajdźki) | 5 | od startu |
+| Rosół babci | +0,3 HP/s | 5 | 20 zjedzonych pierogów łącznie |
+| Kurtka puchowa | -1 obrażeń z dotyku (min. 1) | 5 | 2000 przyjętych obrażeń łącznie |
+| Koniczyna z trawnika | +10% szczęścia (rzadsze karty, więcej monet) | 5 | 10 złotych monet łącznie |
+| Zeszyt w kratkę | +8% XP | 5 | 30 poziom w rundzie |
+| Wór na kryształy | +20% zasięgu przyciągania | 5 | od startu |
 
 ### Znajdźki czasowe (wersja 3)
 
-Oprócz rzadkich znajdziek z wrogów (OLX, Photoshop) są znajdźki typowe dla gatunku: Magnes z lodówki (wszystkie kryształy lecą do Bartka), Zimny prysznic (zwykli wrogowie stoją i nie zadają obrażeń, boss i klapy nie), Przedtreningówka (x2 szybkostrzelność), Bańka (brak obrażeń) i Pierogi babci (leczenie). Wypadają z wrogów i co ok. 35 s jedna leży sama na mapie, poza ekranem; strzałka na krawędzi ekranu wskazuje najbliższą. Aktywne efekty widać w HUD (ikonka i pasek czasu). Dane w `src/data/pickups.js`, liczby w `config.pickups`.
+Oprócz rzadkich znajdziek z wrogów (OLX, Photoshop) są znajdźki typowe dla gatunku: Magnes z lodówki (wszystkie kryształy lecą do Bartka), Zimny prysznic (zwykli wrogowie stoją i nie zadają obrażeń, boss i klapy nie), Przedtreningówka (x2 szybkostrzelność), Bańka (brak obrażeń) i Pierogi w domu („Mamy KFC w domu”, leczenie). Wypadają z wrogów i co ok. 35 s jedna leży sama na mapie, poza ekranem; strzałka na krawędzi ekranu wskazuje najbliższą. Aktywne efekty widać w HUD (ikonka i pasek czasu). Dane w `src/data/pickups.js`, liczby w `config.pickups`.
 
 ### Runda
 
 - Licznik 10:00. Przeżyjesz, to wygrałeś.
 - Śmierć daje ekran końca ze statystykami (czas, zabici, level) i przycisk "Jeszcze raz".
 - Pierwsze uruchomienie (licznik `save.runsPlayed` równy 0) prowadzi z intro prosto do rundy, bez siłowni. Po pierwszej rundzie przycisk "Siłownia" na ekranie końca pulsuje, a od drugiej rundy intro prowadzi do siłowni.
-- HUD: panel w lewym górnym rogu (HP z serduszkiem, XP z odznaką poziomu, pasek czołgu), zegar na środku, zabici i białko z monet w prawym rogu, aktywne efekty pod panelem (ikonka, nazwa, pasek czasu), sloty broni na dole z poziomem. Banery znajdziek na panelu, ok. 3 s, z opisem działania. Wszystko rysowane przez `src/systems/ui.js`.
+- HUD: panel w lewym górnym rogu (HP z serduszkiem, XP z odznaką poziomu, pasek czołgu), w prawym górnym rogu kolumna: zegar, zabici, białko z monet; pod nimi pasek bossa, a pod nim aktywne efekty (ikonka, nazwa, pasek czasu); na dole po lewej sloty broni, a nad nimi sloty pasywek, oba z poziomem. Banery znajdziek na panelu, ok. 3 s, z opisem działania. Wszystko rysowane przez `src/systems/ui.js`.
 
 ### Memy w MVP (sam tekst, zero kosztu)
 

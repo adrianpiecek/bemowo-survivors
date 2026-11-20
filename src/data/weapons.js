@@ -2,6 +2,8 @@ import { config } from '../config.js';
 import { playSfx } from '../systems/audio.js';
 import { playVfx } from '../systems/vfx.js';
 import { save } from '../state.js';
+import { isEffectActive } from '../systems/effects.js';
+import { createOrbit, updateOrbit } from '../systems/orbit.js';
 
 // Weapons. run.weapons holds the ones Bartek carries as { def, level } plus whatever state the weapon keeps there.
 // A new weapon and each next level come as level-up cards (systems/cards.js); Bartek carries up to config.weapons.maxSlots.
@@ -12,9 +14,10 @@ import { save } from '../state.js';
 //   update(scene, w, delta)   every frame while GameScene runs
 //   unlock       null: can always drop; else { text, check(run, won) }: checked at the end of a run, kept in save.unlocks
 //   icon         texture key for the HUD (drawn in BootScene)
-// Damage goes through scene.weaponDamage(base) and cooldowns through scene.weaponCooldown(ms),
-// so the damage and fire rate cards, the gym and timed pickups work on every weapon.
-const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons.gas, lz = config.weapons.laser;
+// Damage goes through scene.weaponDamage(base), cooldowns through scene.weaponCooldown(ms), sizes through
+// scene.weaponArea(x), durations through scene.weaponDuration(ms) and counts through scene.weaponAmount(n),
+// so the passives, the gym and timed pickups work on every weapon.
+const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons.gas, lz = config.weapons.laser, bz = config.weapons.bees;
 const count = (n, mult) => Math.ceil(n * mult);
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
 const plural = (n, one, few, many) => (n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
@@ -56,10 +59,12 @@ export const weapons = [
       w.aim = Phaser.Math.Angle.Between(pl.x, pl.y, t.x, t.y);
       const { x, y } = placeGun(w, pl), tip = config.textures.gun.width * (1 - config.textures.gun.grip[0]);
       const tx = x + Math.cos(w.aim) * tip, ty = y + Math.sin(w.aim) * tip;
-      for (let i = 0; i < w.bullets; i++) {
+      const bullets = scene.weaponAmount(w.bullets), area = scene.weaponArea(1);
+      for (let i = 0; i < bullets; i++) {
         const b = scene.bullets.get(tx, ty);
         if (!b) break;
         b.enableBody(true, tx, ty, true, true);
+        b.setScale(area); // the circle body scales with the sprite
         b.damage = scene.weaponDamage(p.bulletDamage);
         scene.physics.moveToObject(b, targets[i % targets.length].z, scene.run.player.bulletSpeed);
       }
@@ -104,11 +109,12 @@ export const weapons = [
       const pl = scene.player, near = nearestEnemies(scene, pl.x, pl.y, gz.range).slice(0, gz.pick);
       if (!near.length) return; // nothing in range: ready again on the next frame
       Phaser.Utils.Array.Shuffle(near);
-      for (let i = 0; i < w.clouds; i++) {
+      const radius = scene.weaponArea(w.radius), durationMs = scene.weaponDuration(w.durationMs);
+      for (let i = 0; i < scene.weaponAmount(w.clouds); i++) {
         const t = near[i % near.length], c = w.pool.get(t.x, t.y);
         if (!c) break; // pool full
-        c.setActive(true).setVisible(true).setDepth(0.6).setPosition(t.x, t.y).setDisplaySize(w.radius * 2, w.radius * 2).setAlpha(1);
-        Object.assign(c, { radius: w.radius, totalMs: w.durationMs, remainingMs: w.durationMs, tickMs: 0, laughMs: gz.laughEveryMs * Math.random() });
+        c.setActive(true).setVisible(true).setDepth(0.6).setPosition(t.x, t.y).setDisplaySize(radius * 2, radius * 2).setAlpha(1);
+        Object.assign(c, { radius, totalMs: durationMs, remainingMs: durationMs, tickMs: 0, laughMs: gz.laughEveryMs * Math.random() });
       }
       w.cooldownMs = scene.weaponCooldown(gz.cooldownMs);
     },
@@ -141,11 +147,11 @@ export const weapons = [
       w.range += (b.range ?? 0) * m;
     },
     update(scene, w, delta) {
-      const pl = scene.player, ex = pl.x, ey = pl.y + lz.eyeOffsetY * scene.run.player.scale;
-      drawBeams(w, ex, ey, scene.run.player.scale, delta);
+      const pl = scene.player, ex = pl.x, ey = pl.y + lz.eyeOffsetY * scene.run.player.scale, width = scene.weaponArea(w.width);
+      drawBeams(w, ex, ey, scene.run.player.scale, width, delta);
       w.cooldownMs -= delta;
       if (w.cooldownMs > 0) return;
-      const targets = nearestEnemies(scene, ex, ey, w.range).slice(0, w.beams);
+      const targets = nearestEnemies(scene, ex, ey, w.range).slice(0, scene.weaponAmount(w.beams));
       if (!targets.length) return;
       w.angles = targets.map((t) => Math.atan2(t.y - ey, t.x - ex));
       for (const a of w.angles) {
@@ -155,11 +161,47 @@ export const weapons = [
           // Distance along the beam and off it; the enemy's body counts, so a big one is hit at its edge.
           const px = z.x - ex, py = z.y - ey, along = px * dx + py * dy;
           if (along < 0 || along > w.range) continue;
-          if (Math.abs(px * dy - py * dx) <= w.width / 2 + (z.body?.halfWidth ?? 0)) scene.hurtEnemy(z, scene.weaponDamage(w.damage), z.x, z.y, 'laserHit');
+          if (Math.abs(px * dy - py * dx) <= width / 2 + (z.body?.halfWidth ?? 0)) scene.hurtEnemy(z, scene.weaponDamage(w.damage), z.x, z.y, 'laserHit');
         }
       }
       w.showMs = lz.beamMs;
       w.cooldownMs = scene.weaponCooldown(lz.cooldownMs);
+    },
+  },
+  {
+    id: 'bees',
+    name: 'Ul',
+    icon: 'weapon_bees',
+    levels: bz.levels,
+    maxLevel: bz.levels.length + 1,
+    unlock: null,
+    description(level, m) {
+      if (level === 1) return `Pszczoły są szczęśliwe.\n${bz.bees} pszczoły krążą wokół Bartka i żądlą wrogów.`;
+      const b = bz.levels[level - 2];
+      if (b.damage) return `+${Math.round(b.damage * m)} obrażeń pszczół`;
+      return `+${b.bees} pszczoła${m > 1 ? `, +${Math.round(bz.damage * bz.damagePct * (m - 1))} obrażeń pszczół` : ''}`;
+    },
+    create(scene, w) {
+      w.bees = bz.bees;
+      w.damage = bz.damage;
+      w.orbit = createOrbit(scene, {
+        texture: 'bee', maxSize: config.pools.bees, damage: () => scene.weaponDamage(w.damage), hitCooldownMs: bz.hitCooldownMs,
+        vfx: 'beeSting', hitScale: bz.hitScale, hitMs: bz.hitMs, faceTravel: true,
+      });
+    },
+    // Bees never multiply with rarity (too many bees); a rarer bee card gives extra damage instead.
+    levelUp(scene, w, m) {
+      const b = bz.levels[w.level - 2];
+      w.bees += b.bees ?? 0;
+      w.damage += b.damage ? b.damage * m : (b.bees ? bz.damage * bz.damagePct * (m - 1) : 0);
+    },
+    // A small B gets a denser swarm on a tighter orbit, so it fits his size.
+    update(scene, w, delta) {
+      const small = isEffectActive(scene.run, 'smallB');
+      updateOrbit(w.orbit, scene.player.x, scene.player.y, {
+        count: scene.weaponAmount(w.bees) * (small ? bz.smallMult : 1), radius: scene.weaponArea(small ? bz.smallRadius : bz.radius),
+        degPerSec: bz.degPerSec, waveAmp: bz.waveAmp, waveHz: bz.waveHz,
+      }, delta);
     },
   },
   {
@@ -184,16 +226,17 @@ export const weapons = [
     create(scene, w) {
       w.damage = sh.damage;
       w.bounces = sh.bounces;
+      w.count = sh.shields; // before the amount stat; the sprites are made in update
       w.shields = [];
-      addShields(scene, w, sh.shields);
     },
     levelUp(scene, w, m) {
       const b = sh.levels[w.level - 2];
       w.bounces += count(b.bounces ?? 0, m);
       w.damage += (b.damage ?? 0) * m;
-      addShields(scene, w, count(b.shields ?? 0, m));
+      w.count += count(b.shields ?? 0, m);
     },
     update(scene, w, delta) {
+      addShields(scene, w, scene.weaponAmount(w.count) - w.shields.length);
       for (const s of w.shields) updateShield(scene, w, s, delta);
     },
   },
@@ -244,19 +287,19 @@ function updateCloud(scene, w, c, delta) {
 
 // Eye laser beams, redrawn every frame while they show: a wide soft glow, the red beam, a white-hot core, glowing eyes.
 // They follow Bartek and fade over beamMs.
-function drawBeams(w, ex, ey, scale, delta) {
+function drawBeams(w, ex, ey, scale, width, delta) {
   w.g.clear();
   if (w.showMs <= 0) return;
   w.showMs -= delta;
   const a = Phaser.Math.Clamp(w.showMs / lz.beamMs, 0, 1), gap = lz.eyeGap * scale;
   for (const ang of w.angles) {
     const x2 = ex + Math.cos(ang) * w.range, y2 = ey + Math.sin(ang) * w.range;
-    w.g.lineStyle(w.width * 2, lz.glowColor, lz.glowAlpha * a).lineBetween(ex, ey, x2, y2);
-    w.g.lineStyle(w.width, lz.color, a).lineBetween(ex, ey, x2, y2);
-    w.g.lineStyle(w.width * 0.35, 0xffffff, a).lineBetween(ex, ey, x2, y2);
+    w.g.lineStyle(width * 2, lz.glowColor, lz.glowAlpha * a).lineBetween(ex, ey, x2, y2);
+    w.g.lineStyle(width, lz.color, a).lineBetween(ex, ey, x2, y2);
+    w.g.lineStyle(width * 0.35, 0xffffff, a).lineBetween(ex, ey, x2, y2);
   }
-  w.g.fillStyle(lz.color, a).fillCircle(ex - gap, ey, w.width * 0.5).fillCircle(ex + gap, ey, w.width * 0.5);
-  w.g.fillStyle(0xffffff, a).fillCircle(ex - gap, ey, w.width * 0.2).fillCircle(ex + gap, ey, w.width * 0.2);
+  w.g.fillStyle(lz.color, a).fillCircle(ex - gap, ey, width * 0.5).fillCircle(ex + gap, ey, width * 0.5);
+  w.g.fillStyle(0xffffff, a).fillCircle(ex - gap, ey, width * 0.2).fillCircle(ex + gap, ey, width * 0.2);
 }
 
 // Shield sprites are made only when Bartek gets one more and are reused for every throw.
@@ -295,7 +338,8 @@ function updateShield(scene, w, s, delta) {
     s.target = t;
     s.hitsLeft = w.bounces + 1;
     s.phase = 'out';
-    s.setPosition(pl.x, pl.y).setVisible(true);
+    const size = scene.weaponArea(sh.size);
+    s.setPosition(pl.x, pl.y).setDisplaySize(size, size).setVisible(true);
   }
   s.angle += sh.spinDegPerSec * delta / 1000;
   if (s.phase === 'out' && !s.target.active) { // killed by something else on the way

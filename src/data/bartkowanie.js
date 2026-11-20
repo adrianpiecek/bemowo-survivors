@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
 import { addEffect } from '../systems/effects.js';
-import { upgrades } from './upgrades.js'; // only used inside apply, so the import cycle with upgrades.js is fine
+import { passiveCards } from '../systems/cards.js'; // only used inside apply, so the import cycle through upgrades.js is fine
 
 // Effects of the "Bartkowanie" card. `scene` is GameScene. apply may return a banner subtext.
 // None of them may kill Bartek or break the save. Timed ones go through systems/effects.js;
@@ -52,14 +52,13 @@ export const bartkowanie = [
   },
   {
     name: 'Losowy trening',
+    // A free passive card: a new passive (while a slot is free) or the next level of one Bartek has.
     apply(scene) {
-      const run = scene.run;
-      const open = upgrades.filter((up) => up.id !== 'bartkowanie' && (run.upgrades[up.id] ?? 0) < up.maxStack);
+      const open = passiveCards(scene.run);
       if (!open.length) return 'Wszystko już wytrenowane';
-      const up = Phaser.Utils.Array.GetRandom(open);
-      up.apply(run.player, scene);
-      run.upgrades[up.id] = (run.upgrades[up.id] ?? 0) + 1;
-      return `${up.name} +1`;
+      const card = Phaser.Utils.Array.GetRandom(open);
+      card.apply(scene.run.player, scene, 1);
+      return `${card.name} +1`;
     },
   },
 ];

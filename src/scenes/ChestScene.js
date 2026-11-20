@@ -1,5 +1,7 @@
 import { config } from '../config.js';
 import { upgrades, fallbackUpgrade } from '../data/upgrades.js';
+import { weapons } from '../data/weapons.js';
+import { passives } from '../data/passives.js';
 import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
@@ -25,11 +27,12 @@ export default class ChestScene extends Phaser.Scene {
 
     const prizes = drawUpgrades(this.run, this.count);
     while (prizes.length < this.count) prizes.push(fallbackUpgrade); // everything maxed: the heal fills in
-    const names = upgrades.map((up) => up.name), n = prizes.length, gs = this.scene.get('GameScene');
+    // The spin shows every card name there is: upgrades, weapons, passives.
+    const names = [...upgrades, ...weapons, ...passives].map((d) => d.name), n = prizes.length, gs = this.scene.get('GameScene');
     let stopped = 0;
 
     prizes.forEach((up, i) => {
-      const x = width / 2 + (i - (n - 1) / 2) * (c.width + c.gap), y = height / 2, top = y - c.height / 2;
+      const x = width / 2, y = height / 2 + (i - (n - 1) / 2) * (c.height + c.gap), top = y - c.height / 2; // stacked, as on level up
       const wrap = { align: 'center', wordWrap: { width: c.width - 2 * u.margin } };
       const card = this.add.rectangle(x, y, c.width, c.height, c.color).setStrokeStyle(c.borderWidth, c.borderColor);
       const name = this.add.text(x, top + u.margin, '', { fontFamily: config.ui.font, fontSize: `${c.nameFontSize}px`, ...wrap }).setOrigin(0.5, 0);
@@ -37,7 +40,7 @@ export default class ChestScene extends Phaser.Scene {
 
       this.time.delayedCall(ch.spinMs + i * ch.stopGapMs, () => {
         spin.remove();
-        const rarity = rollRarity(up, this.run.level);
+        const rarity = rollRarity(up, this.run);
         applyUpgrade(this.run, gs, up, rarity);
         name.setText(up.name);
         this.add.text(x, y, describe(up, rarity), { fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, ...wrap }).setOrigin(0.5);

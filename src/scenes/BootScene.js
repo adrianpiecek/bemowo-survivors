@@ -15,6 +15,7 @@ export default class BootScene extends Phaser.Scene {
     // May be missing: the OLX card falls back to the first pigeon frame.
     this.load.image('golab', config.pickups.olx.photo);
     for (let i = 1; i <= config.textures.pigeon.frames; i++) this.load.image(`pigeon${i}`, `./assets/Pigeons/pigeon${i}.png`);
+    this.load.font(config.ui.fontKey, config.ui.fontFile, 'truetype'); // ready before any scene makes text
     preloadAudio(this);
   }
 
@@ -126,6 +127,13 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(wi.laserColor).fillCircle(ws * 0.28, ws * 0.36, ws * 0.12).fillCircle(ws * 0.5, ws * 0.36, ws * 0.12);
     g.fillStyle(wi.eyeColor).fillCircle(ws * 0.28, ws * 0.36, ws * 0.05).fillCircle(ws * 0.5, ws * 0.36, ws * 0.05);
     g.generateTexture('weapon_laser', ws, ws).clear();
+    // Ul: a honeycomb cell with a bee's stripes.
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    const hex = Array.from({ length: 6 }, (_, i) => ({ x: ws / 2 + Math.cos(i * Math.PI / 3) * ws * 0.34, y: ws / 2 + Math.sin(i * Math.PI / 3) * ws * 0.34 }));
+    g.fillStyle(t.bee.color).fillPoints(hex, true);
+    g.fillStyle(t.bee.stripeColor).fillRect(ws * 0.36, ws * 0.24, ws * 0.08, ws * 0.52).fillRect(ws * 0.56, ws * 0.24, ws * 0.08, ws * 0.52);
+    g.lineStyle(2, t.bee.stripeColor).strokePoints(hex, true);
+    g.generateTexture('weapon_bees', ws, ws).clear();
     // Laughing gas cloud: puffs scattered around the middle, see-through so they stack into a soft cloud.
     const gz = t.gasCloud, gcs = gz.size, gcc = gcs / 2;
     for (let i = 0; i < gz.puffs; i++) {
@@ -243,5 +251,91 @@ export default class BootScene extends Phaser.Scene {
     // Rozgrzewka: a stopwatch.
     clock(ic.accent);
     g.generateTexture('gym_warmup', s, s).clear();
+
+    this.drawPassiveIcons(g);
+  }
+
+  // Passive icons (passive_<id>), same size and style as the UI icons. Dark outlines keep them readable on any panel.
+  drawPassiveIcons(g) {
+    const ic = config.ui.icons, s = ic.size, c = s / 2, o = ic.outline;
+    const done = (id) => g.generateTexture(`passive_${id}`, s, s).clear();
+    const tub = (body, label) => { // a jar of supplement: lid, body, label
+      g.fillStyle(body).fillRoundedRect(s * 0.22, s * 0.26, s * 0.56, s * 0.66, s * 0.08).lineStyle(2, o).strokeRoundedRect(s * 0.22, s * 0.26, s * 0.56, s * 0.66, s * 0.08);
+      g.fillStyle(ic.metalDark).fillRoundedRect(s * 0.18, s * 0.1, s * 0.64, s * 0.18, s * 0.05);
+      g.fillStyle(label).fillRect(s * 0.22, s * 0.46, s * 0.56, s * 0.24);
+    };
+
+    // Kreatyna: a white tub with a red label and a lightning bolt.
+    tub(ic.tub, ic.heart);
+    g.fillStyle(0xffffff).fillTriangle(s * 0.52, s * 0.47, s * 0.4, s * 0.6, s * 0.5, s * 0.6).fillTriangle(s * 0.5, s * 0.57, s * 0.6, s * 0.57, s * 0.46, s * 0.7);
+    done('creatine');
+    // Kawa z Żabki: a paper cup with a lid, a sleeve and steam.
+    g.fillStyle(ic.cup).fillPoints([{ x: s * 0.24, y: s * 0.3 }, { x: s * 0.76, y: s * 0.3 }, { x: s * 0.68, y: s * 0.94 }, { x: s * 0.32, y: s * 0.94 }], true);
+    g.fillStyle(ic.coffee).fillRect(s * 0.27, s * 0.5, s * 0.46, s * 0.2);
+    g.fillStyle(ic.metalDark).fillRoundedRect(s * 0.18, s * 0.22, s * 0.64, s * 0.1, s * 0.04);
+    g.lineStyle(s * 0.05, ic.metal).lineBetween(s * 0.42, s * 0.16, s * 0.38, s * 0.04).lineBetween(s * 0.58, s * 0.16, s * 0.62, s * 0.04);
+    done('coffee');
+    // Buty z bazaru: a blue sneaker with a white sole and three stripes.
+    g.fillStyle(ic.shoe).fillPoints([{ x: s * 0.1, y: s * 0.34 }, { x: s * 0.4, y: s * 0.34 }, { x: s * 0.52, y: s * 0.5 },
+      { x: s * 0.88, y: s * 0.58 }, { x: s * 0.92, y: s * 0.74 }, { x: s * 0.1, y: s * 0.74 }], true);
+    g.fillStyle(0xffffff).fillRoundedRect(s * 0.06, s * 0.72, s * 0.9, s * 0.13, s * 0.05);
+    g.lineStyle(s * 0.045, 0xffffff).lineBetween(s * 0.3, s * 0.64, s * 0.4, s * 0.42).lineBetween(s * 0.4, s * 0.66, s * 0.5, s * 0.48)
+      .lineBetween(s * 0.5, s * 0.68, s * 0.6, s * 0.54);
+    done('shoes');
+    // Gainer: a big brown tub with a heart (max HP).
+    tub(ic.gainer, ic.tub);
+    g.fillStyle(ic.heart).fillCircle(s * 0.44, s * 0.55, s * 0.06).fillCircle(s * 0.56, s * 0.55, s * 0.06).fillTriangle(s * 0.38, s * 0.57, s * 0.62, s * 0.57, c, s * 0.68);
+    done('gainer');
+    // Hantle w plecaku: a backpack with a dumbbell sticking out.
+    g.fillStyle(ic.metalDark).fillRect(s * 0.1, s * 0.12, s * 0.8, s * 0.08).fillRect(s * 0.06, s * 0.04, s * 0.1, s * 0.24).fillRect(s * 0.84, s * 0.04, s * 0.1, s * 0.24);
+    g.fillStyle(ic.backpack).fillRoundedRect(s * 0.2, s * 0.2, s * 0.6, s * 0.74, s * 0.14).lineStyle(2, o).strokeRoundedRect(s * 0.2, s * 0.2, s * 0.6, s * 0.74, s * 0.14);
+    g.fillStyle(0x000000, 0.25).fillRoundedRect(s * 0.3, s * 0.56, s * 0.4, s * 0.26, s * 0.06);
+    done('dumbbells');
+    // Bilet miesięczny ZTM: a yellow card with a red stripe and a hole.
+    g.fillStyle(ic.ticket).fillRoundedRect(s * 0.06, s * 0.22, s * 0.88, s * 0.56, s * 0.06).lineStyle(2, o).strokeRoundedRect(s * 0.06, s * 0.22, s * 0.88, s * 0.56, s * 0.06);
+    g.fillStyle(ic.ticketStripe).fillRect(s * 0.06, s * 0.32, s * 0.88, s * 0.1);
+    g.fillStyle(o).fillRect(s * 0.16, s * 0.52, s * 0.4, s * 0.05).fillRect(s * 0.16, s * 0.62, s * 0.28, s * 0.05).fillCircle(s * 0.78, s * 0.6, s * 0.06);
+    done('ticket');
+    // Karnet na siłownię: an orange pass with a dumbbell on it.
+    g.fillStyle(ic.pass).fillRoundedRect(s * 0.08, s * 0.2, s * 0.84, s * 0.6, s * 0.08).lineStyle(2, o).strokeRoundedRect(s * 0.08, s * 0.2, s * 0.84, s * 0.6, s * 0.08);
+    g.fillStyle(0xffffff).fillRect(s * 0.28, s * 0.48, s * 0.44, s * 0.06).fillRect(s * 0.22, s * 0.38, s * 0.08, s * 0.26).fillRect(s * 0.7, s * 0.38, s * 0.08, s * 0.26);
+    done('gymPass');
+    // Rosół babci: a white bowl of golden soup with noodles and steam.
+    g.fillStyle(ic.bowl).slice(c, s * 0.5, s * 0.42, 0, Math.PI, false).fillPath();
+    g.lineStyle(2, o).beginPath().arc(c, s * 0.5, s * 0.42, 0, Math.PI, false).strokePath();
+    g.fillStyle(ic.soup).fillEllipse(c, s * 0.5, s * 0.8, s * 0.14);
+    g.lineStyle(s * 0.03, ic.cup).lineBetween(s * 0.3, s * 0.5, s * 0.46, s * 0.48).lineBetween(s * 0.5, s * 0.52, s * 0.68, s * 0.49);
+    g.lineStyle(s * 0.05, ic.metal).lineBetween(s * 0.38, s * 0.36, s * 0.34, s * 0.14).lineBetween(s * 0.6, s * 0.36, s * 0.64, s * 0.14);
+    done('broth');
+    // Kurtka puchowa: a puffer jacket, quilted.
+    g.fillStyle(ic.jacket).fillRoundedRect(s * 0.06, s * 0.2, s * 0.2, s * 0.6, s * 0.08).fillRoundedRect(s * 0.74, s * 0.2, s * 0.2, s * 0.6, s * 0.08)
+      .fillRoundedRect(s * 0.2, s * 0.12, s * 0.6, s * 0.82, s * 0.12);
+    g.lineStyle(s * 0.04, ic.jacketLine);
+    for (const y of [0.34, 0.54, 0.74]) g.lineBetween(s * 0.2, s * y, s * 0.8, s * y);
+    g.lineBetween(c, s * 0.14, c, s * 0.92);
+    g.lineStyle(2, o).strokeRoundedRect(s * 0.2, s * 0.12, s * 0.6, s * 0.82, s * 0.12);
+    done('jacket');
+    // Koniczyna z trawnika: four leaves and a stem.
+    g.lineStyle(s * 0.06, ic.cloverDark).lineBetween(c, c, s * 0.66, s * 0.94);
+    for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      g.fillStyle(ic.clover).fillCircle(c + dx * s * 0.16, c + dy * s * 0.16, s * 0.17);
+      g.lineStyle(2, ic.cloverDark).strokeCircle(c + dx * s * 0.16, c + dy * s * 0.16, s * 0.17);
+    }
+    g.fillStyle(ic.cloverDark).fillCircle(c, c, s * 0.05);
+    done('clover');
+    // Zeszyt w kratkę: a page with a grid and a spiral binding.
+    g.fillStyle(ic.page).fillRect(s * 0.16, s * 0.08, s * 0.7, s * 0.84).lineStyle(2, o).strokeRect(s * 0.16, s * 0.08, s * 0.7, s * 0.84);
+    g.lineStyle(1, ic.grid);
+    for (let i = 1; i < 7; i++) g.lineBetween(s * 0.16, s * (0.08 + i * 0.12), s * 0.86, s * (0.08 + i * 0.12)).lineBetween(s * (0.16 + i * 0.1), s * 0.08, s * (0.16 + i * 0.1), s * 0.92);
+    g.fillStyle(ic.metalDark);
+    for (let i = 0; i < 6; i++) g.fillCircle(s * 0.16, s * (0.16 + i * 0.14), s * 0.05);
+    done('notebook');
+    // Wór na kryształy: a tied sack with a green gem on it.
+    g.fillStyle(ic.sack).fillEllipse(c, s * 0.62, s * 0.76, s * 0.66).fillTriangle(s * 0.36, s * 0.32, s * 0.64, s * 0.32, c, s * 0.12);
+    g.lineStyle(2, ic.sackDark).strokeEllipse(c, s * 0.62, s * 0.76, s * 0.66);
+    g.lineStyle(s * 0.06, ic.sackDark).lineBetween(s * 0.36, s * 0.3, s * 0.64, s * 0.3);
+    g.fillStyle(ic.gem).fillPoints([{ x: c, y: s * 0.46 }, { x: s * 0.62, y: s * 0.62 }, { x: c, y: s * 0.8 }, { x: s * 0.38, y: s * 0.62 }], true);
+    g.fillStyle(0xffffff).fillRect(s * 0.46, s * 0.56, s * 0.04, s * 0.04);
+    done('bag');
   }
 }

@@ -22,12 +22,13 @@ export default class LevelUpScene extends Phaser.Scene {
     // Cards are drawn by weight without repeats. Short of cards, the heal fills in.
     this.choices = drawUpgrades(this.run, c.count);
     if (this.choices.length < c.count) this.choices.push(fallbackUpgrade);
-    this.rarities = this.choices.map((up) => rollRarity(up, this.run.level));
+    this.rarities = this.choices.map((up) => rollRarity(up, this.run));
 
     const n = this.choices.length;
     this.choices.forEach((up, i) => {
-      const x = width / 2 + (i - (n - 1) / 2) * (c.width + c.gap);
-      const y = height / 2, top = y - c.height / 2, bottom = y + c.height / 2;
+      // Portrait: the cards stack top to bottom; the rarity name sits in the gap above each.
+      const x = width / 2, y = height / 2 + (i - (n - 1) / 2) * (c.height + c.gap);
+      const top = y - c.height / 2, bottom = y + c.height / 2;
       const level = up.levelText ? `${up.levelText}\n` // weapon cards: "NOWA BROŃ" or the level they reach
         : !Number.isFinite(up.maxStack) ? '' : `${taken[up.id] ?? 0}/${up.maxStack}\n`; // no counter without a limit (heal, Bartkowanie)
 

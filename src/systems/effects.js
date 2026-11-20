@@ -2,17 +2,18 @@
 // An effect def is { id, durationMs, apply(player) }: apply changes stats the same way upgrades do.
 
 // Starts the effect, or only refreshes its time when it is already active (strength never stacks).
+// The duration stat (Karnet na siłownię) makes every timed effect last longer.
 export function addEffect(run, def) {
-  const active = run.effects[def.id];
+  const active = run.effects[def.id], durationMs = def.durationMs * run.player.duration;
   if (active) {
-    active.remainingMs = def.durationMs;
+    active.remainingMs = active.durationMs = durationMs;
     return;
   }
   const pl = run.player, before = { ...pl };
   def.apply(pl);
   const changed = {};
   for (const k of Object.keys(pl)) if (pl[k] !== before[k]) changed[k] = { before: before[k], after: pl[k] };
-  run.effects[def.id] = { remainingMs: def.durationMs, durationMs: def.durationMs, changed };
+  run.effects[def.id] = { remainingMs: durationMs, durationMs, changed };
 }
 
 // Counts effects down; returns the ids that ended this frame.

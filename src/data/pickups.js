@@ -109,9 +109,9 @@ export const pickups = [
   },
   {
     id: 'pierogi',
-    name: 'Pierogi babci',
-    bannerText: 'PIEROGI BABCI',
-    bannerSubtext: `Babcia wie najlepiej. +${pi.heal} HP`,
+    name: 'Pierogi w domu',
+    bannerText: 'PIEROGI W DOMU',
+    bannerSubtext: `Mamy KFC w domu.\n+${pi.heal} HP`,
     dropChance: pi.dropChance,
     cooldownSec: pi.cooldownSec,
     icon: 'pickup_pierogi',
@@ -120,6 +120,7 @@ export const pickups = [
     apply(scene) {
       const pl = scene.run.player;
       pl.hp = Math.min(pl.maxHp, pl.hp + pi.heal);
+      scene.run.pierogiEaten++; // toward the Rosół babci unlock (save.stats)
     },
   },
 ];

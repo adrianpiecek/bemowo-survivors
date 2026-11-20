@@ -39,17 +39,18 @@ export default class UIScene extends Phaser.Scene {
     this.tankText = barText(2);
     this.barX = barX;
     this.tankBar = new Phaser.Geom.Rectangle(barX, this.rowY[2] - h.barHeight / 2, h.barWidth, h.barHeight); // also the phone's tank button
-    this.effectTop = m + panelH + u.effectHud.gap;
+    // Effect rows go under the boss bar's place, so the bar never covers them.
+    this.effectTop = Math.max(m + panelH, u.bossBar.y + u.bossBar.height) + u.effectHud.gap;
 
-    // Top center: the clock in a pill. Top right: kills and protein from coins, each in its own pill.
-    const ck = h.clock, ckX = (width - ck.width) / 2;
+    // Top right column (portrait: no room for the clock in the middle): the clock, then kills and protein from coins.
+    const ck = h.clock, ckX = width - m - ck.width;
     drawPanel(this.panels, ckX, m, ck.width, ck.height);
     this.add.image(ckX + h.padding + ck.iconSize / 2, m + ck.height / 2, 'icon_clock').setDisplaySize(ck.iconSize, ck.iconSize);
     this.timeText = this.add.text(ckX + ck.width - h.padding, m + ck.height / 2, '', font(ck.fontSize, { fontStyle: 'bold', ...outline }))
       .setOrigin(1, 0.5);
-    const st = h.stat, stX = width - m - st.width;
+    const st = h.stat, stX = width - m - st.width, statTop = m + ck.height + st.gap;
     const stat = (row, icon) => {
-      const y = m + row * (st.height + st.gap);
+      const y = statTop + row * (st.height + st.gap);
       drawPanel(this.panels, stX, y, st.width, st.height);
       this.add.image(stX + h.padding + st.iconSize / 2, y + st.height / 2, icon).setDisplaySize(st.iconSize, st.iconSize);
       return this.add.text(stX + st.width - h.padding, y + st.height / 2, '', font(st.fontSize, { fontStyle: 'bold', ...outline })).setOrigin(1, 0.5);
@@ -63,7 +64,8 @@ export default class UIScene extends Phaser.Scene {
 
     this.createJoystick();
     this.weaponSlots = this.add.graphics();
-    this.weaponHud = []; // filled by updateWeaponHud as weapons come
+    this.slotBadges = this.add.graphics().setDepth(1); // level badges over the icons
+    this.weaponHud = {}; // `${row}_${slot}` -> icon and level text, filled by updateWeaponHud as items come
     this.weaponSig = null;
 
     // Active timed pickup effects, one row per pickup that has an effect: icon, name, time bar (drawn in update).
@@ -87,7 +89,7 @@ export default class UIScene extends Phaser.Scene {
 
     this.balanceText = null; // the scene object outlives restarts, so never keep last run's text
     if (config.debug.balanceOverlay) {
-      this.balanceText = this.add.text(width - m, m + 2 * (st.height + st.gap), '', font(h.barFontSize, { align: 'right', ...outline }))
+      this.balanceText = this.add.text(width - m, statTop + 2 * (st.height + st.gap), '', font(h.barFontSize, { align: 'right', ...outline }))
         .setOrigin(1, 0).setDepth(2);
       this.balanceSamples = []; // one per second of run time: { t, spawned, kills, dmg }
     }
@@ -100,6 +102,7 @@ export default class UIScene extends Phaser.Scene {
     })).setOrigin(0.5, 0);
     this.bannerSub = this.add.text(0, 0, '', font(bn.subFontSize, {
       color: '#ffe082', stroke: '#000000', strokeThickness: bn.subStrokeThickness, align: 'center',
+      wordWrap: { width: width - 2 * (m + bn.padX) }, // a long line wraps instead of leaving the narrow screen
     })).setOrigin(0.5, 0);
     this.banner = this.add.container(width / 2, bn.y, [this.bannerBg, this.bannerTitle, this.bannerSub]).setDepth(1).setVisible(false);
 
@@ -149,7 +152,7 @@ export default class UIScene extends Phaser.Scene {
 
     // setText skips the redraw when the string is unchanged, so calling it every frame is cheap.
     this.hpText.setText(`${pl.hp} / ${pl.maxHp}`);
-    this.xpText.setText(`${r.xp} / ${xpNeed} XP`);
+    this.xpText.setText(`${Math.floor(r.xp)} / ${xpNeed} XP`); // XP can be fractional (Zeszyt w kratkę)
     this.levelText.setText(r.level);
     // +999 so the clock shows 10:00 at the start instead of 9:59.
     this.timeText.setText(formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999));
@@ -190,27 +193,28 @@ export default class UIScene extends Phaser.Scene {
     }
   }
 
-  // Weapon slots, bottom left: every slot has a frame (empty ones dimmed); a carried weapon shows its icon and a level badge.
-  // The frames and badges are redrawn only when a weapon or a level changes.
+  // Weapon slots bottom left, passive slots in a row right above them: every slot has a frame (empty ones dimmed);
+  // a carried item shows its icon and a level badge over its corner. Redrawn only when an item or a level changes.
   updateWeaponHud() {
-    const wh = config.ui.weaponHud, m = config.ui.margin, y = this.scale.height - m - wh.size;
-    const sig = this.run.weapons.map((w) => w.level).join();
+    const wh = config.ui.weaponHud, m = config.ui.margin, bottom = this.scale.height - m - wh.size;
+    const rows = [[this.run.weapons, config.weapons.maxSlots, bottom], [this.run.passives, config.passives.maxSlots, bottom - wh.size - wh.gap]];
+    const sig = rows.map(([items]) => items.map((it) => it.level).join()).join('|');
     if (sig === this.weaponSig) return;
     this.weaponSig = sig;
-    const g = this.weaponSlots.clear(), slotX = (i) => m + i * (wh.size + wh.gap);
-    for (let i = 0; i < config.weapons.maxSlots; i++) {
-      drawPanel(g, slotX(i), y, wh.size, wh.size, i < this.run.weapons.length ? {} : { alpha: wh.emptyAlpha, borderAlpha: wh.emptyAlpha });
-    }
-    this.run.weapons.forEach((w, i) => {
-      const x = slotX(i), bx = x + wh.size - wh.badgeRadius / 2, by = y + wh.size - wh.badgeRadius / 2;
-      if (!this.weaponHud[i]) {
-        this.weaponHud[i] = {
-          icon: this.add.image(x + wh.size / 2, y + wh.size / 2, w.def.icon).setDisplaySize(wh.iconSize, wh.iconSize),
-          level: this.add.text(bx, by, '', font(wh.fontSize, { fontStyle: 'bold' })).setOrigin(0.5).setDepth(1),
+    const g = this.weaponSlots.clear(), badges = this.slotBadges.clear();
+    rows.forEach(([items, maxSlots, y], row) => {
+      for (let i = 0; i < maxSlots; i++) {
+        const x = m + i * (wh.size + wh.gap), it = items[i];
+        drawPanel(g, x, y, wh.size, wh.size, it ? {} : { alpha: wh.emptyAlpha, borderAlpha: wh.emptyAlpha });
+        if (!it) continue;
+        const bx = x + wh.size - wh.badgeRadius / 2, by = y + wh.size - wh.badgeRadius / 2, key = `${row}_${i}`;
+        this.weaponHud[key] ??= { // items are never dropped mid-run, so a slot keeps its icon
+          icon: this.add.image(x + wh.size / 2, y + wh.size / 2, it.def.icon).setDisplaySize(wh.iconSize, wh.iconSize),
+          level: this.add.text(bx, by, '', font(wh.fontSize, { fontStyle: 'bold' })).setOrigin(0.5).setDepth(2),
         };
+        badges.fillStyle(config.ui.hud.levelColor).fillCircle(bx, by, wh.badgeRadius).lineStyle(2, 0xffffff).strokeCircle(bx, by, wh.badgeRadius);
+        this.weaponHud[key].level.setText(it.level);
       }
-      g.fillStyle(config.ui.hud.levelColor).fillCircle(bx, by, wh.badgeRadius).lineStyle(2, 0xffffff).strokeCircle(bx, by, wh.badgeRadius);
-      this.weaponHud[i].level.setText(w.level);
     });
   }
 
@@ -243,12 +247,17 @@ export default class UIScene extends Phaser.Scene {
     const per = (k) => ((b[k] - a[k]) / sec).toFixed(1);
     const pl = r.player, gs = this.scene.get('GameScene');
     const pw = r.weapons.find((w) => w.def.id === 'pistol'), pc = config.weapons.pistol;
-    const dpsMax = pw ? (pc.bulletDamage * pl.damageMult * pw.bullets * 1000) / (pc.fireRateMs * pl.cooldownMult) : 0;
+    const dpsMax = pw ? (pc.bulletDamage * pl.damageMult * (pw.bullets + pl.amount) * 1000) / (pc.fireRateMs * pl.cooldownMult) : 0;
+    const x = (v) => `x${v.toFixed(2)}`;
     this.balanceText.setText([
       `wrogowie ${gs.enemies.countActive(true)}`,
       `spawn/s ${per('spawned')}   zabici/s ${per('kills')}`,
       `DPS ${per('dmg')} (pistolet max ${dpsMax.toFixed(0)})`,
       `HP zombie x${(1 + config.spawn.hpPerMinutePct * r.elapsedMs / 60000).toFixed(2)}`,
+      // Passive stats: what every weapon reads through GameScene's weapon* helpers.
+      `obrażenia ${x(pl.damageMult)}   odnowienie ${x(pl.cooldownMult)}   obszar ${x(pl.area)}   czas ${x(pl.duration)}`,
+      `ilość +${pl.amount}   pancerz ${pl.armor}   regen ${pl.regen.toFixed(1)}/s   szczęście ${x(pl.luck)}`,
+      `XP ${x(pl.growth)}   magnes ${pl.magnetRadius.toFixed(0)} px   prędkość ${pl.speed.toFixed(0)}`,
     ].join('\n'));
   }
 

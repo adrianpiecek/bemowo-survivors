@@ -3,8 +3,8 @@ import { newRun, xpToNextLevel, save, writeSave } from '../state.js';
 import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
 import { weapons } from '../data/weapons.js';
+import { passives } from '../data/passives.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
-import { createOrbit, updateOrbit } from '../systems/orbit.js';
 import { updateLeaper } from '../systems/charge.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx, playMusic } from '../systems/audio.js';
@@ -48,12 +48,6 @@ export default class GameScene extends Phaser.Scene {
     });
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHit, null, this);
 
-    const bz = config.bees;
-    this.bees = createOrbit(this, {
-      texture: 'bee', maxSize: config.pools.bees, damage: () => bz.damage * this.run.player.beeDamageMult, hitCooldownMs: bz.hitCooldownMs,
-      vfx: 'beeSting', hitScale: bz.hitScale, hitMs: bz.hitMs, faceTravel: true,
-    });
-
     this.gems = this.physics.add.group({ defaultKey: 'gem_green', maxSize: config.pools.gems });
     this.addWeapon(weapons.find((d) => d.id === config.weapons.start));
     const debugIds = [].concat(config.debug.giveWeapon ?? []);
@@ -63,6 +57,13 @@ export default class GameScene extends Phaser.Scene {
         writeSave(save);
       }
       this.addWeapon(debugWeapon);
+    }
+    for (const def of passives.filter((d) => (config.debug.givePassives ?? []).includes(d.id))) {
+      if (def.unlock && !save.unlocks.includes(def.id)) {
+        save.unlocks.push(def.id);
+        writeSave(save);
+      }
+      this.gainPassive(def);
     }
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
 
@@ -158,9 +159,9 @@ export default class GameScene extends Phaser.Scene {
     }
     if (this.time.now < this.run.invulnUntilMs || isEffectActive(this.run, 'bubble')) return;
     if (this.isWalker(enemy) && isEffectActive(this.run, 'freeze')) return; // frozen walkers do not bite
-    const pl = this.run.player;
-    pl.hp = Math.max(0, pl.hp - enemy.stats.contactDamage);
-    this.run.damageTaken += enemy.stats.contactDamage;
+    const pl = this.run.player, damage = Math.max(1, enemy.stats.contactDamage - pl.armor); // armor: Kurtka puchowa
+    pl.hp = Math.max(0, pl.hp - damage);
+    this.run.damageTaken += damage;
     playSfx(this, 'playerDamage');
     if (enemy.stats.leavesScar) this.run.scarred = true;
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
@@ -188,7 +189,7 @@ export default class GameScene extends Phaser.Scene {
     this.run.killsByType[enemy.stats.id] = (this.run.killsByType[enemy.stats.id] ?? 0) + 1;
     if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, config.tank.killsToCharge);
     this.dropGem(enemy.x, enemy.y, enemy.stats.gem);
-    if (Math.random() < config.coins.dropChance) this.dropCoin(enemy.x, enemy.y, this.pickCoinKind());
+    if (Math.random() < config.coins.dropChance * this.run.player.luck) this.dropCoin(enemy.x, enemy.y, this.pickCoinKind());
     playVfx(this, 'deathPoof', enemy.x, enemy.y);
     this.maybeDropPickup(enemy.x, enemy.y);
     if (enemy.stats.isBoss) this.bossKilled(enemy);
@@ -304,7 +305,7 @@ export default class GameScene extends Phaser.Scene {
 
   dropGem(x, y, kind) { this.dropCollectible(x, y, `gem_${kind}`, config.xp.gems[kind].value, false); }
 
-  dropCoin(x, y, kind) { this.dropCollectible(x, y, `coin_${kind}`, config.coins.kinds[kind].protein, true); }
+  dropCoin(x, y, kind) { this.dropCollectible(x, y, `coin_${kind}`, config.coins.kinds[kind].protein, kind); }
 
   pickCoinKind() {
     const kinds = Object.entries(config.coins.kinds);
@@ -313,6 +314,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Gems and coins share one pool, the magnet and the pickup; value is XP for a gem, protein for a coin.
+  // coin: false for a gem, else the coin's kind.
   dropCollectible(x, y, texture, value, coin) {
     if (this.gems.countActive(true) >= config.xp.merge.above) this.mergeGems();
     const gem = this.gems.get(x, y);
@@ -343,11 +345,12 @@ export default class GameScene extends Phaser.Scene {
     playSfx(this, 'pick');
     if (gem.coin) {
       this.run.coinProtein += gem.value;
+      if (gem.coin === 'gold') this.run.goldCoins++;
       playVfx(this, 'coinPickup', gem.x, gem.y);
       return;
     }
     playVfx(this, 'gemPickup', gem.x, gem.y);
-    this.run.xp += gem.value;
+    this.run.xp += gem.value * this.run.player.growth; // Zeszyt w kratkę; XP may be fractional, the HUD rounds it down
     const wasPending = this.run.pendingLevelUps > 0;
     for (let need = xpToNextLevel(this.run.level); this.run.xp >= need; need = xpToNextLevel(this.run.level)) {
       this.run.xp -= need;
@@ -383,6 +386,21 @@ export default class GameScene extends Phaser.Scene {
   }
 
   weaponCooldown(ms) { return ms * this.run.player.cooldownMult; }
+
+  // Passive stats every weapon reads: Hantle w plecaku, Karnet na siłownię, Bilet miesięczny ZTM.
+  weaponArea(size) { return size * this.run.player.area; }
+
+  weaponDuration(ms) { return ms * this.run.player.duration; }
+
+  weaponAmount(n) { return n + this.run.player.amount; }
+
+  // Passives (data/passives.js): a new one at level 1, or the next level of one Bartek carries.
+  gainPassive(def, mult = 1) {
+    let p = this.run.passives.find((o) => o.def === def);
+    if (!p) this.run.passives.push(p = { def, level: 0 });
+    p.level++;
+    def.apply(this.run.player, p.level, mult);
+  }
 
   updateBubble() {
     this.bubble.setVisible(this.run.bubbleMs > 0).setPosition(this.player.x, this.player.y - config.ui.bubble.offsetY);
@@ -588,12 +606,13 @@ export default class GameScene extends Phaser.Scene {
       }
     }
 
-    // Bees: a small B gets a denser swarm on a tighter orbit, so it fits his size.
-    const bz = config.bees, small = isEffectActive(run, 'smallB');
-    updateOrbit(this.bees, this.player.x, this.player.y, {
-      count: pl.bees * (small ? bz.smallMult : 1), radius: small ? bz.smallRadius : bz.radius,
-      degPerSec: bz.degPerSec, waveAmp: bz.waveAmp, waveHz: bz.waveHz,
-    }, delta);
+    // Regeneration (Rosół babci) builds up and heals in whole HP, so the HUD numbers stay whole.
+    if (pl.regen > 0 && pl.hp < pl.maxHp) {
+      run.regenHp += pl.regen * delta / 1000;
+      const whole = Math.floor(run.regenHp);
+      run.regenHp -= whole;
+      pl.hp = Math.min(pl.maxHp, pl.hp + whole);
+    }
 
     for (const w of run.weapons) w.def.update(this, w, delta);
 

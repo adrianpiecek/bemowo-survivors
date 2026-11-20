@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { formatTime, proteinForRun, save, writeSave } from '../state.js';
 import { stopMusic } from '../systems/audio.js';
 import { weapons } from '../data/weapons.js';
+import { passives } from '../data/passives.js';
 import { button } from '../systems/ui.js';
 
 export default class GameOverScene extends Phaser.Scene {
@@ -14,9 +15,15 @@ export default class GameOverScene extends Phaser.Scene {
     save.protein += this.earned;
     save.runsPlayed += 1;
     // A weapon whose unlock condition this run met can drop as a card from now on.
-    // One at a time, in list order, so the shield (last) already sees the others unlocked by this same run.
+    // Totals over all runs, for the passives' unlocks.
+    const st = save.stats, r = this.run;
+    st.pierogi += r.pierogiEaten;
+    st.damageTaken += r.damageTaken;
+    st.goldCoins += r.goldCoins;
+    st.maxLevel = Math.max(st.maxLevel, r.level);
+    // One at a time, in list order, so the shield (last weapon) already sees the others unlocked by this same run.
     this.newUnlocks = [];
-    for (const def of weapons) {
+    for (const def of [...weapons, ...passives]) {
       if (!def.unlock || save.unlocks.includes(def.id) || !def.unlock.check(this.run, this.won)) continue;
       save.unlocks.push(def.id);
       this.newUnlocks.push(def);
@@ -55,9 +62,10 @@ export default class GameOverScene extends Phaser.Scene {
     }
     // A weapon unlocked by this run: from now on it can drop as a card.
     if (this.newUnlocks.length) {
-      this.add.text(cx, cy + u.lineGap * 3, `Nowa broń: ${this.newUnlocks.map((d) => d.name).join(', ')}! Może teraz wypaść jako karta.`, {
+      this.add.text(cx, cy + u.lineGap * 3, `Odblokowane: ${this.newUnlocks.map((d) => d.name).join(', ')}! ${this.newUnlocks.length > 1 ? 'Mogą teraz wypaść jako karty.' : 'Może teraz wypaść jako karta.'}`, {
         fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, fontStyle: 'bold', color: '#ffc400',
-      }).setOrigin(0.5);
+        align: 'center', wordWrap: { width: this.scale.width - 2 * u.margin },
+      }).setOrigin(0.5, 0);
     }
   }
 }

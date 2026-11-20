@@ -17,7 +17,8 @@ export default class GymScene extends Phaser.Scene {
     const outline = { stroke: '#000000', strokeThickness: 5 };
     playMusic(this, 'gym');
 
-    this.add.text(cx, gs.titleY, 'Siłownia', font(gs.titleFontSize, { fontStyle: 'bold', color: '#ffc400', ...outline })).setOrigin(0.5, 0);
+    // Title on the left, protein on the right: the narrow screen has no room for both in the middle.
+    this.add.text(x0, gs.titleY, 'Siłownia', font(gs.titleFontSize, { fontStyle: 'bold', color: '#ffc400', ...outline }));
 
     // Protein in a pill, top right.
     const pr = gs.protein, prX = x0 + gs.rowWidth - pr.width, prY = gs.titleY + (gs.titleFontSize * 1.2 - pr.height) / 2;
@@ -27,6 +28,7 @@ export default class GymScene extends Phaser.Scene {
       font(pr.fontSize, { fontStyle: 'bold' })).setOrigin(1, 0.5);
     this.add.text(prX - gs.padding, prY + pr.height / 2, 'Białko:', font(gs.nameFontSize, { color: gs.descColor })).setOrigin(1, 0.5);
 
+    const gymMaxLevel = Math.max(...gymUpgrades.map((up) => up.maxLevel));
     gymUpgrades.forEach((up, i) => {
       const y = gs.top + i * (gs.rowHeight + gs.rowGap), mid = y + gs.rowHeight / 2;
       const level = gymLevel(up);
@@ -36,13 +38,15 @@ export default class GymScene extends Phaser.Scene {
 
       panel(this, x0, y, gs.rowWidth, gs.rowHeight, maxed ? { borderColor: gs.pipColor, borderAlpha: 0.6 } : {});
       this.add.image(x0 + gs.padding + gs.iconSize / 2, mid, up.icon).setDisplaySize(gs.iconSize, gs.iconSize);
-      const tx = x0 + gs.padding * 2 + gs.iconSize;
-      this.add.text(tx, mid - gs.rowHeight * 0.06, up.name, font(gs.nameFontSize, { fontStyle: 'bold' })).setOrigin(0, 1);
-      this.add.text(tx, mid + gs.rowHeight * 0.06, up.description, font(gs.descFontSize, { color: gs.descColor })).setOrigin(0, 0);
+      // Text column between the icon and the buy button: name, description, then pips and cost on the bottom line.
+      const tx = x0 + gs.padding * 2 + gs.iconSize, textWidth = x0 + gs.rowWidth - gs.padding * 2 - gs.buyWidth - tx;
+      const name = this.add.text(tx, y + gs.padding, up.name, font(gs.nameFontSize, { fontStyle: 'bold' }));
+      this.add.text(tx, name.y + name.height + gs.descGap, up.description, font(gs.descFontSize, { color: gs.descColor, wordWrap: { width: textWidth } }));
+      const lineY = y + gs.rowHeight - gs.padding - gs.costIconSize / 2;
 
       // One pip per level, gold when bought; the one just bought pops.
       for (let p = 0; p < up.maxLevel; p++) {
-        const pip = this.add.rectangle(x0 + gs.pipX + p * (gs.pipSize + gs.pipGap) + gs.pipSize / 2, mid, gs.pipSize, gs.pipSize,
+        const pip = this.add.rectangle(tx + p * (gs.pipSize + gs.pipGap) + gs.pipSize / 2, lineY, gs.pipSize, gs.pipSize,
           p < level ? gs.pipColor : gs.pipEmpty).setStrokeStyle(2, 0x000000);
         if (data.bought === up.id && p === level - 1) {
           pip.setScale(gs.popScale);
@@ -50,17 +54,20 @@ export default class GymScene extends Phaser.Scene {
         }
       }
 
-      // Cost with the protein coin, and how much is missing when it is too much.
+      // Cost with the protein coin after the pips (the longest row of pips, so costs line up), and how much is missing.
+      const costX = tx + gymMaxLevel * (gs.pipSize + gs.pipGap) + gs.costGap;
       if (maxed) {
-        this.add.text(x0 + gs.costX, mid, 'MAX', font(gs.costFontSize, { fontStyle: 'bold', color: gs.maxColor })).setOrigin(0, 0.5);
+        this.add.text(costX, lineY, 'MAX', font(gs.costFontSize, { fontStyle: 'bold', color: gs.maxColor })).setOrigin(0, 0.5);
       } else {
-        // Too expensive: cost and coin move up, "brakuje X" goes under them.
-        const short = !free && !canBuy, cy = short ? mid - gs.costFontSize / 2 : mid;
-        this.add.image(x0 + gs.costX + gs.costIconSize / 2, cy, 'coin_gold').setDisplaySize(gs.costIconSize, gs.costIconSize);
-        this.add.text(x0 + gs.costX + gs.costIconSize + gs.pipGap, cy, cost, font(gs.costFontSize, {
+        const short = !free && !canBuy;
+        this.add.image(costX + gs.costIconSize / 2, lineY, 'coin_gold').setDisplaySize(gs.costIconSize, gs.costIconSize);
+        const costText = this.add.text(costX + gs.costIconSize + gs.pipGap, lineY, cost, font(gs.costFontSize, {
           fontStyle: 'bold', color: short ? gs.shortColor : '#ffffff',
         })).setOrigin(0, 0.5);
-        if (short) this.add.text(x0 + gs.costX, mid + gs.pipGap, `brakuje ${cost - save.protein}`, font(gs.shortFontSize, { color: gs.shortColor }));
+        if (short) {
+          this.add.text(costText.x + costText.width + gs.pipGap * 2, lineY, `brakuje ${cost - save.protein}`, font(gs.shortFontSize, { color: gs.shortColor }))
+            .setOrigin(0, 0.5);
+        }
       }
 
       button(this, x0 + gs.rowWidth - gs.padding - gs.buyWidth / 2, mid, maxed ? 'Kupione' : 'Kup', () => this.buy(up), {
@@ -75,10 +82,11 @@ export default class GymScene extends Phaser.Scene {
       this.tweens.add({ targets: minus, y: minus.y + gs.floatPx, alpha: 0, duration: gs.floatMs, onComplete: () => minus.destroy() });
     }
 
-    // Bottom: Bartek with a speech bubble (a random quote), a Bartkowanie definition under it, the start button on the right.
-    const bartek = this.add.image(x0, height - gs.bottom, 'bartek').setOrigin(0, 1);
+    // Under the rows: Bartek with a speech bubble (a random quote) and a Bartkowanie definition; the start button at the bottom.
+    const rowsBottom = gs.top + gymUpgrades.length * (gs.rowHeight + gs.rowGap);
+    const bartek = this.add.image(x0, rowsBottom + gs.sectionGap, 'bartek').setOrigin(0, 0);
     bartek.setScale(gs.bartekHeight / bartek.height);
-    const bx = x0 + bartek.displayWidth + gs.quoteGap + gs.tail, by = height - gs.bottom - gs.bartekHeight;
+    const bx = x0 + bartek.displayWidth + gs.quoteGap + gs.tail, by = bartek.y;
     const quote = this.add.text(bx + gs.padding, by + gs.padding, `„${Phaser.Utils.Array.GetRandom(config.gym.quotes)}”`,
       font(gs.quoteFontSize, { color: '#1b1b1b', fontStyle: 'bold', wordWrap: { width: gs.quoteWidth } }));
     const bw = quote.width + gs.padding * 2, bh = quote.height + gs.padding * 2;
@@ -90,11 +98,10 @@ export default class GymScene extends Phaser.Scene {
     }));
 
     const go = () => this.scene.start('GameScene');
-    button(this, x0 + gs.rowWidth - gs.goWidth / 2, height - gs.bottom - gs.goHeight / 2, 'Na Bemowo!', go, {
+    button(this, cx, height - gs.bottom - gs.goHeight / 2, 'Na Bemowo!', go, {
       width: gs.goWidth, height: gs.goHeight, fontSize: gs.goFontSize,
     });
-    this.add.text(x0 + gs.rowWidth - gs.goWidth / 2, height - gs.bottom - gs.goHeight - gs.pipGap, '[Enter]',
-      font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
+    this.add.text(cx, height - gs.bottom - gs.goHeight - gs.pipGap, '[Enter]', font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
     this.input.keyboard.once('keydown-ENTER', go);
   }
 

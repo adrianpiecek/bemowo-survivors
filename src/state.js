@@ -8,10 +8,16 @@ function startingStats() {
     speed: config.player.speed,
     magnetRadius: config.xp.magnetRadius,
     scale: 1, // Bartek's size and hitbox, 1 = normal
-    bees: 0, // from the "Ul" upgrade
-    beeDamageMult: 1, // rarer "Ul" cards raise it
-    damageMult: 1, // every weapon's damage: damage cards, gym, pickups
-    cooldownMult: 1, // every weapon's cooldown: fire rate cards divide it
+    damageMult: 1, // every weapon's damage: Kreatyna, gym, pickups
+    cooldownMult: 1, // every weapon's cooldown: Kawa z Żabki, pre-workout
+    // Passive stats (data/passives.js), read by the weapons through GameScene's weapon* helpers.
+    area: 1, // size of bullets, clouds, beams, shields, the bee orbit
+    duration: 1, // how long weapon effects and timed pickups last
+    amount: 0, // extra bullets, clouds, beams, shields, bees
+    armor: 0, // taken off every enemy touch (a touch still hurts at least 1)
+    regen: 0, // HP per second
+    luck: 1, // rarer cards come up more often, coins drop more often
+    growth: 1, // XP from gems
     range: config.weapons.pistol.range, // pistol range (the "Okulary" gym upgrade)
     bulletSpeed: config.weapons.pistol.bulletSpeed,
     // Warm-up from the gym; these defaults mean no effect.
@@ -43,7 +49,10 @@ export function newRun() {
     spawned: 0, // enemies spawned, for the debug overlay
     damageDealt: 0, // by bullets and bees, for the debug overlay
     coinProtein: 0, // protein from coins picked up this run, paid out at the end
-    damageTaken: 0, // from enemy touches, for the Captain's shield unlock
+    damageTaken: 0, // from enemy touches, for the Captain's shield unlock and save.stats
+    pierogiEaten: 0, // for save.stats
+    goldCoins: 0, // for save.stats
+    regenHp: 0, // regeneration not yet added: HP goes up in whole points
     killsByType: {}, // enemy type id -> kills this run (weapon unlocks)
     bossesKilled: [], // boss ids killed this run (weapon unlocks)
     pendingLevelUps: 0, // level-ups still waiting for a card pick
@@ -62,6 +71,7 @@ export function newRun() {
     player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
     upgrades: {}, // upgrade id -> how many times taken
     weapons: [], // the weapons Bartek carries: { def, level, ... }, see data/weapons.js
+    passives: [], // the passives Bartek carries: { def, level }, see data/passives.js
   };
 }
 
@@ -89,7 +99,12 @@ const SAVE_KEY = 'bemowo-survivors-save-v1';
 const SAVE_VERSION = 1;
 
 function freshSave() {
-  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, runsPlayed: 0 };
+  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, runsPlayed: 0, stats: freshStats() };
+}
+
+// Totals over all runs, for the passives' unlocks. Added in GameOverScene.
+function freshStats() {
+  return { pierogi: 0, damageTaken: 0, goldCoins: 0, maxLevel: 0 };
 }
 
 // Unreadable save (corrupt JSON, private mode, blocked storage) gives a fresh one, never an error.
@@ -107,6 +122,7 @@ export function loadSave() {
   if (isObject(d.gym)) s.gym = d.gym;
   if (Array.isArray(d.unlocks)) s.unlocks = d.unlocks;
   if (typeof d.muted === 'boolean') s.muted = d.muted;
+  if (isObject(d.stats)) for (const k of Object.keys(s.stats)) if (Number.isFinite(d.stats[k]) && d.stats[k] >= 0) s.stats[k] = d.stats[k];
   if (Number.isInteger(d.runsPlayed) && d.runsPlayed >= 0) s.runsPlayed = d.runsPlayed;
   // A save from before the counter that already has progress has clearly played a run.
   else if (s.protein > 0 || Object.keys(s.gym).length) s.runsPlayed = 1;
