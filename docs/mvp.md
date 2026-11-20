@@ -48,7 +48,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 ### XP i level up
 
-Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. Kryształy są rysowane w kodzie jako wielokąty z fasetami i białym błyskiem, każdy typ wroga wypada innym: zielony romb = 1 XP (zombie, biegacz, klapa), niebieski sześciokąt = 3 (Joker), żółty pięciokąt = 5 (Homelander), szary ośmiokąt = 10, czerwony szlifowany klejnot = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety (rysowane: obwódka i hantla; czerwona 1, srebrna 3, złota 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty: pasywki (tabela poniżej), karty broni (sekcja "Bronie") i Bartkowanie (karta bez slotu). Wersja 3 (krok 30): karty statystyk Obrażenia, Szybkostrzelność, Szybkość ruchu i Max HP zastąpiły pasywki, a Ul jest bronią (start: 2 pszczoły).
+Zabity zombie zostawia kryształ, który przyciąga się do gracza z niewielkiego zasięgu. Kryształy są rysowane w kodzie jako wielokąty z fasetami i białym błyskiem, każdy typ wroga wypada innym: zielony romb = 1 XP (zombie, biegacz, klapa), niebieski sześciokąt = 3 (Joker), żółty pięciokąt = 5 (Homelander), szary ośmiokąt = 10, czerwony szlifowany klejnot = 25 (bossowie). Gdy na mapie leży za dużo kryształów, najstarsze łączą się w jeden o sumie wartości, w kolorze najwyższego gema, który się mieści. Monety białka (rysowane: złota obwódka i hantla; mała 1, średnia 3, duża 10) to rzadki drop z wrogów: dają białko, doliczane na końcu rundy i pokazane osobno na ekranie końca gry. Przy level upie gra się pauzuje i pokazuje 3 losowe karty: pasywki (tabela poniżej), karty broni (sekcja "Bronie") i Bartkowanie (karta bez slotu). Wersja 3 (krok 30): karty statystyk Obrażenia, Szybkostrzelność, Szybkość ruchu i Max HP zastąpiły pasywki, a Ul jest bronią (start: 2 pszczoły).
 
 Pasywki (`src/data/passives.js`, liczby w `config.passives`): karty z rzadkością (rzadsza = większy skok), do 4 naraz; po zapełnieniu slotów wypadają tylko kolejne poziomy posiadanych. HUD pokazuje je w rzędzie nad slotami broni. Odblokowania liczy `save.stats` (łącznie ze wszystkich rund), sprawdzane na końcu rundy. Debug: `config.debug.givePassives` (lista id) daje je na start i odblokowuje; nakładka balansu (`config.debug.balanceOverlay`) pokazuje wszystkie statystyki.
 
@@ -63,7 +63,7 @@ Pasywki (`src/data/passives.js`, liczby w `config.passives`): karty z rzadkości
 | Karnet na siłownię | +10% czasu działania (chmury gazu i znajdźki) | 5 | od startu |
 | Rosół babci | +0,3 HP/s | 5 | 20 zjedzonych pierogów łącznie |
 | Kurtka puchowa | -1 obrażeń z dotyku (min. 1) | 5 | 2000 przyjętych obrażeń łącznie |
-| Koniczyna z trawnika | +10% szczęścia (rzadsze karty, więcej monet) | 5 | 10 złotych monet łącznie |
+| Koniczyna z trawnika | +10% szczęścia (rzadsze karty, więcej monet) | 5 | 10 dużych złotych monet łącznie |
 | Zeszyt w kratkę | +8% XP | 5 | 30 poziom w rundzie |
 | Wór na kryształy | +20% zasięgu przyciągania | 5 | od startu |
 | Książka Davida Gogginsa | +5% szansy na trafienie krytyczne | 5 | od startu |
@@ -78,7 +78,7 @@ Oprócz rzadkich znajdziek z wrogów (OLX, Photoshop) są znajdźki typowe dla g
 - Licznik 10:00. Przeżyjesz, to wygrałeś.
 - Śmierć daje ekran końca ze statystykami (czas, zabici, level) i przycisk "Jeszcze raz".
 - Pierwsze uruchomienie (licznik `save.runsPlayed` równy 0) prowadzi z intro prosto do rundy, bez siłowni. Po pierwszej rundzie przycisk "Siłownia" na ekranie końca pulsuje, a od drugiej rundy intro prowadzi do siłowni.
-- HUD: panel w lewym górnym rogu (HP z serduszkiem, XP z odznaką poziomu, pasek czołgu), w prawym górnym rogu kolumna: zegar, zabici, białko z monet; pod nimi pasek bossa, a pod nim aktywne efekty (ikonka, nazwa, pasek czasu); na dole po lewej sloty broni, a nad nimi sloty pasywek, oba z poziomem. Banery znajdziek na panelu, ok. 3 s, z opisem działania. Wszystko rysowane przez `src/systems/ui.js`.
+- HUD: panel w lewym górnym rogu (HP z serduszkiem, XP z odznaką poziomu, pasek czołgu), w prawym górnym rogu kolumna: zegar, zabici, białko z monet, monety B; pod nimi pasek bossa, a pod nim aktywne efekty (ikonka, nazwa, pasek czasu); na dole po lewej sloty broni, nad nimi sloty pasywek, oba z poziomem, a nad pasywkami mniejsze ikonki przedmiotów z liczbą. Banery znajdziek na panelu, ok. 3 s, z opisem działania. Wszystko rysowane przez `src/systems/ui.js`.
 
 ### Memy w MVP (sam tekst, zero kosztu)
 
@@ -192,7 +192,7 @@ Gracz bierze wszystko po kolei, więc buildy się nie różnią.
 | Karnet na siłownię | czas trwania (bronie i znajdźki) | +10% | 5 | od startu |
 | Rosół babci | regeneracja | +0,3 HP/s | 5 | zjedz 20 pierogów (łącznie) |
 | Kurtka puchowa | pancerz: mniej obrażeń z każdego dotyku | -1 | 5 | przyjmij 2000 obrażeń (łącznie) |
-| Koniczyna z trawnika | szczęście: rzadsze karty, więcej monet | +10% | 5 | zbierz 10 złotych monet (łącznie) |
+| Koniczyna z trawnika | szczęście: rzadsze karty, więcej monet | +10% | 5 | zbierz 10 dużych złotych monet (łącznie) |
 | Zeszyt w kratkę | zysk XP | +8% | 5 | dojdź do 30 poziomu |
 | Wór na kryształy | zasięg przyciągania | +20% | 5 | od startu |
 | Książka Davida Gogginsa | szansa na krytyka | +5 pkt proc. | 5 | od startu |
@@ -378,6 +378,27 @@ Zgłoszenia: topór za mocny, czołg przydatny tylko na początku, siłownię da
 - Krytyk to złoty wybuch iskier z pierścieniem (efekt `critHit`) i złoty zamiast białego błysk wroga.
 - Pasywki: Książka Davida Gogginsa (+5 pkt proc. szansy na poziom) i Płyta Limp Bizkit (+0,25 do mnożnika na poziom). Na maksie: 30% szansy i x2,75.
 - Nakładka balansu pokazuje szansę i mnożnik („kryt”).
+
+### 11. Przedmioty, monety B i skrzynki na mapie (z Megabonk)
+
+- **Przedmioty** (`src/data/items.js`, liczby w `config.items`): słabsze od kart, działają do końca rundy, nie zajmują slotów i sumują się bez limitu. `run.items` trzyma id -> ile sztuk.
+
+| Przedmiot | Efekt za sztukę |
+|---|---|
+| Sterydy | +6 HP na minutę |
+| Baton proteinowy | +4% obrażeń |
+| Energetyk | -3% czasu odnowienia |
+| Skarpety frotte | +3% szybkości chodzenia |
+| Rękawiczki na siłkę | +2% szansy na krytyka |
+| Zdrapka | +5% szczęścia |
+| Plaster | +6 max HP i leczenie o tyle samo |
+| Magnes z lodówki | +8% zasięgu przyciągania |
+
+- **Monety B** (srebrne z literą B): wypadają z 5% zabitych (razy szczęście), tylko na tę rundę (`run.bCoins`), nie przechodzą do zapisu. Monety białka są teraz wyłącznie złote, w trzech rozmiarach (1, 3, 10 białka).
+- **Skrzynki na mapie** (`config.worldChests`): na każdym bloku osiedla z szansą 35% stoi zamknięta skrzynka (ciemniejsza, z łańcuchem i kłódką) na chodniku. Rozmieszczenie z seeda rundy, więc co rundę gdzie indziej, a otwarta nie wraca. Nad skrzynką moneta B i cena: biała, gdy Bartka stać, czerwona, gdy nie. Wejście w skrzynkę, na którą go stać, otwiera ją: losowy przedmiot na ekranie skrzyni (karta z ikonką).
+- **Cena** jest jedna dla wszystkich skrzynek i rośnie z każdą otwartą: `round(5 x 1,3^otwarte)`, czyli 5, 7, 8, 11, 14...
+- **Skrzynie elit** dają teraz przedmiot (za darmo, jak dotąd otwierane wejściem). Skrzynie bossów bez zmian: karty i ewolucja. Skrzynia z Chordy dalej daje kartę.
+- **Debug:** `config.debug.startBCoins` (liczba monet B na start rundy); klawisz G (`gemKey`) rzuca też 10 monet B.
 
 ### Później (po kroku 37 z mapą)
 

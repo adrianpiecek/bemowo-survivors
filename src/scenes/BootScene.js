@@ -61,16 +61,27 @@ export default class BootScene extends Phaser.Scene {
       g.generateTexture(`gem_${kind}`, gs, gs).clear();
     }
 
-    // Protein coins: a dark rim, the face with a shine, a dumbbell in the middle.
-    const cs = config.coins.size, cc = cs / 2;
-    for (const [kind, k] of Object.entries(config.coins.kinds)) {
-      g.fillStyle(k.dark).fillCircle(cc, cc, cc);
-      g.fillStyle(k.color).fillCircle(cc, cc, cc - 2);
-      g.lineStyle(1, k.light, 0.9).beginPath().arc(cc, cc, cc - 3.5, Math.PI * 1.05, Math.PI * 1.55).strokePath();
-      g.fillStyle(k.dark).fillRect(cc - cs * 0.25, cc - 1, cs * 0.5, 2) // bar
+    // Protein coins (gold, three sizes): a dark rim, the face with a shine, a dumbbell in the middle.
+    const co = config.coins;
+    for (const [kind, k] of Object.entries(co.kinds)) {
+      const cs = Math.round(co.size * k.scale), cc = cs / 2;
+      g.fillStyle(co.dark).fillCircle(cc, cc, cc);
+      g.fillStyle(co.color).fillCircle(cc, cc, cc - 2);
+      g.lineStyle(1, co.light, 0.9).beginPath().arc(cc, cc, cc - 3.5, Math.PI * 1.05, Math.PI * 1.55).strokePath();
+      g.fillStyle(co.dark).fillRect(cc - cs * 0.25, cc - 1, cs * 0.5, 2) // bar
         .fillRect(cc - cs * 0.3, cc - cs * 0.18, cs * 0.1, cs * 0.36).fillRect(cc + cs * 0.2, cc - cs * 0.18, cs * 0.1, cs * 0.36); // plates
       g.generateTexture(`coin_${kind}`, cs, cs).clear();
     }
+    // B coin: silver, a B in the middle (a stem and two bowls).
+    const cb = co.b, cs = co.size, cc = cs / 2, bl = cs * 0.28; // bl: half the letter height
+    g.fillStyle(cb.dark).fillCircle(cc, cc, cc);
+    g.fillStyle(cb.color).fillCircle(cc, cc, cc - 2);
+    g.lineStyle(1, cb.light, 0.9).beginPath().arc(cc, cc, cc - 3.5, Math.PI * 1.05, Math.PI * 1.55).strokePath();
+    g.lineStyle(2, cb.letter).lineBetween(cc - bl * 0.6, cc - bl, cc - bl * 0.6, cc + bl);
+    g.beginPath().arc(cc - bl * 0.1, cc - bl / 2, bl / 2, -Math.PI / 2, Math.PI / 2).strokePath();
+    g.beginPath().arc(cc, cc + bl / 2, bl / 2, -Math.PI / 2, Math.PI / 2).strokePath();
+    g.lineBetween(cc - bl * 0.6, cc - bl, cc - bl * 0.1, cc - bl).lineBetween(cc - bl * 0.6, cc, cc, cc).lineBetween(cc - bl * 0.6, cc + bl, cc, cc + bl);
+    g.generateTexture('coin_b', cs, cs).clear();
 
     // The pistol Bartek holds, barrel to the right: slide, frame, grip with a trigger guard.
     const gn = t.gun, gw = gn.width, gh = gn.height;
@@ -131,6 +142,15 @@ export default class BootScene extends Phaser.Scene {
     g.fillRect(0, ch.lidHeight - ch.bandWidth / 2, ch.width, ch.bandWidth);
     g.fillStyle(ch.lidColor).fillRect((ch.width - ch.lockSize) / 2, ch.lidHeight - ch.lockSize / 2, ch.lockSize, ch.lockSize);
     g.generateTexture('chest', ch.width, ch.height).clear();
+    // The locked chest on the map: the same, darker, with a chain across and a big padlock.
+    g.fillStyle(ch.color).fillRect(0, ch.lidHeight, ch.width, ch.height - ch.lidHeight);
+    g.fillStyle(ch.lidColor).fillRect(0, 0, ch.width, ch.lidHeight);
+    g.fillStyle(0x000000, 0.3).fillRect(0, 0, ch.width, ch.height);
+    g.fillStyle(ch.chainColor).fillRect(0, ch.lidHeight - ch.bandWidth / 2, ch.width, ch.bandWidth);
+    g.lineStyle(3, ch.chainColor).beginPath().arc(ch.width / 2, ch.lidHeight, ch.lockSize * 0.55, Math.PI, 0).strokePath();
+    g.fillStyle(ch.padlockColor).fillRoundedRect(ch.width / 2 - ch.lockSize * 0.8, ch.lidHeight, ch.lockSize * 1.6, ch.lockSize * 1.3, 2);
+    g.fillStyle(0x000000).fillCircle(ch.width / 2, ch.lidHeight + ch.lockSize * 0.55, 2);
+    g.generateTexture('chest_locked', ch.width, ch.height).clear();
 
     // Weapon icon: pistol (a barrel and a grip on a framed square).
     const wi = t.weaponIcon, ws = wi.size;
@@ -475,5 +495,56 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.discLabel).fillCircle(c, c, s * 0.18);
     g.fillStyle(o).fillCircle(c, c, s * 0.05);
     done('limp');
+    this.drawItemIcons(g);
+  }
+
+  // Item icons (item_<id>), drawn like the passive ones.
+  drawItemIcons(g) {
+    const ic = config.ui.icons, s = ic.size, c = s / 2, o = ic.outline;
+    const done = (id) => g.generateTexture(`item_${id}`, s, s).clear();
+    // Sterydy: a syringe with red liquid, a plunger and a needle.
+    g.fillStyle(ic.syringe).fillRect(s * 0.22, s * 0.38, s * 0.5, s * 0.24).lineStyle(2, o).strokeRect(s * 0.22, s * 0.38, s * 0.5, s * 0.24);
+    g.fillStyle(ic.steroid).fillRect(s * 0.42, s * 0.41, s * 0.29, s * 0.18);
+    g.fillStyle(ic.metalDark).fillRect(s * 0.06, s * 0.46, s * 0.16, s * 0.08).fillRect(s * 0.04, s * 0.36, s * 0.05, s * 0.28);
+    g.lineStyle(2, ic.metal).lineBetween(s * 0.72, c, s * 0.96, c);
+    done('steroids');
+    // Baton proteinowy: a wrapped bar with crimped ends and a chocolate stripe.
+    g.fillStyle(ic.barWrap).fillRect(s * 0.14, s * 0.34, s * 0.72, s * 0.32).lineStyle(2, o).strokeRect(s * 0.14, s * 0.34, s * 0.72, s * 0.32);
+    g.fillTriangle(s * 0.14, s * 0.34, s * 0.04, s * 0.3, s * 0.14, c).fillTriangle(s * 0.14, s * 0.66, s * 0.04, s * 0.7, s * 0.14, c);
+    g.fillTriangle(s * 0.86, s * 0.34, s * 0.96, s * 0.3, s * 0.86, c).fillTriangle(s * 0.86, s * 0.66, s * 0.96, s * 0.7, s * 0.86, c);
+    g.fillStyle(ic.barChoc).fillRect(s * 0.3, s * 0.44, s * 0.4, s * 0.12);
+    done('bar');
+    // Energetyk: a green can with a silver top and a bolt.
+    g.fillStyle(ic.can).fillRoundedRect(s * 0.28, s * 0.14, s * 0.44, s * 0.76, s * 0.06).lineStyle(2, o).strokeRoundedRect(s * 0.28, s * 0.14, s * 0.44, s * 0.76, s * 0.06);
+    g.fillStyle(ic.metal).fillRect(s * 0.28, s * 0.14, s * 0.44, s * 0.1);
+    g.fillStyle(ic.canDark).fillTriangle(s * 0.54, s * 0.32, s * 0.4, s * 0.56, s * 0.52, s * 0.56).fillTriangle(s * 0.48, s * 0.52, s * 0.62, s * 0.52, s * 0.46, s * 0.78);
+    done('energy');
+    // Skarpety frotte: a white sock with red stripes.
+    g.fillStyle(ic.sock).fillRect(s * 0.3, s * 0.08, s * 0.3, s * 0.6).fillRoundedRect(s * 0.3, s * 0.56, s * 0.56, s * 0.3, s * 0.14);
+    g.lineStyle(2, o).strokeRect(s * 0.3, s * 0.08, s * 0.3, s * 0.5);
+    g.fillStyle(ic.sockStripe).fillRect(s * 0.3, s * 0.14, s * 0.3, s * 0.06).fillRect(s * 0.3, s * 0.26, s * 0.3, s * 0.06);
+    done('socks');
+    // Rękawiczki na siłkę: a black fingerless glove with an orange strap.
+    g.fillStyle(ic.glove).fillRoundedRect(s * 0.22, s * 0.3, s * 0.52, s * 0.56, s * 0.1);
+    for (let i = 0; i < 4; i++) g.fillRect(s * (0.24 + i * 0.13), s * 0.16, s * 0.1, s * 0.18);
+    g.fillRect(s * 0.7, s * 0.42, s * 0.14, s * 0.22);
+    g.fillStyle(ic.gloveStrap).fillRect(s * 0.18, s * 0.72, s * 0.6, s * 0.12);
+    done('gloves');
+    // Zdrapka: a yellow card with a grey scratch field, half scratched off.
+    g.fillStyle(ic.scratch).fillRoundedRect(s * 0.1, s * 0.2, s * 0.8, s * 0.6, s * 0.06).lineStyle(2, o).strokeRoundedRect(s * 0.1, s * 0.2, s * 0.8, s * 0.6, s * 0.06);
+    g.fillStyle(ic.scratchFoil).fillRect(s * 0.2, s * 0.34, s * 0.6, s * 0.32);
+    g.fillStyle(ic.heart).fillCircle(s * 0.62, c, s * 0.08);
+    g.fillStyle(ic.scratch).fillRect(s * 0.5, s * 0.36, s * 0.04, s * 0.28);
+    done('scratch');
+    // Plaster: a band-aid with a pad in the middle and dots.
+    g.fillStyle(ic.plaster).fillRoundedRect(s * 0.06, s * 0.34, s * 0.88, s * 0.32, s * 0.14).lineStyle(2, o).strokeRoundedRect(s * 0.06, s * 0.34, s * 0.88, s * 0.32, s * 0.14);
+    g.fillStyle(ic.plasterPad).fillRect(s * 0.36, s * 0.38, s * 0.28, s * 0.24);
+    g.fillStyle(o, 0.3).fillCircle(s * 0.18, s * 0.44, 1.5).fillCircle(s * 0.24, s * 0.56, 1.5).fillCircle(s * 0.76, s * 0.44, 1.5).fillCircle(s * 0.82, s * 0.56, 1.5);
+    done('plaster');
+    // Magnes z lodówki: a red horseshoe magnet with silver tips.
+    g.lineStyle(s * 0.16, ic.magnet).beginPath().arc(c, s * 0.48, s * 0.26, Math.PI, 0, true).strokePath();
+    g.fillStyle(ic.magnet).fillRect(s * 0.16, s * 0.2, s * 0.16, s * 0.28).fillRect(s * 0.68, s * 0.2, s * 0.16, s * 0.28);
+    g.fillStyle(ic.metal).fillRect(s * 0.16, s * 0.1, s * 0.16, s * 0.12).fillRect(s * 0.68, s * 0.1, s * 0.16, s * 0.12);
+    done('fridgeMagnet');
   }
 }

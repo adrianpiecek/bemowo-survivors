@@ -99,15 +99,16 @@ export const pickups = [
     apply(scene) { addEffect(scene.run, { id: 'bubble', durationMs: bb.durationSec * 1000, apply() {} }); },
   },
   {
-    // Bosses drop it with count = their slot's chest, elites with one card and evolution false (no evolution inside);
-    // the debug P key drops one with a single upgrade.
+    // Bosses drop it with count = their slot's chest; events with one card and evolution false (no evolution inside);
+    // elites with items true (one item); the debug P key drops one with a single upgrade.
+    // (The locked chests on the map are not pickups: systems/map.js and GameScene.updateWorldChests.)
     id: 'chest',
     name: 'Skrzynia',
     dropChance: 0,
     cooldownSec: 0,
     icon: 'chest',
     vfx: 'chestOpen',
-    apply(scene, p) { scene.openChest(p.count, p.evolution); },
+    apply(scene, p) { scene.openChest(p.count, p.evolution, p.items); },
   },
   {
     id: 'pierogi',

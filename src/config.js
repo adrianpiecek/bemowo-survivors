@@ -223,13 +223,26 @@ export const config = {
   },
   // Protein coins: a rare drop from any killed enemy, collected like gems. Their protein is added at the end of the run.
   // weight: how often each kind comes up when a coin drops. Drawn in BootScene, size px: a rim, a face, a dumbbell.
+  // Protein coins: all gold, in three sizes (scale x size px); `gold`, the big one, counts for the clover unlock.
   coins: {
-    dropChance: 0.02, size: 18,
+    dropChance: 0.02, size: 18, color: 0xffca28, dark: 0xa16800, light: 0xfff8e1,
     kinds: {
-      red: { protein: 1, weight: 0.75, color: 0xe57373, dark: 0x8e2424, light: 0xffcdd2 },
-      silver: { protein: 3, weight: 0.2, color: 0xcfd8dc, dark: 0x546e7a, light: 0xffffff },
-      gold: { protein: 10, weight: 0.05, color: 0xffca28, dark: 0xa16800, light: 0xfff8e1 },
+      small: { protein: 1, weight: 0.75, scale: 0.8 },
+      medium: { protein: 3, weight: 0.2, scale: 1 },
+      gold: { protein: 10, weight: 0.05, scale: 1.3 },
     },
+    // B coins: silver with a B, dropped by kills (dropChance x luck), spent this run only on the chests on the map.
+    b: { dropChance: 0.05, color: 0xcfd8dc, dark: 0x546e7a, light: 0xffffff, letter: 0x263238 },
+  },
+  // Locked chests on the map (systems/map.js): at most one per block, with `chance`, on the sidewalk, placed anew every
+  // run. Walking into one with enough B coins opens it for an item (data/items.js); each chest opened this run raises
+  // the price of all: round(basePrice x growth^opened). Over each: the price and a B coin, white if affordable, else red.
+  worldChests: { chance: 0.35, basePrice: 5, growth: 1.3, touchRadius: 34, labelY: 44, labelFontSize: 20, labelIconSize: 20,
+    labelGap: 4, labelDepth: 5, affordColor: '#ffffff', poorColor: '#ff5252' },
+  // Items (data/items.js): small run-long gains from chests, no slots, no stack limit.
+  items: {
+    steroids: { regenPerMin: 6 }, bar: { damagePct: 0.04 }, energy: { cooldownPct: 0.03 }, socks: { speedPct: 0.03 },
+    gloves: { critChance: 0.02 }, scratch: { luckPct: 0.05 }, plaster: { maxHp: 6 }, fridgeMagnet: { magnetPct: 0.08 },
   },
   run: { durationSec: 600 },
   protein: { perKills: 10, perMinute: 2, winBonus: 20 }, // awarded at the end of a run
@@ -254,6 +267,7 @@ export const config = {
     eventKey: false, // true: V, then a digit 1-8, starts that run event (data/events.js order)
     betsUnlocked: false, // true: the gym shows Zakłady z Unc without a won run
     startWeapon: null, // a weapon id: every run starts with it instead of a random one from weapons.start
+    startBCoins: null, // a number: every run starts with that many B coins (to open the chests on the map)
     forcePressure: null, // a number 0..dda.max: the hidden pressure stays there all run (the balance overlay shows it)
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
@@ -390,6 +404,10 @@ export const config = {
       tub: 0xeceff1, coffee: 0x8d6e63, cup: 0xfff8e1, shoe: 0x1e88e5, gainer: 0x6d4c41, backpack: 0x388e3c, ticket: 0xffd54f,
       ticketStripe: 0xd32f2f, pass: 0xff7043, soup: 0xffca28, bowl: 0xfafafa, jacket: 0x546e7a, jacketLine: 0x37474f,
       clover: 0x43a047, cloverDark: 0x1b5e20, page: 0xfafafa, grid: 0x90caf9, sack: 0xa1887f, sackDark: 0x5d4037, gem: 0x43a047,
+      // Item icons (item_<id>).
+      syringe: 0xe3f2fd, steroid: 0xe53935, barWrap: 0x6a1b9a, barChoc: 0x6d4c41, can: 0x00c853, canDark: 0x1b5e20,
+      sock: 0xfafafa, sockStripe: 0xd32f2f, glove: 0x263238, gloveStrap: 0xff7043, scratch: 0xfff176, scratchFoil: 0x9e9e9e,
+      plaster: 0xffcc80, plasterPad: 0xfff3e0, magnet: 0xd32f2f,
       book: 0x212121, bookPage: 0xfafafa, bookTitle: 0xffc400, disc: 0x263238, discShine: 0x90a4ae, discLabel: 0xd32f2f,
       planRing: 0xd32f2f },
     // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.
@@ -423,6 +441,8 @@ export const config = {
     // Weapon slots, bottom left (run.player.weaponSlots, empty ones dimmed): icon with a level badge in its corner.
     // The passive slots are a second row of the same slots right above them.
     // readyColor: a pulsing frame on a weapon ready to evolve and on the passive it needs (readyPulseMs a beat).
+    // Items (data/items.js) in a row above the passives: an icon each, with the count.
+    itemHud: { size: 36, iconSize: 30, gap: 4, fontSize: 14 },
     weaponHud: { size: 52, iconSize: 40, gap: 8, fontSize: 15, badgeRadius: 11, emptyAlpha: 0.35, readyColor: 0xffc400, readyWidth: 3, readyPulseMs: 500 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: '"NotJam", Impact, "Arial Black", sans-serif', strokeThickness: 10,
@@ -430,7 +450,8 @@ export const config = {
       shakeMs: 250, shakeIntensity: 0.02, pressBottom: 160, blinkMs: 600 },
     bossBar: { y: 170, width: 600, height: 24, fontSize: 16, color: 0xd03030 }, // under the HUD panel and the stat pills; the effect rows go under it
     // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
-    chest: { titleY: 190, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
+    // itemIconSize, itemIconY: an item's icon on its card, itemIconY x the card height below the middle.
+    chest: { itemIconSize: 48, itemIconY: 0.25, titleY: 190, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
       popScale: 1.08, popMs: 120, promptBottom: 60 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
     // Pickup, Bartkowanie and boss banners: big text with a line under it, on a panel, faded in and out.
@@ -570,7 +591,8 @@ export const config = {
     // Żabka shop (event): a white wall, a striped green awning, a door and two windows.
     zabkaShop: { width: 88, height: 74, awningHeight: 20, stripes: 6, wall: 0xf5f5f5, awning: 0x2e7d32, stripe: 0xffffff,
       door: 0x1b5e20, window: 0x81d4fa, border: 0x212121 },
-    chest: { width: 44, height: 34, lidHeight: 12, color: 0x8d5524, lidColor: 0x6d3f17, bandColor: 0xffc400, bandWidth: 5, lockSize: 10 },
+    chest: { width: 44, height: 34, lidHeight: 12, color: 0x8d5524, lidColor: 0x6d3f17, bandColor: 0xffc400, bandWidth: 5, lockSize: 10,
+      chainColor: 0x90a4ae, padlockColor: 0x9e9e9e },
     klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
     // Bee facing right (it turns along its orbit): striped body, two wings, a stinger at the back.

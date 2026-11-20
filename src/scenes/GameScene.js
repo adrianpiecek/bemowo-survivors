@@ -150,6 +150,7 @@ export default class GameScene extends Phaser.Scene {
           this.dropGem(x + Math.cos(a) * r, y + Math.sin(a) * r, 'green');
         }
         Object.keys(config.coins.kinds).forEach((kind, i) => this.dropCoin(x + 60 + i * 30, y, kind));
+        for (let i = 0; i < 10; i++) this.dropCollectible(x + 60 + i * 20, y + 40, 'coin_b', 1, 'b');
       });
     }
     if (config.debug.enemyKey) {
@@ -275,7 +276,7 @@ export default class GameScene extends Phaser.Scene {
     enemy.disableBody(true, true);
     if (enemy.elite) {
       for (const t of enemy.elite) t.onDeath?.(this, enemy);
-      this.dropChest(enemy.x, enemy.y, 1, false); // a card, never an evolution: those come from bosses
+      this.dropChest(enemy.x, enemy.y, 1, false, true); // an item
       this.clearElite(enemy);
     }
     this.run.kills++;
@@ -283,6 +284,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, config.tank.killsToCharge);
     this.dropGem(enemy.x, enemy.y, enemy.stats.gem);
     if (Math.random() < config.coins.dropChance * this.run.player.luck) this.dropCoin(enemy.x, enemy.y, this.pickCoinKind());
+    if (Math.random() < config.coins.b.dropChance * this.run.player.luck) this.dropCollectible(enemy.x + config.coins.size, enemy.y, 'coin_b', 1, 'b');
     playVfx(this, 'deathPoof', enemy.x, enemy.y);
     this.maybeDropPickup(enemy.x, enemy.y);
     if (enemy.stats.isBoss) this.bossKilled(enemy);
@@ -314,16 +316,41 @@ export default class GameScene extends Phaser.Scene {
     if (!this.boss) playMusic(this, 'gameplay');
   }
 
-  // A chest (bosses, elites) stays until taken; count: upgrades inside; evolution: false for an elite's (no evolution card).
-  dropChest(x, y, count, evolution = true) {
+  // A free chest (bosses, elites, events) stays until taken; count: upgrades inside; evolution: false for no evolution card;
+  // items: true for items in place of cards (elites).
+  dropChest(x, y, count, evolution = true, items = false) {
     const chest = this.dropPickup(pickups.find((d) => d.id === 'chest'), x, y, Infinity);
     if (!chest) return;
     chest.count = count;
     chest.evolution = evolution;
+    chest.items = items;
   }
 
   // Chests and the Żabka shop open in update(), so never in the middle of a physics step that also opened the level-up cards.
-  openChest(count, evolution = true) { this.openScreen('ChestScene', { count, evolution }); }
+  openChest(count, evolution = true, items = false) { this.openScreen('ChestScene', { count, evolution, items }); }
+
+  // What every chest on the map costs now, in B coins.
+  chestPrice() {
+    const wc = config.worldChests;
+    return Math.round(wc.basePrice * wc.growth ** this.run.chestsOpened);
+  }
+
+  // Chests on the map: the price over each, white or red; Bartek walking into one he can pay for opens it for an item.
+  updateWorldChests() {
+    const wc = config.worldChests, run = this.run, price = this.chestPrice(), afford = run.bCoins >= price;
+    const color = afford ? wc.affordColor : wc.poorColor, r2 = wc.touchRadius ** 2, { x, y } = this.player;
+    for (const ch of this.map.chests()) {
+      ch.setPrice(price, color);
+      if (!afford || (ch.x - x) ** 2 + (ch.y - y) ** 2 > r2) continue;
+      run.bCoins -= price;
+      run.chestsOpened++;
+      this.map.openChest(ch);
+      playSfx(this, 'pickup');
+      playVfx(this, 'chestOpen', ch.x, ch.y);
+      this.openChest(1, false, true);
+      return; // the price just went up
+    }
+  }
 
   openScreen(scene, data = {}) { this.run.screenQueue.push({ scene, data }); }
 
@@ -554,7 +581,8 @@ export default class GameScene extends Phaser.Scene {
     p.ageMs = 0;
     p.lifetimeMs = lifetimeSec * 1000;
     p.count = 1; // upgrades inside, only a chest uses it
-    p.evolution = true; // an evolution card allowed inside (a chest; elites set false)
+    p.evolution = true; // an evolution card allowed inside (a chest; events set false)
+    p.items = false; // items in place of cards (an elite's chest)
     this.run.pickupDropMs[def.id] = this.run.elapsedMs;
     return p;
   }
@@ -620,6 +648,11 @@ export default class GameScene extends Phaser.Scene {
     if (!gem.active) return;
     gem.disableBody(true, true);
     playSfx(this, 'pick');
+    if (gem.coin === 'b') {
+      this.run.bCoins += gem.value;
+      playVfx(this, 'coinPickup', gem.x, gem.y);
+      return;
+    }
     if (gem.coin) {
       this.run.coinProtein += gem.value;
       if (gem.coin === 'gold') this.run.goldCoins++;
@@ -903,6 +936,7 @@ export default class GameScene extends Phaser.Scene {
     this.playerShadow.setPosition(this.player.x, this.player.y + this.player.displayHeight * lk.shadowY)
       .setDisplaySize(this.player.displayWidth * lk.shadowW, this.player.displayWidth * lk.shadowW * lk.shadowFlat);
     this.map.update(delta);
+    this.updateWorldChests();
 
     // The scar follows Bartek's head and his size; the tank hides it.
     const sc = config.scar;

@@ -169,7 +169,9 @@ export function createMap(scene) {
   const m = config.map, B = m.block, R = m.road, S = m.sidewalk;
   const grounds = scene.add.group({ classType: Phaser.GameObjects.Image, maxSize: m.pool.blocks });
   const decor = scene.add.group({ classType: Phaser.GameObjects.Image, maxSize: m.pool.decor });
-  const blocks = new Map(); // "bx,by" -> { ground, items, lights }
+  const blocks = new Map(); // "bx,by" -> { ground, items, lights, chest }
+  const wc = config.worldChests, freeLabels = []; // price labels over chests, reused
+  const labelStyle = { fontFamily: config.ui.font, fontSize: `${wc.labelFontSize}px`, fontStyle: 'bold', stroke: '#000000', strokeThickness: 4 };
   const light = m.light, cycle = light.ms.reduce((a, b) => a + b, 0);
   let range = '', lightMs = 0, ambientMs = 0;
 
@@ -221,6 +223,26 @@ export function createMap(scene) {
         put('decor_car', vertical ? off : p, vertical ? p : off, { origin: [0.5, 0.5], angle: vertical ? 90 : 0, tint });
       }
     }
+    // Maybe a locked chest on the sidewalk ring (GameScene.updateWorldChests opens it), from this run's seed.
+    const key = `${bx},${by}`, cr = blockRandom(bx + scene.run.chestSeed, by - scene.run.chestSeed);
+    if (cr() < wc.chance && !scene.run.openedChests.has(key)) {
+      const along = between(cr, R + S + 60, B - S - 60), side = Math.floor(cr() * 4);
+      const [x, y] = [[along, R + S - 4], [along, B - 6], [R + S * 0.5, along], [B - S * 0.5, along]][side];
+      const img = put('chest_locked', x, y);
+      if (img) {
+        const label = freeLabels.pop() ?? { icon: scene.add.image(0, 0, 'coin_b'), text: scene.add.text(0, 0, '', labelStyle).setOrigin(0, 0.5) };
+        label.icon.setDisplaySize(wc.labelIconSize, wc.labelIconSize).setDepth(wc.labelDepth).setVisible(true);
+        label.text.setDepth(wc.labelDepth).setVisible(true);
+        const ly = y0 + y - wc.labelY, cx = x0 + x;
+        block.chest = { key, img, label, x: cx, y: y0 + y - img.height / 2,
+          setPrice(price, color) { // centred over the chest: the coin, then the number
+            label.text.setText(price).setColor(color);
+            const left = cx - (wc.labelIconSize + wc.labelGap + label.text.width) / 2;
+            label.icon.setPosition(left + wc.labelIconSize / 2, ly);
+            label.text.setPosition(left + wc.labelIconSize + wc.labelGap, ly);
+          } };
+      }
+    }
     // A parking lot fills some of its spaces.
     if (kind.id === 'parking') {
       const ps = m.parkingSpots, in0 = R + S, inW = B - R - 2 * S;
@@ -232,13 +254,22 @@ export function createMap(scene) {
         }
       }
     }
-    blocks.set(`${bx},${by}`, block);
+    blocks.set(key, block);
+  }
+
+  function freeChest(block) {
+    const { label } = block.chest;
+    label.icon.setVisible(false);
+    label.text.setVisible(false);
+    freeLabels.push(label);
+    block.chest = null;
   }
 
   function removeBlock(key) {
     const block = blocks.get(key);
     free(block.ground);
     block.items.forEach(free);
+    if (block.chest) freeChest(block);
     blocks.delete(key);
   }
 
@@ -274,5 +305,12 @@ export function createMap(scene) {
       }
     },
     blockCount: () => blocks.size,
+    // The closed chests on the blocks around Bartek.
+    *chests() { for (const block of blocks.values()) if (block.chest) yield block.chest; },
+    openChest(chest) {
+      scene.run.openedChests.add(chest.key);
+      free(chest.img);
+      freeChest(blocks.get(chest.key));
+    },
   };
 }

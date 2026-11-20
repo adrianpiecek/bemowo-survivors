@@ -5,6 +5,7 @@ import { passives } from '../data/passives.js';
 import { rollRarity, drawUpgrades, describe, applyUpgrade, rarityHex, cardCenter, evolutionCard, addCardHint } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
+import { items, giveItem } from '../data/items.js';
 
 // Boss (or elite) chest over the paused GameScene: `count` cards spin through upgrade names and stop one by one.
 // Each card's upgrade (with a rolled rarity) is applied the moment it stops. Once all stop, Space, Enter or a click closes it.
@@ -14,7 +15,8 @@ export default class ChestScene extends Phaser.Scene {
   init(data) {
     this.run = data.run;
     this.count = data.count;
-    this.evolution = data.evolution ?? true; // false: an elite's chest, never an evolution
+    this.evolution = data.evolution ?? true; // false: an event's chest, never an evolution
+    this.items = data.items ?? false; // true: an item chest (elites, the map), random items in place of cards
     this.closing = false;
   }
 
@@ -27,11 +29,12 @@ export default class ChestScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // An evolution ready (weapon at max level + its passive) takes the first card; one per chest, the rest as usual.
-    const evo = this.evolution ? evolutionCard(this.run) : null;
-    const prizes = evo ? [evo, ...drawUpgrades(this.run, this.count - 1)] : drawUpgrades(this.run, this.count);
+    const evo = this.evolution && !this.items ? evolutionCard(this.run) : null;
+    const prizes = this.items ? Array.from({ length: this.count }, () => Phaser.Utils.Array.GetRandom(items))
+      : evo ? [evo, ...drawUpgrades(this.run, this.count - 1)] : drawUpgrades(this.run, this.count);
     while (prizes.length < this.count) prizes.push(fallbackUpgrade); // everything maxed: the heal fills in
-    // The spin shows every card name there is: upgrades, weapons, passives.
-    const names = [...upgrades, ...weapons, ...passives].map((d) => d.name), n = prizes.length, gs = this.scene.get('GameScene');
+    // The spin shows every name there is: upgrades, weapons, passives; or the items.
+    const names = (this.items ? items : [...upgrades, ...weapons, ...passives]).map((d) => d.name), n = prizes.length, gs = this.scene.get('GameScene');
     let stopped = 0;
 
     prizes.forEach((up, i) => {
@@ -43,11 +46,13 @@ export default class ChestScene extends Phaser.Scene {
 
       this.time.delayedCall(ch.spinMs + i * ch.stopGapMs, () => {
         spin.remove();
-        const rarity = rollRarity(up, this.run);
-        applyUpgrade(this.run, gs, up, rarity);
+        const rarity = this.items ? null : rollRarity(up, this.run);
+        if (this.items) giveItem(this.run, up);
+        else applyUpgrade(this.run, gs, up, rarity);
         name.setText(up.name);
         const desc = this.add.text(x, y, describe(up, rarity), { fontFamily: config.ui.font, fontSize: `${c.textFontSize}px`, ...wrap }).setOrigin(0.5);
         addCardHint(this, up, x, name, desc, top + c.height - u.margin);
+        if (this.items) this.add.image(x, y + c.height * ch.itemIconY, up.icon).setDisplaySize(ch.itemIconSize, ch.itemIconSize); // under the text
         // An evolution gets a gold frame and its own label in place of a rarity.
         const frame = up.evolution ? { color: c.evolutionColor, name: up.levelText } : rarity;
         card.setStrokeStyle(frame ? c.rarityBorderWidth : c.borderWidth, frame?.color ?? c.borderColor);

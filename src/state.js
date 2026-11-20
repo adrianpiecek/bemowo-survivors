@@ -62,6 +62,11 @@ export function newRun() {
     damageTaken: 0, // from enemy touches, for the Captain's shield unlock and save.stats
     pierogiEaten: 0, // for save.stats
     goldCoins: 0, // for save.stats
+    bCoins: config.debug.startBCoins ?? 0, // B coins: this run's money for the chests on the map
+    chestsOpened: 0, // chests on the map bought this run: each raises the price of the next
+    openedChests: new Set(), // keys of the blocks whose chest is opened (systems/map.js)
+    chestSeed: Math.floor(Math.random() * 1e9), // where this run's chests on the map stand
+    items: {}, // item id -> how many (data/items.js)
     regenHp: 0, // regeneration not yet added: HP goes up in whole points
     killsByType: {}, // enemy type id -> kills this run (weapon unlocks)
     bossesKilled: [], // boss ids killed this run (weapon unlocks)

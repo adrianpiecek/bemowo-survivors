@@ -7,6 +7,7 @@ import { font, drawPanel, drawBar } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
 import { evolutionReady } from '../systems/cards.js';
 import { pressureBonus } from '../state.js';
+import { items } from '../data/items.js';
 
 // HUD on its own layer above GameScene. It reads `run` every frame, so GameScene never has to notify it.
 // Static panels are drawn once into this.panels; bars and anything that changes are redrawn into this.bars every frame.
@@ -67,6 +68,7 @@ export default class UIScene extends Phaser.Scene {
     };
     this.killsText = stat(0, 'icon_skull');
     this.coinText = stat(1, 'coin_gold');
+    this.bCoinText = stat(2, 'coin_b');
 
     const bb = u.bossBar;
     this.bossText = this.add.text(width / 2, bb.y + bb.height / 2, '', font(bb.fontSize, { fontStyle: 'bold', ...outline }))
@@ -79,6 +81,8 @@ export default class UIScene extends Phaser.Scene {
     this.readyFrames = this.add.graphics().setDepth(1);
     this.tweens.add({ targets: this.readyFrames, alpha: 0.25, duration: u.weaponHud.readyPulseMs, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.weaponHud = {}; // `${row}_${slot}` -> icon and level text, filled by updateWeaponHud as items come
+    this.itemSlots = this.add.graphics();
+    this.itemHud = {}; // item id -> icon and count text
     this.weaponSig = null;
 
     // Active timed pickup effects and run events that last, one row each: icon, name, time bar (drawn in update).
@@ -176,6 +180,7 @@ export default class UIScene extends Phaser.Scene {
     this.timeText.setText(formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999));
     this.killsText.setText(r.kills);
     this.coinText.setText(r.coinProtein);
+    this.bCoinText.setText(r.bCoins);
     // Boss HP bar, top center under the clock, only while a boss is on the map.
     const boss = this.scene.get('GameScene').boss, bb = config.ui.bossBar;
     const bossOn = !!boss?.active && boss.stats.isBoss; // pooled: the same sprite may be a zombie later
@@ -187,6 +192,7 @@ export default class UIScene extends Phaser.Scene {
     this.tankButton.setVisible(full && r.tankMs <= 0);
     this.updateEffectHud();
     this.updateWeaponHud();
+    this.updateItemHud();
     this.updatePickupArrow();
     if (this.balanceText) this.updateBalance();
     this.tankText.setText(r.tankMs > 0 ? `CZOŁG ${Math.ceil(r.tankMs / 1000)} s`
@@ -245,6 +251,25 @@ export default class UIScene extends Phaser.Scene {
       frames.strokeRoundedRect(m + wi * (wh.size + wh.gap), rows[0][2], wh.size, wh.size, r);
       frames.strokeRoundedRect(m + pi * (wh.size + wh.gap), rows[1][2], wh.size, wh.size, r);
     }
+  }
+
+  // Items in a row above the passive slots, in the order they came: the icon and how many. Redrawn when one comes.
+  updateItemHud() {
+    const ih = config.ui.itemHud, wh = config.ui.weaponHud, m = config.ui.margin, owned = Object.entries(this.run.items);
+    const sig = owned.map(([id, n]) => `${id}${n}`).join();
+    if (sig === this.itemSig) return;
+    this.itemSig = sig;
+    const y = this.scale.height - m - 2 * (wh.size + wh.gap) - ih.size, g = this.itemSlots.clear();
+    owned.forEach(([id, n], i) => {
+      const x = m + i * (ih.size + ih.gap);
+      drawPanel(g, x, y, ih.size, ih.size);
+      this.itemHud[id] ??= {
+        icon: this.add.image(0, 0, items.find((it) => it.id === id).icon).setDisplaySize(ih.iconSize, ih.iconSize),
+        count: this.add.text(0, 0, '', font(ih.fontSize, { fontStyle: 'bold', stroke: '#000000', strokeThickness: 3 })).setOrigin(1, 1).setDepth(2),
+      };
+      this.itemHud[id].icon.setPosition(x + ih.size / 2, y + ih.size / 2);
+      this.itemHud[id].count.setPosition(x + ih.size, y + ih.size).setText(n > 1 ? n : '');
+    });
   }
 
   // Arrow on the screen edge toward the Żabka shop, else the nearest pickup lying off screen; hidden when none is.

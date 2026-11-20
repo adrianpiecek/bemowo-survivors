@@ -68,7 +68,7 @@ export const passives = [
   },
   {
     id: 'clover', name: 'Koniczyna z trawnika', icon: 'passive_clover', maxLevel: c.clover.maxLevel,
-    unlock: { text: `Zbierz łącznie ${c.clover.unlockGoldCoins} złotych monet`, check: () => save.stats.goldCoins >= c.clover.unlockGoldCoins },
+    unlock: { text: `Zbierz łącznie ${c.clover.unlockGoldCoins} dużych złotych monet`, check: () => save.stats.goldCoins >= c.clover.unlockGoldCoins },
     description: (level, m) => `+${pct(c.clover.luckPct * m)} szczęścia: częściej rzadkie karty i więcej monet`,
     apply(pl, level, m) { addShare(pl, 'luck', c.clover.luckPct * m); },
   },
