@@ -539,6 +539,32 @@ Zostaje: ewolucja wymaga skrzyni bossa po zebraniu broni na maks i pasywki, wię
 - **Gołębie z OLX:** każdy gołąb leci swoim pasem ekranu (`pickups.olx.laneJitter`) i zabija wrogów do `hitRadius` px pod sobą, z piórami (`pigeonHit`). Boss traci swoją część HP raz na stado. Kto po przelocie jest jeszcze na ekranie, też ginie, więc siła znajdźki się nie zmieniła.
 - **Dźwięk na iPhonie:** Safari ścisza dźwięk gry, gdy przełącznik z boku telefonu jest na wyciszeniu; `navigator.audioSession.type = 'playback'` (Safari 16.4+) gra mimo to. Dotknięcie ekranu wznawia dźwięk zatrzymany przez iOS (karta w tle, połączenie). Nie sprawdzone na iPhonie.
 
+### 18. Więcej siłowni i trudniej (krok 42)
+
+Playtest po kroku 41: gra zdecydowanie za łatwa.
+
+- **Nowe ulepszenia siłowni** (`src/data/gym.js`, liczby w `config.gym`). Każde daje połowę poziomu podobnej pasywki i ma jej ikonkę:
+
+| Ulepszenie | Na poziom | Poziomy | Ceny |
+|---|---|---|---|
+| Korepetycje | +5% XP | 5 | 30, 80, 180, 350, 650 |
+| Sen 8 godzin | +0,1 HP/s | 5 | 40, 100, 220, 420, 750 |
+| Ochraniacze | -1 obrażeń z dotyku (min. 1) | 3 | 150, 400, 900 |
+| Talizman z bazaru | +5% szczęścia | 5 | 30, 80, 180, 350, 650 |
+| Trener personalny | +2% szansy na kryt | 5 | 40, 100, 220, 420, 750 |
+
+- **Droższe ceny** (ok. 1,7x): Klata, Nogi i Plecy 15, 40, 90, 180, 350, 650, 1100, 1800; Okulary 30–800; Rozgrzewka 120; Plan dnia 50–800; Kabura 400, 1000; Plecak 300, 800. Cała siłownia kosztuje ok. 25 000 białka (było ok. 11 000).
+- **Strony w siłowni.** Gdy wiersze nie mieszczą się nad przyciskiem startu, idą na kolejne strony: „<  Strona 1/2  >” pod wierszami albo strzałki na klawiaturze (`ui.gymScreen.pager*`). Pion: 7 wierszy na stronę, poziom: 8 (4 rzędy po 2). Zakup zostaje na tej samej stronie.
+- **Trudniej przez całą rundę:** spawn od 1,2 wroga/s (było 1,0) do 14 (było 12), krzywa `curvePow` 1,3 (było 1,5, horda rośnie wcześniej), HP wrogów +40%/min (było 30%), obrażenia +12%/min (było 10%), fale 8 + 8 na falę (było 6 + 6), bossowie 1300 / 2200 / 3200 / 4800 HP (było 1000 / 1600 / 2400 / 3600).
+
+Bot (te same zasady co w sekcji 16, pojedyncze przebiegi):
+
+| Siłownia | Krok 39 | Krok 42 |
+|---|---|---|
+| Brak (nowy gracz) | śmierć 3:21–6:44 | śmierć 2:21–5:49 (pistolet najdłużej), 28–200 białka |
+| Połowa poziomów | — | śmierć 5:30–6:51 |
+| Pełna | wygrana prawie bez strat HP | wygrana, na koniec 57–222 HP; straty HP od 6. minuty |
+
 ## Architektura
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.

@@ -107,10 +107,10 @@ export const config = {
     // chest it drops), protein (paid at the end of the run for the kill). Every run draws one boss from each slot's pool,
     // never one drawn for an earlier slot, and not the same line-up as the run before. Boss HP does not grow with the run time.
     slots: [
-      { atSec: 150, hp: 1000, chest: 1, protein: 10, pool: ['bigZombie', 'bigUncanny', 'bigGoblin'] },
-      { atSec: 270, hp: 1600, chest: 2, protein: 15, pool: ['bigSportakus', 'bigJoker', 'bigGoblin'] },
-      { atSec: 390, hp: 2400, chest: 2, protein: 20, pool: ['bigJoker', 'bigSportakus', 'bigZombie'] },
-      { atSec: 540, hp: 3600, chest: 3, protein: 30, pool: ['bigHomelander'] }, // the last one is always the same
+      { atSec: 150, hp: 1300, chest: 1, protein: 10, pool: ['bigZombie', 'bigUncanny', 'bigGoblin'] },
+      { atSec: 270, hp: 2200, chest: 2, protein: 15, pool: ['bigSportakus', 'bigJoker', 'bigGoblin'] },
+      { atSec: 390, hp: 3200, chest: 2, protein: 20, pool: ['bigJoker', 'bigSportakus', 'bigZombie'] },
+      { atSec: 540, hp: 4800, chest: 3, protein: 30, pool: ['bigHomelander'] }, // the last one is always the same
     ],
     // The bosses: a bigger copy of a regular enemy type (base), with its behavior. speedMult and damageMult multiply the
     // base numbers, scale its size.
@@ -207,7 +207,7 @@ export const config = {
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
   // Every enemy's touch (bosses too) hits harder by damagePerMinutePct of its base damage for every minute of the run.
-  spawn: { startPerSec: 1.0, endPerSec: 12, curvePow: 1.5, hpPerMinutePct: 0.3, damagePerMinutePct: 0.1, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
+  spawn: { startPerSec: 1.2, endPerSec: 14, curvePow: 1.3, hpPerMinutePct: 0.4, damagePerMinutePct: 0.12, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
   // Hidden pressure (presja Bemowa), 0..max: every sampleSec it looks at the last windowSec. Easy (Bartek lost under calmPct
   // of his max HP and fewer than calmCrowd enemies stood within crowdRadius on average): up by upPerMin a minute, but not
   // for graceSec after any card is taken, so an upgrade is felt first. Struggling (lost over hurtPct, HP under lowHpPct,
@@ -216,7 +216,7 @@ export const config = {
   // and the run's average pressure * proteinPct to its protein.
   dda: { sampleSec: 5, windowSec: 30, startSec: 60, graceSec: 20, crowdRadius: 300, calmCrowd: 8, busyCrowd: 30,
     calmPct: 0.1, hurtPct: 0.3, lowHpPct: 0.35, upPerMin: 0.2, downPerMin: 0.1, max: 1, spawnBonus: 1, hpBonus: 0.4, proteinPct: 0.3 },
-  wave: { everySec: 45, baseCount: 6, perWave: 6 }, // a ring of extra enemies all around Bartek, bigger each time
+  wave: { everySec: 45, baseCount: 8, perWave: 8 }, // a ring of extra enemies all around Bartek, bigger each time
   // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value.
   // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
   // Drawn in BootScene, gemSize px: a polygon with `sides` corners (stretch: taller than wide), or `cut`: a cut gem
@@ -315,15 +315,22 @@ export const config = {
   },
   // Permanent upgrades bought with protein. Percentages multiply with the in-run upgrades.
   gym: {
-    // Playtests: everything was bought in about an hour (1735 protein in all); now about 11 000.
-    chest: { damagePct: 0.1, maxLevel: 8, costs: [10, 25, 50, 100, 200, 400, 700, 1000] },
-    legs: { speedPct: 0.05, maxLevel: 8, costs: [10, 25, 50, 100, 200, 400, 700, 1000] },
-    back: { maxHp: 10, maxLevel: 8, costs: [10, 25, 50, 100, 200, 400, 700, 1000] },
-    glasses: { rangePct: 0.1, maxLevel: 5, costs: [20, 60, 150, 300, 500] },
-    warmup: { durationSec: 60, speedPct: -0.2, damagePct: 0.3, maxLevel: 1, costs: [80] },
-    plan: { rerolls: 1, banishes: 1, maxLevel: 5, costs: [30, 80, 160, 300, 500] }, // Plan dnia: more level-up rerolls and banishes
-    weaponSlot: { maxLevel: 2, costs: [250, 600] }, // Kabura: +1 weapon slot a level
-    passiveSlot: { maxLevel: 2, costs: [200, 500] }, // Plecak: +1 passive slot a level
+    // Playtests: everything was bought in about an hour (1735 protein in all), then about 11 000; after step 41 too easy
+    // again, so the costs climb harder (about 1.7x) and five upgrades were added: about 25 000 in all.
+    chest: { damagePct: 0.1, maxLevel: 8, costs: [15, 40, 90, 180, 350, 650, 1100, 1800] },
+    legs: { speedPct: 0.05, maxLevel: 8, costs: [15, 40, 90, 180, 350, 650, 1100, 1800] },
+    back: { maxHp: 10, maxLevel: 8, costs: [15, 40, 90, 180, 350, 650, 1100, 1800] },
+    glasses: { rangePct: 0.1, maxLevel: 5, costs: [30, 90, 220, 450, 800] },
+    warmup: { durationSec: 60, speedPct: -0.2, damagePct: 0.3, maxLevel: 1, costs: [120] },
+    plan: { rerolls: 1, banishes: 1, maxLevel: 5, costs: [50, 130, 260, 480, 800] }, // Plan dnia: more level-up rerolls and banishes
+    weaponSlot: { maxLevel: 2, costs: [400, 1000] }, // Kabura: +1 weapon slot a level
+    passiveSlot: { maxLevel: 2, costs: [300, 800] }, // Plecak: +1 passive slot a level
+    // Half a level of the matching passive each (the passive's icon too): XP, regen, armor, luck, crit chance.
+    tutoring: { xpPct: 0.05, maxLevel: 5, costs: [30, 80, 180, 350, 650] },
+    sleep: { regenPerSec: 0.1, maxLevel: 5, costs: [40, 100, 220, 420, 750] },
+    pads: { armor: 1, maxLevel: 3, costs: [150, 400, 900] },
+    talisman: { luckPct: 0.05, maxLevel: 5, costs: [30, 80, 180, 350, 650] },
+    coach: { critChance: 0.02, maxLevel: 5, costs: [40, 100, 220, 420, 750] },
     quotes: [
       'Za moich czasów zombie były grzeczniejsze.',
       'Najpierw rozgrzewka. Piętnaście minut. Nie dyskutujemy.',
@@ -506,7 +513,9 @@ export const config = {
       buyWidth: 140, buyHeight: 50, buyFontSize: 22, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
       protein: { width: 200, height: 50, fontSize: 28, iconSize: 32 },
       bartekHeight: 120, quoteFontSize: 20, quoteWidth: 460, quoteGap: 16, tail: 14, definitionColor: '#b0bec5', definitionFontSize: 16,
-      sectionGap: 40, bottom: 40, goWidth: 400, goHeight: 80, goFontSize: 34 },
+      sectionGap: 40, bottom: 40, goWidth: 400, goHeight: 80, goFontSize: 34,
+      // More rows than fit: pages of as many rows as fit, "<  Strona 1/2  >" pagerGap under them (pagerButton px buttons).
+      pagerHeight: 50, pagerGap: 12, pagerButton: 70, pagerFontSize: 22 },
   },
   // Screen layouts. The values above are portrait; `landscape` overrides the ones that depend on the screen's shape
   // (systems/layout.js merges it in at start and when the player switches in the settings, save.orientation).

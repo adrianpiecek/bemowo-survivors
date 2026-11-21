@@ -8,7 +8,8 @@ import { startRun } from './PlanScene.js';
 import { betsOpen, betSum } from '../data/bets.js';
 
 // Between runs: spend protein on permanent upgrades, then start the next run.
-// A purchase restarts the scene with { bought, cost }, so the new pip pops and the cost floats up from the protein.
+// A purchase restarts the scene with { bought, cost, page }, so the new pip pops and the cost floats up from the protein.
+// Rows that do not fit above the start button go on further pages ("<" ">" or the arrow keys).
 export default class GymScene extends Phaser.Scene {
   constructor() { super('GymScene'); }
 
@@ -39,7 +40,16 @@ export default class GymScene extends Phaser.Scene {
     this.add.text(prX - gs.padding, prY + pr.height / 2, 'Białko:', font(gs.nameFontSize, { color: gs.descColor })).setOrigin(1, 0.5);
 
     const gymMaxLevel = Math.max(...gymUpgrades.map((up) => up.maxLevel));
-    gymUpgrades.forEach((up, i) => {
+    // Rows per page: as many as fit between the top and the start button (landscape: it sits on the right, so the bottom
+    // edge); room for the pager only when one page is not enough.
+    const step = gs.rowHeight + gs.rowGap, bottomY = height - gs.bottom - (gs.goRight ? 0 : gs.goHeight + gs.sectionGap);
+    const fit = (room) => Math.max(1, Math.floor((room + gs.rowGap) / step)) * gs.columns;
+    let perPage = fit(bottomY - gs.top);
+    if (perPage < gymUpgrades.length) perPage = fit(bottomY - gs.top - gs.pagerGap - gs.pagerHeight);
+    this.pages = Math.ceil(gymUpgrades.length / perPage);
+    this.page = Phaser.Math.Clamp(data.page ?? 0, 0, this.pages - 1);
+    const shown = gymUpgrades.slice(this.page * perPage, (this.page + 1) * perPage);
+    shown.forEach((up, i) => {
       const x0 = (width - totalW) / 2 + (i % gs.columns) * (gs.rowWidth + gs.columnGap); // this row's left edge
       const y = gs.top + Math.floor(i / gs.columns) * (gs.rowHeight + gs.rowGap), mid = y + gs.rowHeight / 2;
       const level = gymLevel(up);
@@ -93,8 +103,19 @@ export default class GymScene extends Phaser.Scene {
       this.tweens.add({ targets: minus, y: minus.y + gs.floatPx, alpha: 0, duration: gs.floatMs, onComplete: () => minus.destroy() });
     }
 
+    // Pager under the rows of a full page, so it stays put from page to page.
+    let rowsBottom = gs.top + Math.ceil(shown.length / gs.columns) * step;
+    if (this.pages > 1) {
+      const py = gs.top + (perPage / gs.columns) * step + gs.pagerGap + gs.pagerHeight / 2, turn = (d) => this.turnPage(d);
+      const pw = gs.pagerButton, opts = (on) => ({ width: pw, height: gs.pagerHeight, fontSize: gs.pagerFontSize, variant: on ? 'secondary' : 'disabled' });
+      const label = this.add.text(cx, py, `Strona ${this.page + 1}/${this.pages}`, font(gs.pagerFontSize, { fontStyle: 'bold' })).setOrigin(0.5);
+      button(this, label.x - label.width / 2 - gs.padding - pw / 2, py, '<', () => turn(-1), opts(this.page > 0));
+      button(this, label.x + label.width / 2 + gs.padding + pw / 2, py, '>', () => turn(1), opts(this.page < this.pages - 1));
+      this.input.keyboard.on('keydown-LEFT', () => turn(-1));
+      this.input.keyboard.on('keydown-RIGHT', () => turn(1));
+      rowsBottom = py + gs.pagerHeight / 2;
+    }
     // Under the rows: Bartek with a speech bubble (a random quote) and a Bartkowanie definition; the start button at the bottom.
-    const rowsBottom = gs.top + Math.ceil(gymUpgrades.length / gs.columns) * (gs.rowHeight + gs.rowGap);
     // Landscape keeps the start button on the right, so Bartek only has to stay above the bottom edge there.
     const room = height - gs.bottom - (gs.goRight ? 0 : gs.goHeight + gs.sectionGap);
     if (rowsBottom + gs.sectionGap + gs.bartekHeight <= room) this.addQuote(x0, rowsBottom);
@@ -149,6 +170,12 @@ export default class GymScene extends Phaser.Scene {
     save.gym[up.id] = level + 1;
     writeSave(save);
     playSfx(this, 'powerUp');
-    this.scene.restart({ bought: up.id, cost }); // redraw levels, costs and protein
+    this.scene.restart({ bought: up.id, cost, page: this.page }); // redraw levels, costs and protein
+  }
+
+  turnPage(dir) {
+    const page = this.page + dir;
+    if (page < 0 || page >= this.pages) return;
+    this.scene.restart({ page });
   }
 }
