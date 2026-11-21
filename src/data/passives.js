@@ -90,7 +90,7 @@ export const passives = [
   },
   {
     id: 'boxing', name: 'Rękawice bokserskie', icon: 'passive_boxing', maxLevel: c.boxing.maxLevel, unlock: null,
-    description: (level, m) => `+${pct(c.boxing.damagePct * m)} obrażeń wrogom do ${c.boxing.range} px od Bartka`,
+    description: (level, m) => `+${pct(c.boxing.damagePct * m)} obrażeń wrogom bliżej niż ${String(c.boxing.rangeBartek).replace('.', ',')} Bartka od niego`,
     apply(pl, level, m) { pl.closeDamage += c.boxing.damagePct * m; },
   },
   {
@@ -102,6 +102,11 @@ export const passives = [
     id: 'whistle', name: 'Gwizdek WF-isty', icon: 'passive_whistle', maxLevel: c.whistle.maxLevel, unlock: null,
     description: (level, m) => `+${pct(c.whistle.ratePct * m)} częściej elity (a każda zostawia skrzynkę z przedmiotem)`,
     apply(pl, level, m) { addShare(pl, 'eliteRate', c.whistle.ratePct * m); },
+  },
+  {
+    id: 'spring', name: 'Sprężyna z długopisu', icon: 'passive_spring', maxLevel: c.spring.maxLevel, unlock: null,
+    description: (level, m) => `+${pct(c.spring.speedPct * m)} szybkości pocisków, śrutu, strzał i tarcz`,
+    apply(pl, level, m) { addShare(pl, 'projectileSpeed', c.spring.speedPct * m); },
   },
   {
     id: 'bag', name: 'Wór na kryształy', icon: 'passive_bag', maxLevel: c.bag.maxLevel, unlock: null,

@@ -470,7 +470,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 
 **Nowe statystyki i karty:**
 - Odrzut jako statystyka broni, z kartami i przedmiotami, które go zwiększają.
-- Prędkość pocisków jako pasywka i statystyka broni.
 - Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
 
 **Przedmioty:**
@@ -682,7 +681,7 @@ Pomiar botem: Bartek stoi w miejscu z nieśmiertelnym HP w 5. minucie (stała fa
 
 ### 32. Rękawice bokserskie (krok 56)
 
-Nowa pasywka (`boxing` w `src/data/passives.js`, liczby w `config.passives.boxing`): +15% obrażeń na poziom, max 5 poziomów, ale tylko dla trafień we wrogów do 200 px od Bartka (liczy się środek wroga). Dostępna od początku, bez odblokowania. Działa na każdą broń, ale najwięcej dają jej Miecz, Topór, Ul i Smog, które zawsze biją z bliska.
+Nowa pasywka (`boxing` w `src/data/passives.js`, liczby w `config.passives.boxing`): +15% obrażeń na poziom, max 5 poziomów, ale tylko dla trafień we wrogów bliżej niż 2,5 wzrostu Bartka, czyli 200 px (`rangeBartek`; liczy się środek wroga). Dostępna od początku, bez odblokowania. Działa na każdą broń, ale najwięcej dają jej Miecz, Topór, Ul i Smog, które zawsze biją z bliska.
 
 - Nowa statystyka gracza `closeDamage` (w `run.player`). Bonus liczony w `GameScene.hurtEnemy`, przed krytykiem, więc krytyk go mnoży.
 - Ekwipunek pokazuje „Obrażenia z bliska”.
@@ -730,6 +729,23 @@ Nowa statystyka gracza `eliteRate` (w `run.player`, 1 = elita co `config.elites.
 - Liczone w `GameScene.update` przy spawnie elity: następna za `everySec / eliteRate`. Pierwsza elita rundy przychodzi jak dotąd (40 s), bo pasywka wypada dopiero później.
 - Ekwipunek pokazuje „Częstość elit”. Ikona `passive_whistle`: srebrny gwizdek na czerwonym sznurku.
 - Sprawdzone botem: bez pasywki elity w 40. i 80. s, z poziomem 5 w 40. i 60. s.
+
+### 37. Sprężyna z długopisu: szybkość pocisków (krok 61)
+
+Nowa statystyka gracza `projectileSpeed` (w `run.player`, 1 = bez zmian) czytana przez `GameScene.weaponSpeed`, tak jak obszar czy czas działania. Pasywka **Sprężyna z długopisu** (`spring` w `src/data/passives.js`, liczby w `config.passives.spring`): +15% szybkości pocisków na poziom, max 5 poziomów. Dostępna od początku.
+
+- Działa na pociski pistoletu (razem z `bulletSpeed` z siłowni), śrut Shotguna, strzały Łuku i lot Tarczy Kapitana (w obie strony). Zasięg się nie zmienia: śrut i strzały lecą tyle samo pikseli, tylko szybciej. Nie dotyczy broni bez pocisków (laser, Kostur, gaz, Smog, pszczoły, topór, miecz, miniony).
+- Ekwipunek pokazuje „Szybkość pocisków”. Ikona `passive_spring`: srebrna sprężyna.
+- Sprawdzone w przeglądarce, poziom 0 → 5: pistolet 500 → 875 px/s, Shotgun 600 → 1050, Łuk 750 → 1312, Tarcza 650 → 1137 (wszędzie x1,75).
+
+### 38. Bez pikseli w tekstach dla gracza (krok 62)
+
+Piksele nic graczowi nie mówią, więc teksty w grze podają rozmiary względnie:
+
+- **Karty poziomów broni:** przyrost wielkości jako procent wartości startowej broni (helper `share` w `src/data/weapons.js`): gaz „+21% wielkości chmury”, laser „+67% szerokości” i „+23% zasięgu”, Topór „+24% promienia krążenia”, Kostur „+38% promienia uderzenia”, Miecz „+21% zasięgu ostrza”.
+- **Rękawice bokserskie:** zasięg w wzrostach Bartka: „wrogom bliżej niż 2,5 Bartka od niego”. W configu `boxing.rangeBartek` 2,5 zamiast `range` 200 px; zasięg w px to `rangeBartek × textures.bartek.height`.
+- **Ekwipunek:** „Zbieranie” i „Zasięg pistoletu” jako zmiana względem startu (np. „+20%”), a nie w px.
+- Liczby w `config.js` i opisy w tym dokumencie zostają w px (dla dewelopera). Linia debugowa balansu w HUD też.
 
 ## Architektura
 

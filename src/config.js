@@ -116,12 +116,15 @@ export const config = {
     bag: { magnetPct: 0.2, maxLevel: 5 },
     goggins: { critChance: 0.05, maxLevel: 5 }, // flat share of hits added per level
     limp: { critMult: 0.25, maxLevel: 5 }, // added to the crit multiplier per level
-    // Rękawice bokserskie: +damagePct per level to hits on enemies at most `range` px from Bartek (sword, axe, bees, gas).
-    boxing: { damagePct: 0.15, range: 200, maxLevel: 5 },
+    // Rękawice bokserskie: +damagePct per level to hits on enemies at most rangeBartek x Bartek's height (textures.bartek)
+    // from him (sword, axe, bees, gas). In Bartek heights so the card can say it without px.
+    boxing: { damagePct: 0.15, rangeBartek: 2.5, maxLevel: 5 },
     // Śliski dres: +dodge per level, the share of hits (touches and boss powers) Bartek dodges; never above dodgeMax.
     tracksuit: { dodge: 0.05, maxLevel: 5, dodgeMax: 0.5 },
     // Gwizdek WF-isty: +ratePct per level to how often elites come (elites.everySec is divided by the rate).
     whistle: { ratePct: 0.2, maxLevel: 5 },
+    // Sprężyna z długopisu: +speedPct per level to the speed of bullets, pellets, arrows and thrown shields.
+    spring: { speedPct: 0.15, maxLevel: 5 },
   },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {

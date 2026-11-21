@@ -635,6 +635,13 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.metal).fillRect(s * 0.4, s * 0.4, s * 0.1, s * 0.3); // hides the outline where body and mouthpiece meet
     g.fillStyle(ic.metalDark).fillCircle(s * 0.42, s * 0.62, s * 0.08);
     done('whistle');
+    // Sprężyna z długopisu: a silver coil spring, drawn as a zigzag with dark ends.
+    const coil = [];
+    for (let i = 0; i <= 8; i++) coil.push({ x: s * (0.14 + i * 0.09), y: i % 2 ? s * 0.3 : s * 0.7 });
+    g.lineStyle(s * 0.12, o).strokePoints(coil);
+    g.lineStyle(s * 0.07, ic.metal).strokePoints(coil);
+    g.fillStyle(ic.metalDark).fillCircle(coil[0].x, coil[0].y, s * 0.07).fillCircle(coil[8].x, coil[8].y, s * 0.07);
+    done('spring');
     this.drawItemIcons(g);
   }
 

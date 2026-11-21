@@ -23,6 +23,8 @@ const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons
 const sg = config.weapons.shotgun, ax = config.weapons.axe, st = config.weapons.staff, bw = config.weapons.bow;
 const nc = config.weapons.necro, sw = config.weapons.sword;
 const count = (n, mult) => Math.ceil(n * mult);
+// A size gain on a card as a share of the weapon's starting size: px mean nothing to the player.
+const share = (x, base) => `${Math.round((x / base) * 100)}%`;
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
 const plural = (n, one, few, many) => (n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
 const bulletsWord = (n) => plural(n, 'pocisk', 'pociski', 'pocisków');
@@ -76,7 +78,7 @@ export const weapons = [
         b.pierce = w.evolved ? p.evolution.pierce : 0; // enemies it still goes through (GameScene.onBulletHit)
         b.lastHit = null;
         b.maxDist = Infinity; // only shotgun pellets fly a set distance
-        scene.physics.moveToObject(b, targets[i % targets.length].z, scene.run.player.bulletSpeed);
+        scene.physics.moveToObject(b, targets[i % targets.length].z, scene.weaponSpeed(scene.run.player.bulletSpeed));
       }
       w.cooldownMs = scene.weaponCooldown(w.evolved ? p.evolution.fireRateMs : p.fireRateMs);
       playVfx(scene, 'muzzleFlash', tx, ty, Phaser.Math.RadToDeg(w.aim));
@@ -133,7 +135,8 @@ export const weapons = [
         // Even fan over the spread, a little jitter so the pellets do not look lined up.
         const a = w.aim + (n > 1 ? (i / (n - 1) - 0.5) * spread : 0) + Phaser.Math.FloatBetween(-sg.jitterRad, sg.jitterRad);
         Object.assign(b, { maxDist: range, startX: tx, startY: ty });
-        b.body.setVelocity(Math.cos(a) * sg.speed, Math.sin(a) * sg.speed);
+        const v = scene.weaponSpeed(sg.speed);
+        b.body.setVelocity(Math.cos(a) * v, Math.sin(a) * v);
       }
       w.cooldownMs = scene.weaponCooldown(sg.cooldownMs);
       playVfx(scene, 'muzzleFlash', tx, ty, Phaser.Math.RadToDeg(w.aim));
@@ -159,7 +162,7 @@ export const weapons = [
       if (level === 1) return 'Chmura gazu spada na wrogów. Kto w środku, ten się śmieje i traci HP.';
       const b = gz.levels[level - 2], n = count(b.clouds ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'chmura', 'chmury', 'chmur')}`,
-        b.radius && `+${Math.round(b.radius * m)} px promienia chmury`, b.durationMs && `+${(b.durationMs * m / 1000).toFixed(1)} s działania`]
+        b.radius && `+${share(b.radius * m, gz.radius)} wielkości chmury`, b.durationMs && `+${(b.durationMs * m / 1000).toFixed(1)} s działania`]
         .filter(Boolean).join(', ');
     },
     create(scene, w) {
@@ -210,7 +213,7 @@ export const weapons = [
       if (level === 1) return 'Promień z oczu Bartka przepala wszystkich wrogów na linii.';
       const b = lz.levels[level - 2], n = count(b.beams ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'promień', 'promienie', 'promieni')}`,
-        b.width && `+${Math.round(b.width * m)} px szerokości`, b.range && `+${Math.round(b.range * m)} px zasięgu`].filter(Boolean).join(', ');
+        b.width && `+${share(b.width * m, lz.width)} szerokości`, b.range && `+${share(b.range * m, lz.range)} zasięgu`].filter(Boolean).join(', ');
     },
     create(scene, w) {
       Object.assign(w, { damage: lz.damage, beams: lz.beams, width: lz.width, range: lz.range, cooldownMs: 0, showMs: 0, angles: [] });
@@ -330,7 +333,7 @@ export const weapons = [
       if (level === 1) return 'Topór krąży wokół Bartka. Kiedy kogoś trafi, odbija się i leci w drugą stronę.';
       const b = ax.levels[level - 2], n = count(b.axes ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'topór', 'topory', 'toporów')}`,
-        b.radius && `+${Math.round(b.radius * m)} px promienia`].filter(Boolean).join(', ');
+        b.radius && `+${share(b.radius * m, ax.radius)} promienia krążenia`].filter(Boolean).join(', ');
     },
     create(scene, w) {
       Object.assign(w, { damage: ax.damage, axes: ax.axes, radius: ax.radius, dir: 1, flipMs: 0 });
@@ -378,7 +381,7 @@ export const weapons = [
       if (level === 1) return 'Co chwilę piorun z nieba trafia najbliższego wroga.';
       const b = st.levels[level - 2], n = count(b.bolts ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'piorun', 'pioruny', 'piorunów')}`,
-        b.radius && `+${Math.round(b.radius * m)} px promienia uderzenia`].filter(Boolean).join(', ');
+        b.radius && `+${share(b.radius * m, st.radius)} promienia uderzenia`].filter(Boolean).join(', ');
     },
     create(scene, w) {
       Object.assign(w, { damage: st.damage, bolts: st.bolts, radius: st.radius, cooldownMs: 0, showMs: 0, paths: [] });
@@ -465,7 +468,8 @@ export const weapons = [
         const ang = aim + (i - (n - 1) / 2) * spread; // an even fan around the target
         a.enableBody(true, pl.x, pl.y, true, true);
         a.setScale(scene.weaponArea(1)).setRotation(ang);
-        a.body.setVelocity(Math.cos(ang) * bw.speed, Math.sin(ang) * bw.speed);
+        const v = scene.weaponSpeed(bw.speed);
+        a.body.setVelocity(Math.cos(ang) * v, Math.sin(ang) * v);
         Object.assign(a, { startX: pl.x, startY: pl.y, damage: scene.weaponDamage(w.damage), pierceLeft: w.pierce });
         (a.hit ??= new Set()).clear(); // enemies this arrow went through already
       }
@@ -532,7 +536,7 @@ export const weapons = [
       if (level === 1) return 'Tnie łukiem przed Bartkiem wszystkich w zasięgu ostrza.';
       const b = sw.levels[level - 2], n = count(b.slashes ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'cięcie', 'cięcia', 'cięć')} pod rząd`,
-        b.reach && `+${Math.round(b.reach * m)} px zasięgu ostrza`, b.arcDeg && `+${Math.round(b.arcDeg * m)}° szerokości cięcia`]
+        b.reach && `+${share(b.reach * m, sw.reach)} zasięgu ostrza`, b.arcDeg && `+${Math.round(b.arcDeg * m)}° szerokości cięcia`]
         .filter(Boolean).join(', ');
     },
     create(scene, w) {
@@ -839,7 +843,7 @@ function updateShield(scene, w, s, delta) {
     if (!s.target) s.phase = 'back';
   }
   const goal = s.phase === 'out' ? s.target : pl;
-  const dx = goal.x - s.x, dy = goal.y - s.y, d = Math.hypot(dx, dy), step = sh.speed * delta / 1000;
+  const dx = goal.x - s.x, dy = goal.y - s.y, d = Math.hypot(dx, dy), step = scene.weaponSpeed(sh.speed) * delta / 1000;
   if (d > Math.max(step, sh.hitDist)) {
     s.x += (dx / d) * step;
     s.y += (dy / d) * step;

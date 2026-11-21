@@ -22,6 +22,7 @@ function startingStats() {
     closeDamage: 0, // extra share of damage to enemies near Bartek (Rękawice bokserskie)
     dodge: 0, // share of hits on Bartek that miss (Śliski dres)
     eliteRate: 1, // how often elites come, 1 = every config.elites.everySec (Gwizdek WF-isty)
+    projectileSpeed: 1, // speed of every weapon's projectiles (Sprężyna z długopisu), on top of the pistol's bulletSpeed
     growth: 1, // XP from gems
     range: config.weapons.pistol.range, // pistol range (the "Okulary" gym upgrade)
     bulletSpeed: config.weapons.pistol.bulletSpeed,

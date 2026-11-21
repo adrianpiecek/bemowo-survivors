@@ -295,7 +295,7 @@ export default class GameScene extends Phaser.Scene {
   // Every hit can crit (run.player.critChance): critMult times the damage, a golden burst and flash.
   hurtEnemy(enemy, damage, x, y, vfx = 'hitSpark') {
     playVfx(this, vfx, x, y);
-    const pl = this.run.player, crit = Math.random() < pl.critChance, cr = config.passives.boxing.range;
+    const pl = this.run.player, crit = Math.random() < pl.critChance, cr = config.passives.boxing.rangeBartek * config.textures.bartek.height;
     if (pl.closeDamage > 0 && Phaser.Math.Distance.Squared(this.player.x, this.player.y, enemy.x, enemy.y) <= cr * cr) damage *= 1 + pl.closeDamage;
     if (crit) {
       damage *= pl.critMult;
@@ -810,6 +810,9 @@ export default class GameScene extends Phaser.Scene {
   weaponDuration(ms) { return ms * this.run.player.duration; }
 
   weaponAmount(n) { return n + this.run.player.amount; }
+
+  // Projectile speed: Sprężyna z długopisu.
+  weaponSpeed(v) { return v * this.run.player.projectileSpeed; }
 
   // Passives (data/passives.js): a new one at level 1, or the next level of one Bartek carries.
   gainPassive(def, mult = 1) {

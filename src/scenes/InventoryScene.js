@@ -71,10 +71,11 @@ export default class InventoryScene extends Phaser.Scene {
       ['Obrażenia krytyka', `x${num(pl.critMult, 2)}`],
       ['Obrażenia z bliska', pct(pl.closeDamage)],
       ['Częstość elit', pct(pl.eliteRate - 1)],
+      ['Szybkość pocisków', pct(pl.projectileSpeed - 1)],
       ['Szczęście', pct(pl.luck - 1)],
       ['XP', pct(pl.growth - 1)],
-      ['Zbieranie', `${Math.round(pl.magnetRadius)} px`],
-      ['Zasięg pistoletu', `${Math.round(pl.range)} px`],
+      ['Zbieranie', pct(pl.magnetRadius / config.xp.magnetRadius - 1)], // vs the start, px mean nothing to the player
+      ['Zasięg pistoletu', pct(pl.range / config.weapons.pistol.range - 1)],
     ];
     const head = add(this.add.text(x0 + c.padding, y, 'Statystyki', font(c.headFontSize, { fontStyle: 'bold', color: c.headColor })));
     y += head.height + c.gap / 2;
