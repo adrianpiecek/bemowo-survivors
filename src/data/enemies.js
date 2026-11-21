@@ -16,6 +16,8 @@ const regular = [
   { id: 'sportakus', ...e.sportakus, behavior: 'leap', isBoss: false, texture: 'sportakus', gem: 'purple' },
   // The first hit by a klapa in a run leaves a scar on Bartek's head.
   { id: 'klapa', ...e.klapa, behavior: 'line', isBoss: false, texture: 'klapa', gem: 'blue', leavesScar: true, touchVfx: 'klapaClang' },
+  // Nightskating (data/events.js) sends them in rows; GameScene's 'line' movement, the event sets their direction.
+  { id: 'skater', ...e.skater, behavior: 'line', isBoss: false, texture: 'zombie', gem: 'blue' },
 ];
 
 // Bosses (config.boss.list): their base type, bigger and stronger; behavior, texture and extra numbers come from the base.

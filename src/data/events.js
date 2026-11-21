@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { enemies } from './enemies.js';
 import { pickups } from './pickups.js';
 import { playVfx } from '../systems/vfx.js';
+import { warnLine } from '../systems/telegraph.js';
 
 // Run events: GameScene draws config.events.perRun of them for each run and starts each at its second, with a banner
 // (name, description). `scene` is GameScene.
@@ -135,4 +136,29 @@ export const events = [
       scene.scene.get('UIScene').showBanner('CHORDA ODPARTA!', 'Skrzynia za przetrwanie');
     },
   },
+  {
+    id: 'nightskating', name: 'Nightskating', durationSec: c.nightskating.durationSec,
+    description: `Przez ${c.nightskating.durationSec} s zombie na rolkach przejeżdżają przez osiedle. Zejdź im z drogi!`,
+    update(scene, delta, ev) {
+      every(ev, delta, c.nightskating.everyMs, () => skaterRow(scene));
+    },
+  },
 ];
+
+// Nightskating: a row of skaters side by side, rolling straight across Bartek's area from a random side. The red lane
+// shows first; then they come from startDist px behind and leave on the other side (GameScene removes 'line' enemies
+// once they are far from where they started).
+function skaterRow(scene) {
+  const n = c.nightskating, pl = scene.player, def = enemies.find((d) => d.id === 'skater');
+  const a = Phaser.Math.FloatBetween(0, Math.PI * 2), dx = Math.cos(a), dy = Math.sin(a);
+  const off = Phaser.Math.FloatBetween(-n.laneJitter, n.laneJitter); // the lane's middle, sideways from Bartek
+  const sx = pl.x - dx * n.startDist - dy * off, sy = pl.y - dy * n.startDist + dx * off;
+  warnLine(scene, sx, sy, a, n.startDist * 2, n.count * n.gap, n.warnMs, () => {
+    for (let i = 0; i < n.count; i++) {
+      const side = (i - (n.count - 1) / 2) * n.gap, z = scene.spawnEnemy(def, sx - dy * side, sy + dx * side);
+      if (!z) break; // pool full
+      z.body.setVelocity(dx * z.speed, dy * z.speed);
+      z.setAngle(dx >= 0 ? n.leanDeg : -n.leanDeg).setFlipX(dx < 0);
+    }
+  });
+}

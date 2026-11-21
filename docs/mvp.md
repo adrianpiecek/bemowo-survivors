@@ -486,7 +486,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 
 **Bossowie, elity, wydarzenia, plany:**
 - Więcej planów treningowych, w tym plany z kilkoma bossami naraz i z większą liczbą elit.
-- Wydarzenie Nightskating: zombie na rolkach przejeżdżają z jednej strony ekranu na drugą.
 - Bartek bardzo lubi jeździć na rolkach: wykorzystać to (np. znajdźka, plan albo ultimate).
 - Po przejściu mapy: możliwość zwiększenia zarabianego białka razem z poziomem trudności (jak poziomy trudności po wygranej).
 
@@ -605,6 +604,15 @@ Na ekranie pauzy, w wierszu „Bartek”, jest przycisk **Ekwipunek** (albo klaw
 - **Statystyki** z wszystkich źródeł naraz (config, siłownia, karty, przedmioty): HP, regeneracja, pancerz, szybkość, obrażenia, czas odnowienia, obszar, czas działania, dodatkowe pociski, szansa i mnożnik krytyka, szczęście, XP, zasięg zbierania, zasięg pistoletu.
 
 Wróć, Esc, Enter albo I wracają do pauzy. W pionie są 2 kolumny, w poziomie 4 kolumny ekwipunku i 3 kolumny statystyk. Podpowiedź o zmianie ekranu (pion/poziom w siłowni) jest teraz krótsza, obok przycisku.
+
+### 24. Wydarzenie Nightskating (krok 48)
+
+Nowe, dziesiąte wydarzenie rundy (`nightskating` w `src/data/events.js`, liczby w `config.events.nightskating`). Wypada losowo jak pozostałe. Przez 16 s co 2,6 s przez okolicę Bartka przejeżdża rząd 6 zombie na rolkach. Jadą obok siebie, z losowej strony, a środek ich pasa jest do 120 px od Bartka. 0,9 s wcześniej na ziemi świeci czerwony pas, którym pojadą (`warnLine` z `src/systems/telegraph.js`, ten sam wygląd co ataki bossów).
+
+- **Rolkarz** (`skater` w `src/data/enemies.js`, `config.enemies.skater`): zombie pochylony w stronę jazdy, 460 px/s, 8 HP, 12 obrażeń przy dotyku (rosną z czasem rundy jak u innych). Jedzie prosto, jak klapa, i znika daleko za Bartkiem. Nie bywa elitą, a zwykły spawn go nie losuje (`spawnWeight` 0; spawn pomija teraz typy z wagą 0).
+- Debug: `config.debug.eventKey`, potem V i cyfra; 9 to Chorda nadchodzi, 0 to Nightskating (wcześniej klawisze sięgały tylko do 8).
+
+Test: Bartek stojący w miejscu przez całe wydarzenie traci dużo HP (rolkarze razem ze zwykłymi wrogami: 216 HP w 1. minucie). Unikanie pasów nie zostało sprawdzone ręcznie.
 
 ## Architektura
 

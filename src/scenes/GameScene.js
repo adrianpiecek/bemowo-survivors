@@ -183,9 +183,9 @@ export default class GameScene extends Phaser.Scene {
       });
     }
     if (config.debug.eventKey) {
-      // V arms it, then 1-8 starts that event.
+      // V arms it, then 1-9 starts that event (0 the tenth).
       this.input.keyboard.on('keydown-V', () => { this.eventArmed = true; });
-      ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT'].forEach((key, i) => this.input.keyboard.on(`keydown-${key}`, () => {
+      ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO'].forEach((key, i) => this.input.keyboard.on(`keydown-${key}`, () => {
         if (!this.eventArmed || !events[i]) return;
         this.eventArmed = false;
         this.startEvent(events[i]);
@@ -816,7 +816,7 @@ export default class GameScene extends Phaser.Scene {
 
   // Random type by spawnWeight among the ones whose appearsAtSec has passed.
   pickEnemyType() {
-    const open = enemies.filter((d) => !d.isBoss && this.run.elapsedMs >= d.appearsAtSec * 1000);
+    const open = enemies.filter((d) => d.spawnWeight > 0 && this.run.elapsedMs >= d.appearsAtSec * 1000); // bosses and skaters come otherwise
     let roll = Math.random() * open.reduce((sum, d) => sum + d.spawnWeight, 0);
     return open.find((d) => (roll -= d.spawnWeight) < 0) ?? open[open.length - 1];
   }
@@ -833,7 +833,7 @@ export default class GameScene extends Phaser.Scene {
     this.clearElite(z); // only ever left on a sprite that went away without dying
     // Pooled sprites can come back as any type, so set the look and body every spawn.
     const t = config.textures[def.texture];
-    z.setTexture(def.texture).setAngle(0).clearTint();
+    z.setTexture(def.texture).setAngle(0).setFlipX(false).clearTint();
     z.flashMs = 0;
     z.bobPhase = Math.random() * Math.PI * 2; // walkers sway out of step
     const fit = t.height ? t.height / z.height : 1; // drawn textures already have their config height, so 1

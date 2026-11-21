@@ -27,14 +27,21 @@ export function strikeCircle(scene, x, y, radius, warnMs, damage, onLand) {
   });
 }
 
-// A beam `length` px long and `width` wide from (x, y) at `angle`: it flashes in beamColor when it strikes.
-export function strikeLine(scene, x, y, angle, length, width, warnMs, damage, onLand) {
-  const c = config.boss.powers;
+// Only the warning: a lane `length` px long and `width` wide from (x, y) at `angle`, then onDone (Nightskating).
+export function warnLine(scene, x, y, angle, length, width, warnMs, onDone) {
   const rect = (g, outline) => { g.fillRect(0, -width / 2, length, width); if (outline) g.strokeRect(0, -width / 2, length, width); };
   const w = warnArea(scene, x, y, angle, rect, { x: 1, y: 0 });
   scene.tweens.add({ targets: w.fill, scaleY: 1, duration: warnMs });
   scene.time.delayedCall(warnMs, () => {
     w.done();
+    onDone();
+  });
+}
+
+// A beam `length` px long and `width` wide from (x, y) at `angle`: it flashes in beamColor when it strikes.
+export function strikeLine(scene, x, y, angle, length, width, warnMs, damage, onLand) {
+  const c = config.boss.powers;
+  warnLine(scene, x, y, angle, length, width, warnMs, () => {
     const beam = scene.add.graphics({ x, y }).setDepth(c.beamDepth).setRotation(angle);
     beam.fillStyle(c.beamColor, 1).fillRect(0, -width / 2, length, width).fillStyle(0xffffff, 1).fillRect(0, -width / 6, length, width / 3);
     scene.tweens.add({ targets: beam, alpha: 0, duration: c.beamMs, onComplete: () => beam.destroy() });

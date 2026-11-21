@@ -106,6 +106,8 @@ export const config = {
     sportakus: { speed: 70, hp: 40, contactDamage: 15, appearsAtSec: 240, spawnWeight: 0.06,
       leapEverySec: 3, leapRange: 450, warnMs: 700, flashMs: 100, flashColor: 0xff0000, leapSpeed: 650 },
     klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // about 2x zombie speed
+    // A zombie on rollerblades: only the Nightskating event sends them (spawnWeight 0); rolls straight, leaning, no spin.
+    skater: { speed: 460, hp: 8, contactDamage: 12, appearsAtSec: 0, spawnWeight: 0, spinDegPerSec: 0 },
   },
   boss: {
     bannerSec: 2,
@@ -192,6 +194,9 @@ export const config = {
     // Chorda nadchodzi: for durationSec the spawn rate is spawnMult x and every spawn on the ring (waves too) comes from
     // one random side, within arcDeg; Bartek still standing at the end gets a chest (one card) chestDist px away.
     horde: { durationSec: 20, spawnMult: 3, arcDeg: 70, chestDist: 120 },
+    // Nightskating: for durationSec, every everyMs a row of `count` skaters (gap px apart, side by side) rolls straight across
+    // from startDist px behind Bartek, its lane up to laneJitter px off him. A red lane warns warnMs before they come.
+    nightskating: { durationSec: 16, everyMs: 2600, count: 6, gap: 46, startDist: 820, laneJitter: 120, warnMs: 900, leanDeg: 14 },
   },
   // The estate around Bartek (systems/map.js): square blocks `block` px, a road `road` px wide along the top and left edge
   // of each, a sidewalk `sidewalk` px wide around the lot, the lot's kind drawn by weight. Decorations are pooled images:
@@ -302,7 +307,7 @@ export const config = {
     forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
     evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
-    eventKey: false, // true: V, then a digit 1-8, starts that run event (data/events.js order)
+    eventKey: false, // true: V, then a digit 1-9 (0 the tenth), starts that run event (data/events.js order)
     betsUnlocked: false, // true: the gym shows Zakłady z Unc without a won run
     startWeapon: null, // a weapon id: every run starts with it instead of a random one from weapons.start
     startBCoins: null, // a number: every run starts with that many B coins (to open the chests on the map)
