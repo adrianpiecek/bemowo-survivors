@@ -117,8 +117,8 @@ export const pickups = [
     },
   },
   {
-    // Bosses drop it with count = their slot's chest; events with one card and evolution false (no evolution inside);
-    // elites with items true (one item); the debug P key drops one with a single upgrade.
+    // Bosses drop it with count = their slot's chest; events with one card; elites with items true (one item); the debug
+    // P key drops one with a single upgrade. Any of them evolves a weapon that is ready (ChestScene).
     // (The locked chests on the map are not pickups: systems/map.js and GameScene.updateWorldChests.)
     id: 'chest',
     name: 'Skrzynia',
@@ -126,7 +126,7 @@ export const pickups = [
     cooldownSec: 0,
     icon: 'chest',
     vfx: 'chestOpen',
-    apply(scene, p) { scene.openChest(p.count, p.evolution, p.items); },
+    apply(scene, p) { scene.openChest(p.count, p.items); },
   },
   {
     id: 'pierogi',

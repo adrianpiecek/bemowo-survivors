@@ -376,7 +376,7 @@ export default class GameScene extends Phaser.Scene {
     enemy.disableBody(true, true);
     if (enemy.elite) {
       for (const t of enemy.elite) t.onDeath?.(this, enemy);
-      this.dropChest(enemy.x, enemy.y, 1, false, true); // an item
+      this.dropChest(enemy.x, enemy.y, 1, true); // an item
       this.clearElite(enemy);
     }
     this.run.kills++;
@@ -418,18 +418,17 @@ export default class GameScene extends Phaser.Scene {
     if (!this.boss) playMusic(this, 'gameplay');
   }
 
-  // A free chest (bosses, elites, events) stays until taken; count: upgrades inside; evolution: false for no evolution card;
-  // items: true for items in place of cards (elites).
-  dropChest(x, y, count, evolution = true, items = false) {
+  // A free chest (bosses, elites, events) stays until taken; count: upgrades inside; items: true for items in place of
+  // cards (elites). Any chest evolves a weapon that is ready (ChestScene).
+  dropChest(x, y, count, items = false) {
     const chest = this.dropPickup(pickups.find((d) => d.id === 'chest'), x, y, Infinity);
     if (!chest) return;
     chest.count = count;
-    chest.evolution = evolution;
     chest.items = items;
   }
 
   // Chests and the Żabka shop open in update(), so never in the middle of a physics step that also opened the level-up cards.
-  openChest(count, evolution = true, items = false) { this.openScreen('ChestScene', { count, evolution, items }); }
+  openChest(count, items = false) { this.openScreen('ChestScene', { count, items }); }
 
   // What every chest on the map costs now, in B coins.
   chestPrice() {
@@ -449,7 +448,7 @@ export default class GameScene extends Phaser.Scene {
       this.map.openChest(ch);
       playSfx(this, 'pickup');
       playVfx(this, 'chestOpen', ch.x, ch.y);
-      this.openChest(1, false, true);
+      this.openChest(1, true);
       return; // the price just went up
     }
   }
@@ -571,7 +570,7 @@ export default class GameScene extends Phaser.Scene {
       if (w.evoAnnounced || !evolutionReady(this.run, w)) continue;
       w.evoAnnounced = true;
       this.scene.get('UIScene').showBanner(`${w.def.name.toUpperCase()}: GOTOWE DO EWOLUCJI`,
-        `Pokonaj bossa: jego skrzynia zamieni to w ${w.def.evolution.name}`);
+        `Otwórz dowolną skrzynię: zamieni to w ${w.def.evolution.name}`);
     }
   }
 
@@ -722,7 +721,6 @@ export default class GameScene extends Phaser.Scene {
     p.ageMs = 0;
     p.lifetimeMs = lifetimeSec * 1000;
     p.count = 1; // upgrades inside, only a chest uses it
-    p.evolution = true; // an evolution card allowed inside (a chest; events set false)
     p.items = false; // items in place of cards (an elite's chest)
     p.waitLeave = false; // the Żabka shop after a visit without buying
     p.glowMs = -Infinity;

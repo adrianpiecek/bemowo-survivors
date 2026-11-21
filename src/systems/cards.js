@@ -31,15 +31,15 @@ function evolutionHint(run, weapon) {
   return `Ewolucja: ${weapon.name} ${w ? `${w.level}/${weapon.maxLevel}` : '(brak)'} + ${passive.name} ${has ? '(masz)' : '(brak)'}`;
 }
 
-// A carried weapon at its max level with its evolution passive in a slot, not evolved yet: the next boss chest evolves it.
+// A carried weapon at its max level with its evolution passive in a slot, not evolved yet: the next chest evolves it.
 export function evolutionReady(run, w) {
   const evo = w.def.evolution;
   return !!evo && !w.evolved && w.level >= w.def.maxLevel && run.passives.some((p) => p.def.id === evo.passive);
 }
 const passiveHint = (run, def) => evolutionHint(run, weapons.find((w) => w.evolution?.passive === def.id));
 
-// The boss chest's evolution card: the first carried weapon ready to evolve (evolutionReady).
-// Not in the level-up pool; ChestScene puts it first, one per boss chest (elite chests have none).
+// A chest's evolution card: the first carried weapon ready to evolve (evolutionReady).
+// Not in the level-up pool; ChestScene puts it first, one per chest of any kind.
 export function evolutionCard(run) {
   const w = run.weapons.find((it) => evolutionReady(run, it));
   if (!w) return null;

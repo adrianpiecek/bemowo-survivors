@@ -7,7 +7,7 @@ import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
 import { items, giveItem } from '../data/items.js';
 
-// Boss (or elite) chest over the paused GameScene: `count` cards spin through upgrade names and stop one by one.
+// Any chest (boss, elite, event, the map) over the paused GameScene: `count` cards spin through upgrade names and stop one by one.
 // Each card's upgrade (with a rolled rarity) is applied the moment it stops. Once all stop, Space, Enter or a click closes it.
 export default class ChestScene extends Phaser.Scene {
   constructor() { super('ChestScene'); }
@@ -15,7 +15,6 @@ export default class ChestScene extends Phaser.Scene {
   init(data) {
     this.run = data.run;
     this.count = data.count;
-    this.evolution = data.evolution ?? true; // false: an event's chest, never an evolution
     this.items = data.items ?? false; // true: an item chest (elites, the map), random items in place of cards
     this.closing = false;
   }
@@ -28,10 +27,10 @@ export default class ChestScene extends Phaser.Scene {
       fontFamily: config.ui.font, fontSize: `${ch.titleFontSize}px`, fontStyle: 'bold', color: ch.titleColor, stroke: '#000000', strokeThickness: ch.strokeThickness,
     }).setOrigin(0.5);
 
-    // An evolution ready (weapon at max level + its passive) takes the first card; one per chest, the rest as usual.
-    const evo = this.evolution && !this.items ? evolutionCard(this.run) : null;
-    const prizes = this.items ? Array.from({ length: this.count }, () => Phaser.Utils.Array.GetRandom(items))
-      : evo ? [evo, ...drawUpgrades(this.run, this.count - 1)] : drawUpgrades(this.run, this.count);
+    // An evolution ready (weapon at max level + its passive) takes the first card of any chest; one per chest, the rest as usual.
+    const evo = evolutionCard(this.run), rest = this.count - (evo ? 1 : 0);
+    const prizes = [...(evo ? [evo] : []),
+      ...(this.items ? Array.from({ length: rest }, () => Phaser.Utils.Array.GetRandom(items)) : drawUpgrades(this.run, rest))];
     while (prizes.length < this.count) prizes.push(fallbackUpgrade); // everything maxed: the heal fills in
     // The spin shows every name there is: upgrades, weapons, passives; or the items.
     const names = (this.items ? items : [...upgrades, ...weapons, ...passives]).map((d) => d.name), n = prizes.length, gs = this.scene.get('GameScene');
@@ -43,8 +42,9 @@ export default class ChestScene extends Phaser.Scene {
 
       this.time.delayedCall(ch.spinMs + i * ch.stopGapMs, () => {
         spin.remove();
-        const rarity = this.items ? null : rollRarity(up, this.run);
-        if (this.items) {
+        const asItem = this.items && !up.evolution;
+        const rarity = asItem ? null : rollRarity(up, this.run);
+        if (asItem) {
           giveItem(this.run, up);
           if (up.vfx) playVfx(gs, up.vfx, gs.player.x, gs.player.y); // plays once the run resumes
         }

@@ -462,7 +462,6 @@ Dodane w kroku 38:
 Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejnych wersji. Każdy pomysł przed realizacją dostaje osobny krok z treścią zadania.
 
 **Problemy z obecnej gry:**
-- Jaki jest sens ewolucji, jeśli przychodzi na ostatnie kilkadziesiąt sekund? Częściowo zrobione w kroku 39 (sekcja 16): karty broni z wagą 2, mocniejsze Smog i Pasieka. Zostaje to, że ewolucja czeka na skrzynię bossa.
 - Bronie krótkiego zasięgu (Topór, Ul, Smog) zawsze mają dużo gorsze liczby niż bronie dalekiego zasięgu. Częściowo zrobione w kroku 56 (sekcja 32): pasywka Rękawice bokserskie.
 - Może mniej bazowego HP, żeby karta Max HP miała sens.
 
@@ -780,6 +779,16 @@ Na mapie leży czasem duża czacha (biała, czerwone oczy, rysowana w `createMap
 - Zabity liczy się do statystyki bossów, więc na końcu rundy może być np. „5 / 4”.
 - Debug: `config.debug.skullEverywhere`, czacha na każdym bloku bez skrzyni.
 - Sprawdzone w przeglądarce: w 4:40 (po drugim slocie) przyszedł Wielki Goblin z 2200 HP w miejscu czachy; po 1 s pierścień był w połowie; odejście zeruje licznik; po zabiciu skrzynia i +15 białka.
+
+### 42. Ewolucja z każdej skrzyni (krok 66)
+
+Ewolucja czekała na skrzynię bossa, więc często przychodziła na ostatnie kilkadziesiąt sekund rundy. Teraz broń gotowa do ewolucji (maksymalny poziom i jej pasywka w slocie) ewoluuje z **pierwszej otwartej skrzyni dowolnego rodzaju**: bossa, elity, czachy bossa, zamkniętej skrzyni na mapie i skrzyni z wydarzenia.
+
+- Ewolucja zajmuje pierwszą kartę skrzyni. W skrzyni z przedmiotem (elita, mapa) zastępuje ten jeden przedmiot, w skrzyni bossa z kilkoma kartami pozostałe karty losują się jak dotąd. Jedna skrzynia, jedna ewolucja.
+- Baner gotowości mówi teraz „Otwórz dowolną skrzynię: zamieni to w …”.
+- To zmienia decyzję „Ewolucje tylko od bossów” z sekcji 7 (krok 35b).
+- W kodzie zniknął parametr `evolution` z `dropChest`, `openChest` i `ChestScene`.
+- Sprawdzone w przeglądarce: Tarcza na maksymalnym poziomie z pasywką, skrzynia elity dała kartę „TARCZA KAPITANA → EWOLUCJA” i broń ewoluowała, a następna skrzynia elity znowu dała zwykły przedmiot.
 
 ## Architektura
 

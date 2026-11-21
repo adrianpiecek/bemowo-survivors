@@ -132,7 +132,7 @@ export const events = [
       scene.run.hordeAngle = null;
       scene.run.spawnRateMult /= c.horde.spawnMult;
       const { x, y } = around(scene, c.horde.chestDist, c.horde.chestDist);
-      scene.dropChest(x, y, 1, false); // a card, never an evolution: those come from bosses
+      scene.dropChest(x, y, 1); // a card, or an evolution that is ready
       scene.scene.get('UIScene').showBanner('CHORDA ODPARTA!', 'Skrzynia za przetrwanie');
     },
   },
