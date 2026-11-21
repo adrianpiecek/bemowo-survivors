@@ -65,6 +65,14 @@ export const config = {
       levels: [{ damage: 2 }, { axes: 1 }, { radius: 20 }, { damage: 3 }, { axes: 1 }, { damage: 3 }],
       // Młyn krasnoluda: axesMult x axes, speedMult x as fast, radiusMult x as far out.
       evolution: { axesMult: 2, speedMult: 1.2, radiusMult: 1.3 } },
+    // Kostur Czarogeja: every cooldownMs `bolts` lightning bolts strike the nearest enemies within range, one each; a bolt
+    // hurts every enemy within `radius` of where it lands. It falls from skyHeight px above, in `segments` jagged pieces
+    // up to `jitter` px off a straight line, and shows for boltMs. Unlock: unlockKills kills in one run.
+    staff: { damage: 22, bolts: 1, cooldownMs: 1800, range: 420, radius: 40, boltMs: 200, segments: 7, jitter: 14, skyHeight: 260,
+      width: 4, color: 0x80d8ff, glowAlpha: 0.35, unlockKills: 1000,
+      levels: [{ damage: 6 }, { bolts: 1 }, { radius: 15 }, { damage: 8 }, { bolts: 1 }, { damage: 10 }],
+      // Burza nad Bemowem: each bolt jumps on to `chain` more enemies, each the nearest one not hit yet within chainRange.
+      evolution: { chain: 3, chainRange: 220 } },
   },
   // Passives (data/passives.js): items that raise one stat each level, up to startSlots at once (the gym's Plecak adds more). The numbers are one level
   // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
@@ -679,6 +687,9 @@ export const config = {
       { particles: { texture: 'fx_plus', count: 5, speed: [20, 50], angle: -90, spread: 120, gravityY: -80, lifeMs: 600, scale: [0.8, 0.3], tint: 0xff5252 } }] },
     gemDrop: { minGapMs: 40, layers: [ // Deszcz kryształów: a gem lands
       { image: { texture: 'fx_star', scale: [1.2, 0.2], alpha: [1, 0], ms: 250, tint: 0x90caf9, add: true, spinDeg: 90 } }] },
+    lightningHit: { minGapMs: 40, layers: [ // a Kostur Czarogeja bolt lands
+      { particles: { texture: 'fx_spark', count: 7, speed: [100, 260], lifeMs: 220, scale: [1, 0], tint: [0x80d8ff, 0xffffff], add: true } },
+      { image: { texture: 'fx_dot', scale: [3, 0], alpha: [1, 0], ms: 160, tint: 0xb3e5fc, add: true } }] },
     laserHit: { minGapMs: 40, layers: [ // the eye laser burns an enemy
       { particles: { texture: 'fx_spark', count: 5, speed: [80, 200], lifeMs: 200, scale: [1, 0], tint: [0xff1744, 0xffffff], add: true } },
       { image: { texture: 'fx_dot', scale: [2.2, 0], alpha: [1, 0], ms: 140, tint: 0xff8a80, add: true } }] },
@@ -740,6 +751,7 @@ export const config = {
     // Drawn weapon icons for the HUD, size x size px.
     weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41,
       gasColors: [0x9ccc65, 0xba68c8, 0x7cb342], laserColor: 0xff1744, eyeColor: 0xffffff,
+      staffColor: 0x8d6e63, orbColor: 0x4fc3f7, boltColor: 0xfff176, stormColor: 0x546e7a,
       // Evolved weapons: a gold frame.
       evoBorder: 0xffc400, uziColor: 0x37474f, smogColors: [0x9e9e9e, 0x757575, 0xbdbdbd], shieldColors: [0xd32f2f, 0xffd54f, 0xfafafa] },
     // Laughing gas cloud, size x size px, shown scaled to its radius: soft green and purple puffs.

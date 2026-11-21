@@ -20,7 +20,7 @@ import { createOrbit, updateOrbit } from '../systems/orbit.js';
 // scene.weaponArea(x), durations through scene.weaponDuration(ms) and counts through scene.weaponAmount(n),
 // so the passives, the gym and timed pickups work on every weapon.
 const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons.gas, lz = config.weapons.laser, bz = config.weapons.bees;
-const sg = config.weapons.shotgun, ax = config.weapons.axe;
+const sg = config.weapons.shotgun, ax = config.weapons.axe, st = config.weapons.staff;
 const count = (n, mult) => Math.ceil(n * mult);
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
 const plural = (n, one, few, many) => (n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
@@ -361,7 +361,96 @@ export const weapons = [
       for (const s of w.orbit.group.getChildren()) if (s.active) s.setDisplaySize(size, size).setAngle(s.angle + spin);
     },
   },
+  {
+    id: 'staff',
+    name: 'Kostur Czarogeja',
+    icon: 'weapon_staff',
+    levels: st.levels,
+    maxLevel: st.levels.length + 1,
+    unlock: {
+      text: `„Moc Czarogeja”: zabij ${st.unlockKills} wrogów w jednej rundzie`,
+      check: (run) => run.kills >= st.unlockKills,
+    },
+    evolution: { passive: 'coffee', id: 'storm', name: 'Burza nad Bemowem', icon: 'weapon_storm',
+      description: `Każdy piorun przeskakuje na ${st.evolution.chain} kolejnych wrogów.` },
+    description(level, m) {
+      if (level === 1) return 'Co chwilę piorun z nieba trafia najbliższego wroga.';
+      const b = st.levels[level - 2], n = count(b.bolts ?? 0, m);
+      return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'piorun', 'pioruny', 'piorunów')}`,
+        b.radius && `+${Math.round(b.radius * m)} px promienia uderzenia`].filter(Boolean).join(', ');
+    },
+    create(scene, w) {
+      Object.assign(w, { damage: st.damage, bolts: st.bolts, radius: st.radius, cooldownMs: 0, showMs: 0, paths: [] });
+      w.g = scene.add.graphics().setDepth(1.55);
+    },
+    levelUp(scene, w, m) {
+      const b = st.levels[w.level - 2];
+      w.damage += (b.damage ?? 0) * m;
+      w.bolts += count(b.bolts ?? 0, m);
+      w.radius += (b.radius ?? 0) * m;
+    },
+    update(scene, w, delta) {
+      drawBolts(w, delta);
+      w.cooldownMs -= delta;
+      if (w.cooldownMs > 0) return;
+      const pl = scene.player, targets = nearestEnemies(scene, pl.x, pl.y, st.range).slice(0, scene.weaponAmount(w.bolts));
+      if (!targets.length) return; // nothing in range: ready again on the next frame
+      const radius = scene.weaponArea(w.radius), damage = scene.weaponDamage(w.damage), hit = new Set(targets);
+      w.paths = [];
+      for (const t of targets) {
+        // From the sky onto the target, then (evolved) on from each struck enemy to the nearest one not hit yet.
+        let from = { x: t.x, y: t.y - st.skyHeight }, z = t;
+        for (let jump = 0; z; jump++) {
+          const to = { x: z.x, y: z.y };
+          w.paths.push(jaggedLine(from, to));
+          strikeAt(scene, to.x, to.y, radius, damage);
+          if (!w.evolved || jump >= st.evolution.chain) break;
+          from = to;
+          z = nearestEnemy(scene, to.x, to.y, st.evolution.chainRange, hit);
+          if (z) hit.add(z);
+        }
+      }
+      w.showMs = st.boltMs;
+      w.cooldownMs = scene.weaponCooldown(st.cooldownMs);
+      playSfx(scene, 'shotHit');
+    },
+  },
 ];
+
+// A lightning bolt from `from` to `to`: st.segments pieces, the middle points pushed up to st.jitter px sideways.
+function jaggedLine(from, to) {
+  const pts = [from];
+  for (let i = 1; i < st.segments; i++) {
+    const f = i / st.segments;
+    pts.push({ x: from.x + (to.x - from.x) * f + Phaser.Math.FloatBetween(-st.jitter, st.jitter),
+      y: from.y + (to.y - from.y) * f + Phaser.Math.FloatBetween(-st.jitter, st.jitter) });
+  }
+  pts.push(to);
+  return pts;
+}
+
+// Hurts every enemy within radius of (x, y); the enemy's body counts, so a big one is hit at its edge.
+function strikeAt(scene, x, y, radius, damage) {
+  playVfx(scene, 'lightningHit', x, y);
+  for (const z of scene.enemies.getChildren()) {
+    if (!z.active) continue;
+    const r = radius + (z.body?.halfWidth ?? 0);
+    if (Phaser.Math.Distance.Squared(x, y, z.x, z.y) <= r * r) scene.hurtEnemy(z, damage, z.x, z.y);
+  }
+}
+
+// The last strike's bolts, redrawn every frame while they show: a soft glow, the blue bolt, a white core; they fade over boltMs.
+function drawBolts(w, delta) {
+  w.g.clear();
+  if (w.showMs <= 0) return;
+  w.showMs -= delta;
+  const a = Phaser.Math.Clamp(w.showMs / st.boltMs, 0, 1);
+  for (const pts of w.paths) {
+    w.g.lineStyle(st.width * 3, st.color, st.glowAlpha * a).strokePoints(pts);
+    w.g.lineStyle(st.width, st.color, a).strokePoints(pts);
+    w.g.lineStyle(st.width * 0.4, 0xffffff, a).strokePoints(pts);
+  }
+}
 
 // A gun in front of Bartek (gun: its distance and offsetY), turned at w.aim; mirrored when aiming left so the grip stays
 // down. Hidden in the tank.

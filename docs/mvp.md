@@ -470,7 +470,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 **Nowe bronie (wymagają odblokowania, więc też okna wyzwań):**
 - Łuk: strzały przebijają wrogów kosztem obrażeń.
 - Miecz z anime: cięcie w wycinku koła; liczba pocisków to liczba cięć pod rząd; poziomy wydłużają obszar cięcia.
-- Kostur Czarogeja: co jakiś czas piorun w najbliższego wroga.
 - Kostur NekroBartka: przywołuje miniony, mniejsze wersje Bartka.
 
 **Nowe statystyki i karty:**
@@ -581,6 +580,16 @@ Nowe efekty: `barrelBreak` (drewno i kurz), `stompWave` (pierścień kurzu). Deb
 ### 20. Animacja śmierci (krok 44)
 
 Gdy HP Bartka spada do zera (`GameScene.die`), gra staje: fizyka i zegar sceny się zatrzymują, HUD znika, wszystko poza Bartkiem przez 0,7 s robi się czarne. Kamera najeżdża na Bartka i przybliża się 1,8x, a Bartek przewraca się na bok z odbiciem. Po 2,2 s pojawia się ekran śmierci. W tym czasie nie da się otworzyć pauzy ani wezwać czołgu. Liczby w `config.death`.
+
+### 21. Kostur Czarogeja (krok 45)
+
+Nowa broń (`staff` w `src/data/weapons.js`, liczby w `config.weapons.staff`). Co 1,8 s piorun z nieba uderza najbliższego wroga do 420 px i rani wszystkich w promieniu 40 px od miejsca uderzenia (22 obrażeń). Piorun to poszarpana niebieska linia rysowana w kodzie, z poświatą i białym środkiem, plus efekt `lightningHit`.
+
+- **Poziomy:** +6 obrażeń, +1 piorun, +15 px promienia, +8 obrażeń, +1 piorun, +10 obrażeń. Każdy piorun trafia innego z najbliższych wrogów.
+- **Odblokowanie:** „Moc Czarogeja”: zabij 1000 wrogów w jednej rundzie.
+- **Ewolucja:** z Kawą z Żabki **Burza nad Bemowem**: każdy piorun przeskakuje na 3 kolejnych wrogów (najbliższy jeszcze nie trafiony, do 220 px).
+- Ikony: `weapon_staff` (kostur z kulą i błyskawicą), `weapon_storm` (chmura z błyskawicą).
+- Debug: `config.debug.startWeapon` albo `giveWeapon` = `'staff'`.
 
 ## Architektura
 

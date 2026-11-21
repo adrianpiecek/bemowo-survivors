@@ -236,6 +236,14 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
     drawAxe(ws * 0.12, ws * 0.12, ws * 0.76);
     g.generateTexture('weapon_axe', ws, ws).clear();
+    // Kostur Czarogeja: a wooden staff, a blue orb on top, a yellow lightning bolt beside it.
+    const bolt = (x, y, sz) => [[0.5, 0], [0.2, 0.55], [0.45, 0.55], [0.3, 1], [0.8, 0.4], [0.55, 0.4], [0.75, 0]]
+      .map(([px, py]) => ({ x: x + px * sz, y: y + py * sz }));
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    g.lineStyle(ws * 0.09, wi.staffColor).lineBetween(ws * 0.25, ws * 0.9, ws * 0.55, ws * 0.3);
+    g.fillStyle(wi.orbColor).fillCircle(ws * 0.58, ws * 0.24, ws * 0.13).fillStyle(0xffffff).fillCircle(ws * 0.54, ws * 0.2, ws * 0.04);
+    g.fillStyle(wi.boltColor).fillPoints(bolt(ws * 0.62, ws * 0.45, ws * 0.32), true);
+    g.generateTexture('weapon_staff', ws, ws).clear();
 
     // Evolved weapons: the same framed square with a gold frame.
     const evoFrame = () => g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(3, wi.evoBorder).strokeRect(1.5, 1.5, ws - 3, ws - 3);
@@ -279,6 +287,11 @@ export default class BootScene extends Phaser.Scene {
     drawAxe(ws * 0.02, ws * 0.18, ws * 0.6);
     drawAxe(ws * 0.38, ws * 0.18, ws * 0.6);
     g.generateTexture('weapon_axe_mill', ws, ws).clear();
+    // Burza nad Bemowem: a dark storm cloud with lightning under it.
+    evoFrame();
+    [[0.3, 0.36, 0.16], [0.5, 0.28, 0.2], [0.7, 0.36, 0.16], [0.5, 0.42, 0.16]].forEach(([x, y, r]) => g.fillStyle(wi.stormColor).fillCircle(ws * x, ws * y, ws * r));
+    g.fillStyle(wi.boltColor).fillPoints(bolt(ws * 0.3, ws * 0.5, ws * 0.42), true);
+    g.generateTexture('weapon_storm', ws, ws).clear();
     // Laughing gas cloud: puffs scattered around the middle, see-through so they stack into a soft cloud.
     const gz = t.gasCloud, gcs = gz.size, gcc = gcs / 2;
     // The same puffs in other colors make the evolved Smog nad Bemowem cloud.
