@@ -15,15 +15,15 @@ export const config = {
     pistol: { fireRateMs: 500, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1,
       levels: [{ bullets: 1 }, { bullets: 1 }, { bullets: 1 }],
       // Uzi z bazaru: fires every fireRateMs, each bullet damagePct of the pistol's and goes through `pierce` enemies.
-      evolution: { fireRateMs: 150, damagePct: 0.5, pierce: 1 },
+      evolution: { fireRateMs: 220, damagePct: 0.4, pierce: 1 }, // step 68: 150 ms / 0.5 was 4.6x the max level
       // The gun's grip sits this far from Bartek's middle toward the target and offsetY px lower; the flash at its barrel tip.
       gun: { distance: 22, offsetY: 8 } },
     // Shotgun: every cooldownMs `pellets` pellets fan out over spreadDeg toward the nearest enemy within rangeMult x the
     // pistol range (Okulary from the gym count); a pellet flies `range` far at most, pelletScale the size of a bullet.
     shotgun: { damage: 10, pellets: 5, cooldownMs: 950, rangeMult: 0.7, spreadDeg: 40, jitterRad: 0.04, speed: 600, pelletScale: 0.8,
       levels: [{ pellets: 1 }, { damage: 4 }, { pellets: 1 }, { damage: 5 }, { pellets: 2 }, { damage: 6 }],
-      // Dwururka dziadka: pelletsMult x pellets, each goes through `pierce` enemies.
-      evolution: { pelletsMult: 2, pierce: 1 },
+      // Dwururka dziadka: pelletsMult x pellets (rounded), each goes through `pierce` enemies.
+      evolution: { pelletsMult: 1.2, pierce: 1 },
       // Held lower than the pistol, so both show when Bartek has the two.
       gun: { distance: 16, offsetY: 18 } },
     // Captain's shield: flies to the nearest enemy within range, bounces `bounces` times to the next nearest ones (not hit
@@ -31,7 +31,7 @@ export const config = {
     shield: { damage: 26, bounces: 2, shields: 1, cooldownMs: 1400, range: 380, bounceRange: 300, speed: 650, hitDist: 20,
       size: 34, spinDegPerSec: 900,
       levels: [{ bounces: 1 }, { damage: 8 }, { shields: 1 }, { bounces: 1 }, { damage: 8 }, { bounces: 1 }],
-      evolution: { healPerHit: 1, tint: 0xffd54f } }, // Tarcza Bemowa: thrown again at once, every hit heals Bartek
+      evolution: { cooldownMult: 0.4, healPerHit: 1, tint: 0xffd54f } }, // Tarcza Bemowa: cooldownMult x the wait, every hit heals Bartek
     // Laughing gas (Joker): every cooldownMs `clouds` clouds land on random ones of the `pick` nearest enemies within range.
     // A cloud lasts durationMs and hurts every enemy inside its radius every tickMs; a "HA" rises from it every laughEveryMs.
     // unlockJokers: Jokers killed in one run to unlock it.
@@ -48,20 +48,20 @@ export const config = {
       levels: [{ damage: 8 }, { beams: 1 }, { width: 8 }, { damage: 10 }, { beams: 1 }, { range: 120 }],
       // Wzrok Homelandera: the beams stay on and turn toward their targets at turnDegPerSec, burning damagePct of the
       // laser's damage every tickMs.
-      evolution: { turnDegPerSec: 200, tickMs: 200, damagePct: 0.3 } },
+      evolution: { turnDegPerSec: 200, tickMs: 200, damagePct: 0.18 } },
     // Ul: bees circling Bartek (systems/orbit.js); a bee hurts an enemy it touches at most once per hitCooldownMs.
     // A bees level adds bees whatever the card's rarity (a rarer card adds damagePct * (mult - 1) of the base damage on top);
     // a damage level is multiplied by it. While Bartek is a small B there are smallMult times more, on the smaller smallRadius.
     // On a hit the bee swells to hitScale for hitMs and the enemy gets the 'beeSting' effect.
-    bees: { bees: 2, damage: 5, damagePct: 0.5, hitCooldownMs: 500, radius: 85, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
+    bees: { bees: 2, damage: 7, damagePct: 0.5, hitCooldownMs: 500, radius: 110, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
       smallMult: 2, smallRadius: 42, hitScale: 1.7, hitMs: 90,
-      levels: [{ bees: 1 }, { damage: 3 }, { bees: 1 }, { damage: 4 }, { bees: 1 }],
+      levels: [{ bees: 1 }, { damage: 4 }, { bees: 1 }, { damage: 5 }, { bees: 1 }],
       evolution: { beesMult: 2, damageMult: 1.5, pierogiChance: 0.04 } }, // Pasieka babci: beesMult x bees, damageMult x damage; a bee kill drops Pierogi w domu this often
     // Dwarf's axe: `axes` axes circle Bartek (systems/orbit.js) at degPerSec, `radius` away, spinning; an axe hurts an enemy
     // at most once per hitCooldownMs. Any hit turns them all back the other way (not again for flipGapMs, so a crowd
     // does not make them shake in place).
     // Playtests: too strong at 14 damage every 400 ms (levels 6/8/8, evolution 1.4x faster).
-    axe: { damage: 8, axes: 1, radius: 85, degPerSec: 230, size: 36, spinDegPerSec: 720, hitCooldownMs: 550, flipGapMs: 150,
+    axe: { damage: 8, axes: 1, radius: 110, degPerSec: 230, size: 36, spinDegPerSec: 720, hitCooldownMs: 550, flipGapMs: 150,
       levels: [{ damage: 2 }, { axes: 1 }, { radius: 20 }, { damage: 3 }, { axes: 1 }, { damage: 3 }],
       // Młyn krasnoluda: axesMult x axes, speedMult x as fast, radiusMult x as far out.
       evolution: { axesMult: 2, speedMult: 1.2, radiusMult: 1.3 } },
@@ -72,7 +72,7 @@ export const config = {
       width: 4, color: 0x80d8ff, glowAlpha: 0.35, unlockKills: 1000,
       levels: [{ damage: 6 }, { bolts: 1 }, { radius: 15 }, { damage: 8 }, { bolts: 1 }, { damage: 10 }],
       // Burza nad Bemowem: each bolt jumps on to `chain` more enemies, each the nearest one not hit yet within chainRange.
-      evolution: { chain: 3, chainRange: 220 } },
+      evolution: { chain: 1, chainRange: 160 } },
     // Łuk: every cooldownMs `arrows` arrows (spreadDeg apart) fly at the nearest enemy within range, `speed` px/s, at most
     // range px. An arrow goes through `pierce` enemies; each one it goes through leaves it falloff x its damage.
     // Unlock: unlockRunners Uncanny (runner) kills in one run.
@@ -92,11 +92,11 @@ export const config = {
     // Miecz z anime: every cooldownMs, when an enemy is within range, `slashes` cuts one after another (gapMs apart), each
     // aimed at the nearest enemy: it hurts every enemy in a slice of the circle `reach` px around Bartek, arcDeg wide
     // (an enemy's body counts). A cut shows for slashMs. Unlock: kill the boss `unlockBoss`.
-    sword: { damage: 11, slashes: 1, cooldownMs: 1400, gapMs: 150, range: 260, reach: 120, arcDeg: 110, slashMs: 170,
+    sword: { damage: 11, slashes: 1, cooldownMs: 1400, gapMs: 150, range: 260, reach: 150, arcDeg: 110, slashMs: 170,
       color: 0xe1f5fe, edgeColor: 0x80d8ff, alpha: 0.3, edgeWidth: 5, unlockBoss: 'bigSportakus',
       levels: [{ damage: 4 }, { reach: 25 }, { slashes: 1 }, { arcDeg: 40 }, { damage: 6 }, { reach: 30 }],
       // Ostrze Senpaia: every cut goes all the way round, damageMult x damage.
-      evolution: { damageMult: 1.5 } },
+      evolution: { damageMult: 0.8 } },
   },
   // Passives (data/passives.js): items that raise one stat each level, up to startSlots at once (the gym's Plecak adds more). The numbers are one level
   // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
@@ -315,7 +315,7 @@ export const config = {
   // around it; then the banner of a boss comes and riseMs later the boss stands up where the skull lay. The boss: from the
   // last boss slot already reached (the first before that), with that slot's hp, chest and protein. A used skull is gone.
   skulls: { chance: 0.1, size: 84, touchRadius: 70, holdMs: 2000, riseMs: 1500, ringRadius: 62, ringWidth: 7, ringBackAlpha: 0.25,
-    ringDepth: 0.5, bone: 0xeceff1, boneShade: 0xb0bec5, socket: 0x212121, eyeGlow: 0xff1744 },
+    ringDepth: 3, bone: 0xeceff1, boneShade: 0xb0bec5, socket: 0x212121, eyeGlow: 0xff1744 },
   worldChests: { chance: 0.35, basePrice: 5, growth: 1.3, touchRadius: 40, labelY: 52, labelFontSize: 20, labelIconSize: 20,
     labelGap: 4, labelDepth: 5, affordColor: '#ffffff', poorColor: '#ff5252' },
   // Items (data/items.js): small run-long gains from chests, no slots, no stack limit.

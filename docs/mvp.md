@@ -227,17 +227,17 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 | Broń | + Pasywka | Ewolucja | Co zmienia |
 | --- | --- | --- | --- |
 | Pistolet | Bilet miesięczny ZTM | Uzi z bazaru | ciągła seria, pocisk przebija 1 wroga |
-| Tarcza Kapitana | Kurtka puchowa | Tarcza Bemowa | tarcze bez czekania, każde trafienie leczy 1 HP |
+| Tarcza Kapitana | Kurtka puchowa | Tarcza Bemowa | tarcze wracają 2,5x szybciej, każde trafienie leczy 1 HP (krok 68) |
 | Gaz rozweselający | Karnet na siłownię | Smog nad Bemowem | chmury nie znikają i powoli płyną za najbliższym wrogiem |
 | Laser z oczu | Hantle w plecaku | Wzrok Homelandera | ciągły promień, który obraca się za celem |
 | Ul | Rosół babci | Pasieka babci | 2x pszczół, a zabici przez pszczoły czasem zostawiają pierogi |
-| Shotgun | Kreatyna | Dwururka dziadka | 2x śrucin, każda przebija 1 wroga (krok 35c) |
+| Shotgun | Kreatyna | Dwururka dziadka | 1,2x śrucin, każda przebija 1 wroga (krok 35c, krok 68) |
 | Topór krasnoluda | Buty z bazaru | Młyn krasnoluda | 2x toporów, 1.4x szybciej, 1.3x dalej od Bartka (krok 35c) |
 
 **Jak działa (krok 32):**
 - Pole `evolution` broni: `{ passive, id, name, icon, description, evolve? }`, liczby w `config.weapons.<broń>.evolution`. Ewoluowana broń ma `w.evolved`, a jej zwykłe `update` czyta tę flagę.
 - Skrzynia: gdy jakaś broń jest gotowa (maksymalny poziom + jej pasywka w slocie), pierwsza karta skrzyni to ewolucja: złota ramka i napis „BROŃ → EWOLUCJA”. Pozostałe karty są losowane jak zwykle. Jedna skrzynia daje jedną ewolucję, kolejność jak w slotach broni. Po ewolucji jest baner „EWOLUCJA: …”, a ikonka w slocie zmienia się na ewoluowaną (złota ramka).
-- Liczby: Uzi strzela co 150 ms pociskami za 50% obrażeń, każdy przebija 1 wroga. Tarcza Bemowa wraca do rzutu bez czekania (złota), każde trafienie leczy 1 HP. Smog: tyle chmur, ile chmur ma gaz, nie znikają, każda płynie 60 px/s za innym wrogiem i rani 2x mocniej niż gaz (szara chmura). Wzrok Homelandera: promienie świecą stale, obracają się 200°/s za celem i palą co 200 ms za 30% obrażeń lasera. Pasieka: 2x pszczół, żądła 1,5x mocniejsze, zabity przez pszczołę zostawia pierogi z szansą 4%.
+- Liczby (od kroku 68 częściowo inne, sekcja 44): Uzi strzela co 150 ms pociskami za 50% obrażeń, każdy przebija 1 wroga. Tarcza Bemowa wraca do rzutu bez czekania (złota), każde trafienie leczy 1 HP. Smog: tyle chmur, ile chmur ma gaz, nie znikają, każda płynie 60 px/s za innym wrogiem i rani 2x mocniej niż gaz (szara chmura). Wzrok Homelandera: promienie świecą stale, obracają się 200°/s za celem i palą co 200 ms za 30% obrażeń lasera. Pasieka: 2x pszczół, żądła 1,5x mocniejsze, zabity przez pszczołę zostawia pierogi z szansą 4%.
 - Podpowiedź „Ewolucja: Broń + Pasywka” stoi na dole karty broni i karty pasywki (na level upie i w skrzyni), dopóki ta broń nie ewoluowała w tej rundzie.
 - `save.evolutions`: odkryte ewolucje. Ekran końca gry pokazuje „Nowa ewolucja: …!” przy pierwszym odkryciu.
 - Debug: `config.debug.evolveKey`, klawisz E daje noszonym broniom maksymalny poziom i ich pasywki; następna skrzynia (P z `pickupKey`) ewoluuje pierwszą gotową broń.
@@ -462,7 +462,6 @@ Dodane w kroku 38:
 Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejnych wersji. Każdy pomysł przed realizacją dostaje osobny krok z treścią zadania.
 
 **Problemy z obecnej gry:**
-- Bronie krótkiego zasięgu (Topór, Ul, Smog) zawsze mają dużo gorsze liczby niż bronie dalekiego zasięgu. Częściowo zrobione w kroku 56 (sekcja 32): pasywka Rękawice bokserskie.
 - Może mniej bazowego HP, żeby karta Max HP miała sens.
 
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
@@ -789,6 +788,60 @@ Ewolucja czekała na skrzynię bossa, więc często przychodziła na ostatnie ki
 - To zmienia decyzję „Ewolucje tylko od bossów” z sekcji 7 (krok 35b).
 - W kodzie zniknął parametr `evolution` z `dropChest`, `openChest` i `ChestScene`.
 - Sprawdzone w przeglądarce: Tarcza na maksymalnym poziomie z pasywką, skrzynia elity dała kartę „TARCZA KAPITANA → EWOLUCJA” i broń ewoluowała, a następna skrzynia elity znowu dała zwykły przedmiot.
+
+### 43. Bronie krótkiego zasięgu (krok 67)
+
+Pomiar z sekcji 31 robiono na stojąco w tłumie, a tam Ul i Topór są najmocniejsze. W grze gracz ucieka od wrogów, więc tym razem bot **ucieka i krąży**: 5. minuta, prawdziwe pojawianie się wrogów, bez bossów, elit i wydarzeń, broń na maksymalnym poziomie, 10 s rozgrzewki i 30 s pomiaru. Dwa warianty: ostrożny (ucieka od wrogów bliżej niż 220 px) i odważny (przepuszcza ich do 120 px). Wyniki są mocno rozrzucone, więc przy zmienianych broniach i Łuku w tabeli jest średnia z 2–3 przebiegów, przy reszcie jeden przebieg. Liczby to DPS:
+
+| Broń | Ucieczka 220 px | Ucieczka 120 px |
+|---|---|---|
+| Pistolet (poz. 4) | 58 | 32 |
+| Shotgun | 26 | 31 |
+| Tarcza | 42 | 129 |
+| Łuk | 87 | 77 |
+| Laser | 55 | 76 |
+| Kostur Czarogeja | 65 | 43 |
+| NekroBartek | 7 | 36 |
+| Gaz (Smog) | 97 | 92 |
+| **Ul przed** | 11 | 59 |
+| **Ul po** | 42 | 95 |
+| **Topór przed** | 11 | 82 |
+| **Topór po** | 48 | 58 |
+| **Miecz przed** | 40 | 28 |
+| **Miecz po** | 70 | 140 |
+
+- Kłopotem był **zasięg**, nie obrażenia. Orbity na 85 px nie sięgały wrogów idących za uciekającym Bartkiem.
+- **Ul:** orbita 85 → 110 px, obrażenia 5 → 7, poziomy obrażeń +3/+4 → +4/+5.
+- **Topór:** orbita 85 → 110 px (z ewolucją 143 px).
+- **Miecz:** zasięg cięcia 120 → 150 px.
+- **Gaz (Smog)** bez zmian: rzuca chmury na 350 px i wypada najlepiej z wszystkich.
+- Na stojąco w 5. minucie Ul i Topór dalej biją najmocniej (634 i 560 DPS na maksie), więc nie podnosiłem ich bardziej.
+- Słabo przy ucieczce wypadają też Shotgun i NekroBartek; bez zmian w tym kroku.
+
+**Poprawka do kroku 65:** pierścień czachy był widoczny tylko w pierwszej rundzie po wczytaniu strony. Scena zostaje ta sama między rundami, więc zostawał zniszczony pierścień z poprzedniej rundy. Teraz w nowej rundzie robi się nowy i rysuje się nad wrogami (`skulls.ringDepth` 0,5 → 3), żeby tłum go nie zasłaniał.
+
+### 44. Słabsze ewolucje (krok 68)
+
+Po kroku 66 ewolucje przychodzą wcześniej, a część z nich zwiększała obrażenia broni 3–4,6 razy. Cel: ewolucja daje mniej więcej 1,7–2,5x obrażeń broni na maksymalnym poziomie.
+
+**Pomiar.** Bieg z uciekającym botem (sekcja 43) okazał się za bardzo rozrzucony do porównywania proporcji. Stosunek mierzy więc stały test: 30 nieśmiertelnych wrogów przypiętych 60–300 px od Bartka, broń na maksie, 5 s rozgrzewki i 20 s pomiaru. Liczby to DPS na maksie → DPS po ewolucji:
+
+| Ewolucja | Przed | Po | Co zmienione |
+|---|---|---|---|
+| Uzi z bazaru | 4,6x (bieg) | 76 → 140 (1,8x) | strzał co 150 → 220 ms, pocisk 50% → 40% obrażeń pistoletu |
+| Dwururka dziadka | 3,1x | 229 → 563 (2,5x) | 2x → 1,2x śruciny (zaokrąglone) |
+| Tarcza Bemowa | 2,7x | 228 → 377 (1,7x) | zamiast rzutu bez czekania czas odnowienia x0,4 (2,5x szybciej); dalej leczy |
+| Wzrok Homelandera | 3,0x | 117 → 267 (2,3x) | pieczenie co 200 ms 30% → 18% obrażeń lasera |
+| Burza nad Bemowem | 2,7x | 260 → 495 (1,9x) | piorun przeskakuje na 1 wroga zamiast 3, do 160 px zamiast 220 |
+| Ostrze Senpaia | 3,5x | 271 → 504 (1,9x) | pełny obrót za 0,8x obrażeń zamiast 1,5x |
+| Smog | | 228 → 542 (2,4x) | bez zmian |
+| Młyn krasnoluda | | 119 → 242 (2,0x) | bez zmian |
+| Pasieka babci | | 250 → 432 (1,7x) | bez zmian |
+| Armia NekroBartka | | 217 → 370 (1,7x) | bez zmian |
+| Łuk bez wymówek | | 164 → 206–295 (1,3–1,4x) | bez zmian; próba ze stratą obrażeń na wrogu cofnięta, bo w tym teście i tak wypada najsłabiej |
+
+- Opisy kart ewolucji liczą się z configu: „1,2x więcej śrutu”, „2,5x szybciej”, „na kolejnego wroga”, „0,8x obrażeń”.
+- Wcześniejsze opisy Burzy nad Bemowem i Ostrza Senpaia w sekcjach o nowych broniach podają stare liczby; aktualne są w tej tabeli.
 
 ## Architektura
 

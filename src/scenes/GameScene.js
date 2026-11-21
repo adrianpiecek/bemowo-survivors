@@ -456,7 +456,8 @@ export default class GameScene extends Phaser.Scene {
   // Boss skulls (config.skulls): standing by one fills a ring around it; full, it is used up and calls a boss there.
   updateSkulls(delta) {
     const sk = config.skulls, r2 = sk.touchRadius ** 2, { x, y } = this.player;
-    this.skullRing ??= this.add.graphics().setDepth(sk.ringDepth);
+    // The scene object outlives a run: the last run's ring is destroyed, so make a new one.
+    if (!this.skullRing?.scene) this.skullRing = this.add.graphics().setDepth(sk.ringDepth);
     this.skullRing.clear();
     let near = null;
     for (const s of this.map.skulls()) if ((s.x - x) ** 2 + (s.y - y) ** 2 <= r2) near = s;

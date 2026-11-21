@@ -94,7 +94,7 @@ export const weapons = [
     maxLevel: sg.levels.length + 1,
     unlock: null,
     evolution: { passive: 'creatine', id: 'doubleBarrel', name: 'Dwururka dziadka', icon: 'weapon_double_barrel',
-      description: `Dwie lufy: ${sg.evolution.pelletsMult}x więcej śrutu, każda śrucina przebija ${sg.evolution.pierce} wroga.` },
+      description: `Dwie lufy: ${String(sg.evolution.pelletsMult).replace('.', ',')}x więcej śrutu, każda śrucina przebija ${sg.evolution.pierce} wroga.` },
     description(level, m) {
       if (level === 1) return 'Strzela z bliska wachlarzem śrutu w najbliższego wroga.';
       const b = sg.levels[level - 2], n = count(b.pellets ?? 0, m);
@@ -122,7 +122,7 @@ export const weapons = [
       const tex = config.textures.shotgun, { x, y } = placeGun(w, pl, sg.gun);
       const tip = (tex.tipX - tex.grip[0]) * scene.textures.get('shotgun').source[0].width * tex.scale;
       const tx = x + Math.cos(w.aim) * tip, ty = y + Math.sin(w.aim) * tip;
-      const n = scene.weaponAmount(w.pellets) * (w.evolved ? sg.evolution.pelletsMult : 1), spread = Phaser.Math.DegToRad(sg.spreadDeg);
+      const n = Math.round(scene.weaponAmount(w.pellets) * (w.evolved ? sg.evolution.pelletsMult : 1)), spread = Phaser.Math.DegToRad(sg.spreadDeg);
       for (let i = 0; i < n; i++) {
         const b = scene.bullets.get(tx, ty);
         if (!b) break;
@@ -289,7 +289,7 @@ export const weapons = [
     maxLevel: sh.levels.length + 1,
     unlock: null,
     evolution: { passive: 'jacket', id: 'bemowoShield', name: 'Tarcza Bemowa', icon: 'weapon_bemowo_shield',
-      description: `Tarcze lecą znowu bez czekania. Każde trafienie leczy ${sh.evolution.healPerHit} HP.`,
+      description: `Tarcze lecą znowu ${String(Math.round(10 / sh.evolution.cooldownMult) / 10).replace('.', ',')}x szybciej. Każde trafienie leczy ${sh.evolution.healPerHit} HP.`,
       evolve(scene, w) {
         for (const s of w.shields) {
           s.setTint(sh.evolution.tint);
@@ -376,7 +376,7 @@ export const weapons = [
       check: (run) => run.kills >= st.unlockKills,
     },
     evolution: { passive: 'coffee', id: 'storm', name: 'Burza nad Bemowem', icon: 'weapon_storm',
-      description: `Każdy piorun przeskakuje na ${st.evolution.chain} kolejnych wrogów.` },
+      description: st.evolution.chain === 1 ? 'Każdy piorun przeskakuje na kolejnego wroga.' : `Każdy piorun przeskakuje na ${st.evolution.chain} kolejnych wrogów.` },
     description(level, m) {
       if (level === 1) return 'Co chwilę piorun z nieba trafia najbliższego wroga.';
       const b = st.levels[level - 2], n = count(b.bolts ?? 0, m);
@@ -852,7 +852,7 @@ function updateShield(scene, w, s, delta) {
   if (s.phase === 'back') {
     s.phase = 'ready';
     s.target = null;
-    s.cooldownMs = w.evolved ? 0 : scene.weaponCooldown(sh.cooldownMs);
+    s.cooldownMs = scene.weaponCooldown(sh.cooldownMs) * (w.evolved ? sh.evolution.cooldownMult : 1);
     s.setVisible(false);
     return;
   }
