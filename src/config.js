@@ -76,23 +76,23 @@ export const config = {
     // Łuk: every cooldownMs `arrows` arrows (spreadDeg apart) fly at the nearest enemy within range, `speed` px/s, at most
     // range px. An arrow goes through `pierce` enemies; each one it goes through leaves it falloff x its damage.
     // Unlock: unlockRunners Uncanny (runner) kills in one run.
-    bow: { damage: 14, arrows: 1, pierce: 2, falloff: 0.7, cooldownMs: 1200, range: 650, speed: 750, spreadDeg: 10, unlockRunners: 150,
-      levels: [{ damage: 4 }, { pierce: 1 }, { arrows: 1 }, { damage: 5 }, { pierce: 2 }, { arrows: 1 }],
+    bow: { damage: 20, arrows: 1, pierce: 3, falloff: 0.7, cooldownMs: 1200, range: 650, speed: 750, spreadDeg: 10, unlockRunners: 150,
+      levels: [{ damage: 6 }, { pierce: 1 }, { arrows: 1 }, { damage: 8 }, { pierce: 2 }, { arrows: 1 }],
       // Łuk bez wymówek: arrows go through every enemy on their way and keep their full damage.
       evolution: {} },
     // Kostur NekroBartka: every cooldownMs, while fewer than `minions` are up, a small Bartek (bartek.png at `height` px,
     // tinted) rises next to Bartek for lifeMs. A minion runs at `speed` to the nearest enemy within leash px of Bartek and
     // hits it for `damage` every hitCooldownMs while within hitDist of its edge; with nothing to fight it trots back to
     // Bartek (followDist away). Unlock: die after unlockMinute minutes of a run.
-    necro: { damage: 7, minions: 2, cooldownMs: 2000, lifeMs: 9000, speed: 250, hitCooldownMs: 500, hitDist: 14, leash: 400,
+    necro: { damage: 11, minions: 2, cooldownMs: 2000, lifeMs: 9000, speed: 250, hitCooldownMs: 400, hitDist: 14, leash: 400,
       followDist: 60, height: 30, tint: 0x9575ff, bobDeg: 10, bobHz: 4, fadeMs: 300, unlockMinute: 8,
-      levels: [{ damage: 2 }, { minions: 1 }, { lifeMs: 3000 }, { damage: 3 }, { minions: 1 }, { damage: 4 }],
+      levels: [{ damage: 3 }, { minions: 1 }, { lifeMs: 3000 }, { damage: 4 }, { minions: 1 }, { damage: 5 }],
       // Armia NekroBartka: minionsMult x as many, and they never go away.
       evolution: { minionsMult: 2 } },
     // Miecz z anime: every cooldownMs, when an enemy is within range, `slashes` cuts one after another (gapMs apart), each
     // aimed at the nearest enemy: it hurts every enemy in a slice of the circle `reach` px around Bartek, arcDeg wide
     // (an enemy's body counts). A cut shows for slashMs. Unlock: kill the boss `unlockBoss`.
-    sword: { damage: 16, slashes: 1, cooldownMs: 1400, gapMs: 150, range: 260, reach: 120, arcDeg: 110, slashMs: 170,
+    sword: { damage: 11, slashes: 1, cooldownMs: 1400, gapMs: 150, range: 260, reach: 120, arcDeg: 110, slashMs: 170,
       color: 0xe1f5fe, edgeColor: 0x80d8ff, alpha: 0.3, edgeWidth: 5, unlockBoss: 'bigSportakus',
       levels: [{ damage: 4 }, { reach: 25 }, { slashes: 1 }, { arcDeg: 40 }, { damage: 6 }, { reach: 30 }],
       // Ostrze Senpaia: every cut goes all the way round, damageMult x damage.

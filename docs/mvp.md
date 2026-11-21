@@ -617,9 +617,9 @@ W siłowni po zębatce i pucharze jest ikona wykresu. Otwiera okno **Statystyki*
 
 ### 26. Łuk (krok 50)
 
-Nowa broń (`bow` w `src/data/weapons.js`, liczby w `config.weapons.bow`). Co 1,2 s strzała leci w najbliższego wroga do 650 px (750 px/s, 14 obrażeń). Przebija 2 wrogów, czyli trafia do 3, ale każdy przebity zabiera jej 30% obrażeń (`falloff` 0,7). Kilka strzał leci wachlarzem co 10°. Strzały mają własną pulę (`config.pools.arrows` 40) i własne trafienia; jedna strzała rani danego wroga tylko raz. Strzała jest rysowana w kodzie: jasne drzewce, stalowy grot, czerwone lotki.
+Nowa broń (`bow` w `src/data/weapons.js`, liczby w `config.weapons.bow`). Co 1,2 s strzała leci w najbliższego wroga do 650 px (750 px/s, 20 obrażeń). Przebija 3 wrogów, czyli trafia do 4, ale każdy przebity zabiera jej 30% obrażeń (`falloff` 0,7). Kilka strzał leci wachlarzem co 10°. Strzały mają własną pulę (`config.pools.arrows` 40) i własne trafienia; jedna strzała rani danego wroga tylko raz. Strzała jest rysowana w kodzie: jasne drzewce, stalowy grot, czerwone lotki.
 
-- **Poziomy:** +4 obrażeń, +1 przebicie, +1 strzała, +5 obrażeń, +2 przebicia, +1 strzała.
+- **Poziomy:** +6 obrażeń, +1 przebicie, +1 strzała, +8 obrażeń, +2 przebicia, +1 strzała.
 - **Odblokowanie:** „Szybszy niż Uncanny”: zabij 150 Uncanny w jednej rundzie.
 - **Ewolucja:** z Książką Davida Gogginsa **Łuk bez wymówek**: strzały przebijają wszystkich na swojej drodze i nie tracą obrażeń.
 - Ikony: `weapon_bow`, `weapon_bow_evo`. Debug: `config.debug.startWeapon` albo `giveWeapon` = `'bow'`.
@@ -638,23 +638,51 @@ Z listy problemów: rzeczy do zbierania były za małe na telefonie. Kryształy 
 
 ### 29. Kostur NekroBartka (krok 53)
 
-Nowa broń (`necro` w `src/data/weapons.js`, liczby w `config.weapons.necro`). Co 2 s, dopóki jest ich mniej niż limit (2 na start), obok Bartka w kłębie dymu wstaje minion: mały, fioletowy Bartek (`bartek.png` 30 px, z odcieniem). Minion żyje 9 s, potem znika w dymie. Biegnie (250 px/s) do najbliższego wroga, który jest do 400 px od Bartka, i bije go co 0,5 s za 7. Gdy wrogów w pobliżu nie ma, wraca na swoje miejsce w kręgu wokół Bartka. Wrogowie minionów nie atakują. Pula `config.pools.minions` 16.
+Nowa broń (`necro` w `src/data/weapons.js`, liczby w `config.weapons.necro`). Co 2 s, dopóki jest ich mniej niż limit (2 na start), obok Bartka w kłębie dymu wstaje minion: mały, fioletowy Bartek (`bartek.png` 30 px, z odcieniem). Minion żyje 9 s, potem znika w dymie. Biegnie (250 px/s) do najbliższego wroga, który jest do 400 px od Bartka, i bije go co 0,4 s za 11. Gdy wrogów w pobliżu nie ma, wraca na swoje miejsce w kręgu wokół Bartka. Wrogowie minionów nie atakują. Pula `config.pools.minions` 16.
 
-- **Poziomy:** +2 obrażeń, +1 minion, +3 s życia, +3 obrażeń, +1 minion, +4 obrażeń. Pasywki działają: Bilet ZTM dodaje minionów, Karnet na siłownię wydłuża ich życie, Hantle powiększają.
+- **Poziomy:** +3 obrażeń, +1 minion, +3 s życia, +4 obrażeń, +1 minion, +5 obrażeń. Pasywki działają: Bilet ZTM dodaje minionów, Karnet na siłownię wydłuża ich życie, Hantle powiększają.
 - **Odblokowanie:** „Powrót zza grobu”: zgiń po 8. minucie rundy.
 - **Ewolucja:** z Gainerem **Armia NekroBartka**: 2x więcej minionów i już nie znikają.
 - Ikony: `weapon_necro` (kostur z czaszką), `weapon_necro_army`. Debug: `config.debug.startWeapon` albo `giveWeapon` = `'necro'`.
 
 ### 30. Miecz z anime (krok 54)
 
-Nowa broń (`sword` w `src/data/weapons.js`, liczby w `config.weapons.sword`). Co 1,4 s, gdy jakiś wróg jest do 260 px od Bartka, miecz tnie: wycinek koła wokół Bartka o promieniu 120 px i szerokości 110°, wymierzony w najbliższego wroga. Każdy wróg w wycinku dostaje 16 obrażeń; liczy się też krawędź wroga. Liczba pocisków (Bilet ZTM i poziomy) to liczba cięć pod rząd, co 0,15 s, każde w najbliższego wroga. Cięcie to jasny, przezroczysty wycinek z niebieską krawędzią, który znika przez 0,17 s.
+Nowa broń (`sword` w `src/data/weapons.js`, liczby w `config.weapons.sword`). Co 1,4 s, gdy jakiś wróg jest do 260 px od Bartka, miecz tnie: wycinek koła wokół Bartka o promieniu 120 px i szerokości 110°, wymierzony w najbliższego wroga. Każdy wróg w wycinku dostaje 11 obrażeń; liczy się też krawędź wroga. Liczba pocisków (Bilet ZTM i poziomy) to liczba cięć pod rząd, co 0,15 s, każde w najbliższego wroga. Cięcie to jasny, przezroczysty wycinek z niebieską krawędzią, który znika przez 0,17 s.
 
 - **Poziomy:** +4 obrażeń, +25 px zasięgu, +1 cięcie, +40° szerokości, +6 obrażeń, +30 px zasięgu. Hantle (obszar) wydłużają ostrze.
 - **Odblokowanie:** „Pojedynek”: pokonaj Wielkiego Sportakusa.
 - **Ewolucja:** z Płytą Limp Bizkit **Ostrze Senpaia**: każde cięcie to pełny obrót wokół Bartka, 1,5x obrażeń.
 - Ikony: `weapon_sword` (katana z czerwoną rękojeścią), `weapon_sword_evo`. Debug: `config.debug.startWeapon` albo `giveWeapon` = `'sword'`.
 
-Wszystkie bronie z listy pomysłów są zrobione; ich balansu (Kostur Czarogeja, Łuk, NekroBartek, Miecz) nie mierzono botem.
+Wszystkie bronie z listy pomysłów są zrobione.
+
+### 31. Balans nowych broni (krok 55)
+
+Pomiar botem: Bartek stoi w miejscu z nieśmiertelnym HP w 5. minucie (stała fala, bez bossów, elit, wydarzeń i XP), jedna broń, 10 s rozgrzewki, potem 30 s pomiaru. DPS = obrażenia zadane na sekundę, w nawiasie zabicia na sekundę. Przy ok. 10 zabiciach/s tłum się kończy, więc wyniki koło 350–400 DPS to sufit pomiaru, a nie broni.
+
+| Broń | Poziom 1 | Max | Po ewolucji |
+|---|---|---|---|
+| Pistolet | 18 (0,2) | 67 (1,3), poz. 4 | |
+| Shotgun | 28 (0,9) | 87 (2,4) | |
+| Gaz | 67 (1,9) | 410 (9,7) | |
+| Laser | 61 (1,6) | 248 (7,6) | |
+| Pszczoły | 130 (4,1) | 368 (9,2) | |
+| Tarcza | 27 (0,4) | 102 (3,0) | |
+| Topór | 109 (2,6) | 401 (9,8) | |
+| Kostur Czarogeja | 69 (0,9) | 360 (8,1) | 355 (9,9), sufit |
+| Łuk przed | 23 (0,4) | 113 (4,3) | |
+| **Łuk po** | 35 (1,1) | 178 (4,8) | 304 (8,1) |
+| NekroBartek przed | 25 (0,4) | 115 (2,8) | |
+| **NekroBartek po** | 44 (1,3) | 132 (5,6) | 296 (7,2) |
+| Miecz przed | 157 (4,1) | 372 (9,6), sufit | |
+| **Miecz po** | 110 (3,4) | | |
+
+- **Kostur Czarogeja:** bez zmian, mieści się między Laserem a Toporem.
+- **Łuk** był najsłabszy obok Tarczy: 14 → 20 obrażeń, przebicie 2 → 3, poziomy obrażeń +4/+5 → +6/+8.
+- **NekroBartek** był za słaby jak na odblokowanie w 8. minucie: 7 → 11 obrażeń, cios co 0,5 → 0,4 s, poziomy obrażeń +2/+3/+4 → +3/+4/+5. Bije pojedynczo, więc DPS ma niższy, ale za to dobija silnych wrogów.
+- **Miecz** na 1. poziomie bił mocniej niż wszystko inne: 16 → 11 obrażeń. Teraz jest na poziomie Topora i Pszczół.
+- **Progi odblokowań** zostały bez zmian (1000 zabić, 150 Uncanny, śmierć po 8. minucie, Wielki Sportakus); bot ich nie mierzył.
+- Ze starych broni Shotgun i Tarcza wypadają słabo na maksie. Tego kroku to nie dotyczyło.
 
 ## Architektura
 
