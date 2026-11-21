@@ -146,7 +146,7 @@ Warunki odblokowania broni też są memami, np. aura Uncanny za przetrwanie 60 s
 - **Gaz rozweselający** (wersja 3, krok 29): co 3 s chmura spada na jednego z 5 najbliższych wrogów, trwa 2 s, co 0,5 s rani wszystkich w środku; obraca się, nad nią wyskakują rysowane „HA”, na końcu blednie. Poziomy dają obrażenia, kolejne chmury, promień i czas (`config.weapons.gas`). Odblokowanie: „Dlaczego taki poważny?”, czyli 30 zabitych Jokerów w jednej rundzie (`run.killsByType`).
 - **Laser z oczu** (wersja 3, krok 29): co 2,5 s promień z oczu Bartka (z okularów) w stronę najbliższego wroga, rani wszystkich na linii na całym zasięgu; rysowany w kodzie (poświata, czerwony promień, białe jądro), gaśnie w 0,26 s. Poziomy dają obrażenia, kolejne promienie (do kolejnych najbliższych wrogów), szerokość i zasięg (`config.weapons.laser`). Odblokowanie: „Wzrok, który zabija”, czyli wygrana runda z pokonanym Wielkim Homelanderem (`run.bossesKilled`).
 - **Tarcza Kapitana** (wersja 3): leci do najbliższego wroga, odbija się do kolejnych (nietrafionych w tym rzucie), wraca do Bartka i czeka chwilę; obraca się w locie, przy każdym odbiciu `impacts/metal-clang`. Poziomy dają odbicia, obrażenia i kolejne tarcze (`config.weapons.shield`). Dostępna od startu (od kroku 35c; wcześniej odblokowywana jako ostatnia) i jest jedną z trzech broni startowych. Grafika `assets/captain_shield.png` to eksport z `captain_shield.aseprite`. Debug: `config.debug.giveWeapon` (id albo lista, np. `['gas', 'laser', 'shield']`) odblokowuje bronie i daje je na start.
-- **Shotgun** (krok 35c, grafika `assets/Shotgun.png` w ręce Bartka i jako ikonka): co 1,1 s wachlarz 5 śrucin w rozrzucie 50° w najbliższego wroga. Zasięg to 70% zasięgu pistoletu (Okulary z siłowni go zwiększają), śrucina leci najwyżej ten dystans. Śrucina za 7 obrażeń. Poziomy dają śruciny i obrażenia (`config.weapons.shotgun`). Bez odblokowania, jedna z trzech broni startowych.
+- **Shotgun** (krok 35c, grafika `assets/Shotgun.png` w ręce Bartka i jako ikonka): co 0,95 s wachlarz 5 śrucin w rozrzucie 40° w najbliższego wroga. Zasięg to 70% zasięgu pistoletu (Okulary z siłowni go zwiększają), śrucina leci najwyżej ten dystans. Śrucina za 10 obrażeń (od kroku 57). Poziomy dają śruciny i obrażenia (`config.weapons.shotgun`). Bez odblokowania, jedna z trzech broni startowych.
 - **Topór krasnoluda** (krok 35c, rysowany w kodzie): topór krąży wokół Bartka (`src/systems/orbit.js`, 85 px, 230°/s) i kręci się wokół własnej osi. Każde trafienie odbija wszystkie topory w drugą stronę, nie częściej niż co 150 ms, więc w tłumie topór wahadłowo tnie tam i z powrotem. Rani tego samego wroga najwyżej co 0,4 s. Poziomy dają obrażenia, topory i promień (`config.weapons.axe`). Bez odblokowania, tylko z kart.
 - Broń startowa: `config.weapons.start` to lista, gra losuje z niej jedną. Debug: `config.debug.startWeapon` (id) wymusza broń startową.
 
@@ -681,7 +681,7 @@ Pomiar botem: Bartek stoi w miejscu z nieśmiertelnym HP w 5. minucie (stała fa
 - **NekroBartek** był za słaby jak na odblokowanie w 8. minucie: 7 → 11 obrażeń, cios co 0,5 → 0,4 s, poziomy obrażeń +2/+3/+4 → +3/+4/+5. Bije pojedynczo, więc DPS ma niższy, ale za to dobija silnych wrogów.
 - **Miecz** na 1. poziomie bił mocniej niż wszystko inne: 16 → 11 obrażeń. Teraz jest na poziomie Topora i Pszczół.
 - **Progi odblokowań** zostały bez zmian (1000 zabić, 150 Uncanny, śmierć po 8. minucie, Wielki Sportakus); bot ich nie mierzył.
-- Ze starych broni Shotgun i Tarcza wypadają słabo na maksie. Tego kroku to nie dotyczyło.
+- Ze starych broni Shotgun i Tarcza wypadają słabo na maksie. Poprawione w kroku 57 (sekcja 33).
 
 ### 32. Rękawice bokserskie (krok 56)
 
@@ -691,6 +691,21 @@ Nowa pasywka (`boxing` w `src/data/passives.js`, liczby w `config.passives.boxin
 - Ekwipunek pokazuje „Obrażenia z bliska”.
 - Ikona `passive_boxing`: czerwona rękawica z białym mankietem.
 - Sprawdzone: z bonusem 30% trafienie za 10 zadaje 13 wrogom 150 i 199 px od Bartka, a 10 wrogowi 260 px dalej. Balansu botem nie mierzono.
+
+### 33. Mocniejszy Shotgun i Tarcza (krok 57)
+
+Ten sam pomiar co w sekcji 31. Po ewolucji obie bronie miały już ok. 300 DPS, słabe były poziom 1 i poziom maksymalny przed ewolucją.
+
+| Broń | Poziom 1 | Max | Po ewolucji |
+|---|---|---|---|
+| Shotgun przed | 28 (0,9) | 87 (2,4) | 296 (6,6) |
+| **Shotgun po** | 43 (1,0) | 180 (4,8) | 369 (7,8) |
+| Tarcza przed | 27 (0,4) | 102 (3,0) | 325 (8,4) |
+| **Tarcza po** | 42 (0,6) | 168 (4,0) | 338 (9,2), sufit |
+
+- **Shotgun:** obrażenia śruciny 7 → 10, strzał co 1,1 → 0,95 s, wachlarz 50° → 40° (więcej śruciny trafia), poziomy obrażeń +2/+3/+3 → +4/+5/+6.
+- **Tarcza:** obrażenia 20 → 26, czas odnowienia 1,8 → 1,4 s, poziomy obrażeń +5/+5 → +8/+8.
+- Teraz wszystkie bronie mają na maksie co najmniej ok. 130 DPS. Najsłabszy zostaje pistolet (67 na poz. 4), bo to broń startowa z innymi zasadami.
 
 ## Architektura
 

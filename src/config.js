@@ -20,17 +20,17 @@ export const config = {
       gun: { distance: 22, offsetY: 8 } },
     // Shotgun: every cooldownMs `pellets` pellets fan out over spreadDeg toward the nearest enemy within rangeMult x the
     // pistol range (Okulary from the gym count); a pellet flies `range` far at most, pelletScale the size of a bullet.
-    shotgun: { damage: 7, pellets: 5, cooldownMs: 1100, rangeMult: 0.7, spreadDeg: 50, jitterRad: 0.04, speed: 600, pelletScale: 0.8,
-      levels: [{ pellets: 1 }, { damage: 2 }, { pellets: 1 }, { damage: 3 }, { pellets: 2 }, { damage: 3 }],
+    shotgun: { damage: 10, pellets: 5, cooldownMs: 950, rangeMult: 0.7, spreadDeg: 40, jitterRad: 0.04, speed: 600, pelletScale: 0.8,
+      levels: [{ pellets: 1 }, { damage: 4 }, { pellets: 1 }, { damage: 5 }, { pellets: 2 }, { damage: 6 }],
       // Dwururka dziadka: pelletsMult x pellets, each goes through `pierce` enemies.
       evolution: { pelletsMult: 2, pierce: 1 },
       // Held lower than the pistol, so both show when Bartek has the two.
       gun: { distance: 16, offsetY: 18 } },
     // Captain's shield: flies to the nearest enemy within range, bounces `bounces` times to the next nearest ones (not hit
     // yet on this throw) within bounceRange, then flies back; each shield waits cooldownMs once it is back.
-    shield: { damage: 20, bounces: 2, shields: 1, cooldownMs: 1800, range: 380, bounceRange: 300, speed: 650, hitDist: 20,
+    shield: { damage: 26, bounces: 2, shields: 1, cooldownMs: 1400, range: 380, bounceRange: 300, speed: 650, hitDist: 20,
       size: 34, spinDegPerSec: 900,
-      levels: [{ bounces: 1 }, { damage: 5 }, { shields: 1 }, { bounces: 1 }, { damage: 5 }, { bounces: 1 }],
+      levels: [{ bounces: 1 }, { damage: 8 }, { shields: 1 }, { bounces: 1 }, { damage: 8 }, { bounces: 1 }],
       evolution: { healPerHit: 1, tint: 0xffd54f } }, // Tarcza Bemowa: thrown again at once, every hit heals Bartek
     // Laughing gas (Joker): every cooldownMs `clouds` clouds land on random ones of the `pick` nearest enemies within range.
     // A cloud lasts durationMs and hurts every enemy inside its radius every tickMs; a "HA" rises from it every laughEveryMs.
