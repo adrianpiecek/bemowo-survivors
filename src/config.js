@@ -6,19 +6,21 @@ export const config = {
   // Kabura adds more); new ones and levels come as cards.
   weapons: {
     startSlots: 3,
+    // Draw weight of a weapon card, new or a level (passives and the rest weigh 1), so evolutions come before 8:00.
+    cardWeight: 2,
     start: ['pistol', 'shotgun', 'shield'],
     // Evolutions (data/weapons.js, `evolution`): a weapon at its max level plus its passive in a slot evolves from the
     // next chest. Each weapon's `evolution` numbers below.
     // Auto-aims at the nearest enemies in range. levels: what each level after the first adds.
-    pistol: { fireRateMs: 600, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1,
+    pistol: { fireRateMs: 500, range: 400, bulletSpeed: 500, bulletDamage: 10, bulletsPerShot: 1,
       levels: [{ bullets: 1 }, { bullets: 1 }, { bullets: 1 }],
       // Uzi z bazaru: fires every fireRateMs, each bullet damagePct of the pistol's and goes through `pierce` enemies.
-      evolution: { fireRateMs: 120, damagePct: 0.6, pierce: 1 },
+      evolution: { fireRateMs: 150, damagePct: 0.5, pierce: 1 },
       // The gun's grip sits this far from Bartek's middle toward the target and offsetY px lower; the flash at its barrel tip.
       gun: { distance: 22, offsetY: 8 } },
     // Shotgun: every cooldownMs `pellets` pellets fan out over spreadDeg toward the nearest enemy within rangeMult x the
     // pistol range (Okulary from the gym count); a pellet flies `range` far at most, pelletScale the size of a bullet.
-    shotgun: { damage: 5, pellets: 5, cooldownMs: 1100, rangeMult: 0.7, spreadDeg: 50, jitterRad: 0.04, speed: 600, pelletScale: 0.8,
+    shotgun: { damage: 7, pellets: 5, cooldownMs: 1100, rangeMult: 0.7, spreadDeg: 50, jitterRad: 0.04, speed: 600, pelletScale: 0.8,
       levels: [{ pellets: 1 }, { damage: 2 }, { pellets: 1 }, { damage: 3 }, { pellets: 2 }, { damage: 3 }],
       // Dwururka dziadka: pelletsMult x pellets, each goes through `pierce` enemies.
       evolution: { pelletsMult: 2, pierce: 1 },
@@ -28,39 +30,39 @@ export const config = {
     // yet on this throw) within bounceRange, then flies back; each shield waits cooldownMs once it is back.
     shield: { damage: 20, bounces: 2, shields: 1, cooldownMs: 1800, range: 380, bounceRange: 300, speed: 650, hitDist: 20,
       size: 34, spinDegPerSec: 900,
-      levels: [{ bounces: 1 }, { damage: 10 }, { shields: 1 }, { bounces: 2 }, { damage: 10 }, { shields: 1 }],
+      levels: [{ bounces: 1 }, { damage: 5 }, { shields: 1 }, { bounces: 1 }, { damage: 5 }, { bounces: 1 }],
       evolution: { healPerHit: 1, tint: 0xffd54f } }, // Tarcza Bemowa: thrown again at once, every hit heals Bartek
     // Laughing gas (Joker): every cooldownMs `clouds` clouds land on random ones of the `pick` nearest enemies within range.
     // A cloud lasts durationMs and hurts every enemy inside its radius every tickMs; a "HA" rises from it every laughEveryMs.
     // unlockJokers: Jokers killed in one run to unlock it.
-    gas: { damage: 6, clouds: 1, cooldownMs: 3000, range: 350, pick: 5, radius: 70, durationMs: 3000, tickMs: 500,
+    gas: { damage: 6, clouds: 1, cooldownMs: 3000, range: 350, pick: 5, radius: 70, durationMs: 2000, tickMs: 500,
       laughEveryMs: 450, spinDegPerSec: 25, fadeShare: 0.2, unlockJokers: 30,
-      levels: [{ damage: 3 }, { clouds: 1 }, { radius: 15 }, { durationMs: 1000 }, { damage: 4 }, { clouds: 1 }],
-      // Smog nad Bemowem: `clouds` clouds that never end, each drifting at speed px/s toward the nearest enemy.
-      evolution: { speed: 45 } },
+      levels: [{ damage: 2 }, { clouds: 1 }, { radius: 15 }, { durationMs: 1000 }, { damage: 3 }, { clouds: 1 }],
+      // Smog nad Bemowem: `clouds` clouds that never end, each drifting at speed px/s toward the nearest enemy, damageMult x damage.
+      evolution: { speed: 60, damageMult: 2 } },
     // Eye laser (Homelander): every cooldownMs one beam per `beams` toward the nearest enemies within range, from Bartek's
     // eyes (eyeOffsetY above his middle, eyeGap apart, at normal size). A beam is `range` long and hurts every enemy whose
     // body is within width/2 of its line. It shows for beamMs. Unlock: kill the boss `unlockBoss` in a won run.
-    laser: { damage: 15, beams: 1, cooldownMs: 2500, range: 520, width: 12, beamMs: 260, eyeOffsetY: -14, eyeGap: 7,
+    laser: { damage: 18, beams: 1, cooldownMs: 2500, range: 520, width: 12, beamMs: 260, eyeOffsetY: -14, eyeGap: 7,
       color: 0xff1744, glowColor: 0xff8a80, glowAlpha: 0.35, unlockBoss: 'bigHomelander',
       levels: [{ damage: 8 }, { beams: 1 }, { width: 8 }, { damage: 10 }, { beams: 1 }, { range: 120 }],
       // Wzrok Homelandera: the beams stay on and turn toward their targets at turnDegPerSec, burning damagePct of the
       // laser's damage every tickMs.
-      evolution: { turnDegPerSec: 200, tickMs: 200, damagePct: 0.35 } },
+      evolution: { turnDegPerSec: 200, tickMs: 200, damagePct: 0.3 } },
     // Ul: bees circling Bartek (systems/orbit.js); a bee hurts an enemy it touches at most once per hitCooldownMs.
     // A bees level adds bees whatever the card's rarity (a rarer card adds damagePct * (mult - 1) of the base damage on top);
     // a damage level is multiplied by it. While Bartek is a small B there are smallMult times more, on the smaller smallRadius.
     // On a hit the bee swells to hitScale for hitMs and the enemy gets the 'beeSting' effect.
-    bees: { bees: 2, damage: 4, damagePct: 0.5, hitCooldownMs: 500, radius: 70, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
+    bees: { bees: 2, damage: 5, damagePct: 0.5, hitCooldownMs: 500, radius: 85, degPerSec: 180, waveAmp: 6, waveHz: 1.5,
       smallMult: 2, smallRadius: 42, hitScale: 1.7, hitMs: 90,
-      levels: [{ bees: 1 }, { damage: 2 }, { bees: 1 }, { damage: 3 }, { bees: 1 }],
-      evolution: { beesMult: 2, pierogiChance: 0.04 } }, // Pasieka babci: beesMult x bees; a bee kill drops Pierogi w domu this often
+      levels: [{ bees: 1 }, { damage: 3 }, { bees: 1 }, { damage: 4 }, { bees: 1 }],
+      evolution: { beesMult: 2, damageMult: 1.5, pierogiChance: 0.04 } }, // Pasieka babci: beesMult x bees, damageMult x damage; a bee kill drops Pierogi w domu this often
     // Dwarf's axe: `axes` axes circle Bartek (systems/orbit.js) at degPerSec, `radius` away, spinning; an axe hurts an enemy
     // at most once per hitCooldownMs. Any hit turns them all back the other way (not again for flipGapMs, so a crowd
     // does not make them shake in place).
     // Playtests: too strong at 14 damage every 400 ms (levels 6/8/8, evolution 1.4x faster).
     axe: { damage: 8, axes: 1, radius: 85, degPerSec: 230, size: 36, spinDegPerSec: 720, hitCooldownMs: 550, flipGapMs: 150,
-      levels: [{ damage: 3 }, { axes: 1 }, { radius: 20 }, { damage: 4 }, { axes: 1 }, { damage: 4 }],
+      levels: [{ damage: 2 }, { axes: 1 }, { radius: 20 }, { damage: 3 }, { axes: 1 }, { damage: 3 }],
       // Młyn krasnoluda: axesMult x axes, speedMult x as fast, radiusMult x as far out.
       evolution: { axesMult: 2, speedMult: 1.2, radiusMult: 1.3 } },
   },
@@ -106,9 +108,9 @@ export const config = {
     // never one drawn for an earlier slot, and not the same line-up as the run before. Boss HP does not grow with the run time.
     slots: [
       { atSec: 150, hp: 1000, chest: 1, protein: 10, pool: ['bigZombie', 'bigUncanny', 'bigGoblin'] },
-      { atSec: 270, hp: 2000, chest: 2, protein: 15, pool: ['bigSportakus', 'bigJoker', 'bigGoblin'] },
-      { atSec: 390, hp: 3000, chest: 2, protein: 20, pool: ['bigJoker', 'bigSportakus', 'bigZombie'] },
-      { atSec: 570, hp: 4800, chest: 3, protein: 30, pool: ['bigHomelander'] }, // the last one is always the same
+      { atSec: 270, hp: 1600, chest: 2, protein: 15, pool: ['bigSportakus', 'bigJoker', 'bigGoblin'] },
+      { atSec: 390, hp: 2400, chest: 2, protein: 20, pool: ['bigJoker', 'bigSportakus', 'bigZombie'] },
+      { atSec: 540, hp: 3600, chest: 3, protein: 30, pool: ['bigHomelander'] }, // the last one is always the same
     ],
     // The bosses: a bigger copy of a regular enemy type (base), with its behavior. speedMult and damageMult multiply the
     // base numbers, scale its size.
@@ -201,7 +203,7 @@ export const config = {
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
   // Every enemy's touch (bosses too) hits harder by damagePerMinutePct of its base damage for every minute of the run.
-  spawn: { startPerSec: 1.6, endPerSec: 12, curvePow: 0.9, hpPerMinutePct: 0.3, damagePerMinutePct: 0.08, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
+  spawn: { startPerSec: 1.0, endPerSec: 12, curvePow: 1.5, hpPerMinutePct: 0.3, damagePerMinutePct: 0.1, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
   // Hidden pressure (presja Bemowa), 0..max: every sampleSec it looks at the last windowSec. Easy (Bartek lost under calmPct
   // of his max HP and fewer than calmCrowd enemies stood within crowdRadius on average): up by upPerMin a minute, but not
   // for graceSec after any card is taken, so an upgrade is felt first. Struggling (lost over hurtPct, HP under lowHpPct,
@@ -210,7 +212,7 @@ export const config = {
   // and the run's average pressure * proteinPct to its protein.
   dda: { sampleSec: 5, windowSec: 30, startSec: 60, graceSec: 20, crowdRadius: 300, calmCrowd: 8, busyCrowd: 30,
     calmPct: 0.1, hurtPct: 0.3, lowHpPct: 0.35, upPerMin: 0.2, downPerMin: 0.1, max: 1, spawnBonus: 1, hpBonus: 0.4, proteinPct: 0.3 },
-  wave: { everySec: 45, baseCount: 6, perWave: 10 }, // a ring of extra enemies all around Bartek, bigger each time
+  wave: { everySec: 45, baseCount: 6, perWave: 6 }, // a ring of extra enemies all around Bartek, bigger each time
   // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value.
   // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
   // Drawn in BootScene, gemSize px: a polygon with `sides` corners (stretch: taller than wide), or `cut`: a cut gem

@@ -59,7 +59,7 @@ function weaponCards(run) {
     if (w.level >= w.def.maxLevel) continue;
     const level = w.level + 1;
     cards.push({
-      id: `weapon_${w.def.id}`, name: w.def.name, icon: w.def.icon, weight: w.def.weight, maxStack: Infinity, levelText: `Poziom ${w.level} → ${level}`,
+      id: `weapon_${w.def.id}`, name: w.def.name, icon: w.def.icon, weight: w.def.weight ?? config.weapons.cardWeight, maxStack: Infinity, levelText: `Poziom ${w.level} → ${level}`,
       hint: evolutionHint(run, w.def),
       description: (m) => w.def.description(level, m),
       apply(player, scene, m) { scene.levelUpWeapon(w, m); },
@@ -69,7 +69,7 @@ function weaponCards(run) {
   for (const def of weapons) {
     if (run.weapons.some((w) => w.def === def) || !isUnlocked(def)) continue;
     cards.push({
-      id: `weapon_${def.id}`, name: def.name, icon: def.icon, weight: def.weight, maxStack: Infinity, levelText: 'NOWA BROŃ', rarity: false,
+      id: `weapon_${def.id}`, name: def.name, icon: def.icon, weight: def.weight ?? config.weapons.cardWeight, maxStack: Infinity, levelText: 'NOWA BROŃ', rarity: false,
       hint: evolutionHint(run, def),
       description: def.description(1, 1),
       apply(player, scene) { scene.addWeapon(def); },

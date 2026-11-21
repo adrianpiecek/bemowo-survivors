@@ -28,7 +28,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 ### Broń: pistolet
 
-- Strzela sam w najbliższego zombie w zasięgu (co 0,6 s, liczby w `config.weapons.pistol`).
+- Strzela sam w najbliższego zombie w zasięgu (co 0,5 s, liczby w `config.weapons.pistol`).
 - Pocisk znika po pierwszym trafieniu.
 - Wersja 3: pistolet to pierwsza broń z `src/data/weapons.js`, Bartek ma go od startu. Kolejne poziomy pistoletu przychodzą jako karty i dają +1 pocisk na strzał (dawna karta "Dodatkowy pocisk"). Bartek trzyma narysowany pistolet, obrócony w stronę celu; przy strzale pocisk wylatuje z lufy, jest błysk i łuska (rysowane w kodzie) i dźwięk z paczki `assets/muzzle-flash-pixel-fx-v1` (CC0).
 
@@ -43,7 +43,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 - Krzywa trudności (wersja 3): spawn na sekundę rośnie po krzywej, spokojnie na początku i najmocniej pod koniec. HP zwykłych wrogów rośnie z każdą minutą rundy (boss ma stałe HP). Kolejne poziomy drożeją szybciej niż liniowo. Spawn jest szybszy, niż pistolet nadąża zabijać, więc wokół Bartka zbiera się horda; za to pojedynczy dotyk zwykłego wroga boli mało. Co 45 s pierścień wrogów otacza Bartka, większy z każdą falą. Cel: horda rośnie przez całą rundę (ok. 10-30 wrogów na ekranie w 1.-2. minucie, ponad 100 w drugiej połowie), gracz bez siłowni przeżywa ok. 4-5 minut, a pełna siłownia z dobrymi kartami wygrywa.
 - **Zmiana planu (v2):** wrogowie to warianty Bartka. Zombie to zombie-Bartek, biegacz to Uncanny, a silniejsze zombie to kolejne warianty: Joker (od 3:00) i Homelander (od 5:00). Większy obrazek = silniejszy wróg. Nowi wrogowie w przyszłości to też warianty Bartka. Do tego klapa bagażnika (od 4:00). Liczby w `config.enemies` i `config.boss`. **Zmiana planu (v3):** boss Golf został usunięty z gry; bossowie to powiększone wersje zwykłych wrogów (krok 26).
 - Wersja 3: Goblin Bartek (od 1:30) przychodzi stadem 3-5 sztuk z jednego punktu pierścienia, szybki i kruchy. Sportakus (od 4:00) idzie powoli, a co kilka sekund, gdy Bartek jest blisko, staje, miga na czerwono i doskakuje tam, gdzie Bartek stał (znacznik celu w miejscu lądowania, kurz przy wybiciu). Ruch szarży (stop, miganie, rzut w zapamiętany punkt) jest w `src/systems/charge.js`, żeby bossowie mogli go użyć ponownie.
-- Bossowie (wersja 3): powiększona wersja zwykłego wroga z jego zachowaniem (Wielki Sportakus też doskakuje). 2:30 Wielki Zombie, 4:30 Wielki Sportakus, 6:30 Wielki Joker, 9:30 Wielki Homelander; liczby w `config.boss.list` (typ bazowy, skala, mnożniki HP, prędkości i obrażeń, minuta, skrzynia, białko). 2 s wcześniej baner „UWAGA: …” i muzyka bossa. U góry pasek HP z nazwą bossa; gdy na mapie jest kilku, pasek pokazuje najnowszego. Po śmierci: wybuch, deszcz kryształów, czerwony gem, białko na koniec rundy i skrzynia, która leży aż do podniesienia. Skrzynia otwiera osobny ekran: karty przewijają nazwy ulepszeń i zatrzymują się po kolei, każde ulepszenie (z wylosowaną rzadkością) działa od razu; liczba ulepszeń 1-3 zależy od bossa. Gdy w tej samej chwili czekają karty level-upu, skrzynia otwiera się po nich. Debug: `config.debug.bossKey`, klawisz B, potem cyfra.
+- Bossowie (wersja 3): powiększona wersja zwykłego wroga z jego zachowaniem (Wielki Sportakus też doskakuje). 2:30 Wielki Zombie, 4:30 Wielki Sportakus, 6:30 Wielki Joker, 9:00 Wielki Homelander; liczby w `config.boss.list` (typ bazowy, skala, mnożniki HP, prędkości i obrażeń, minuta, skrzynia, białko). 2 s wcześniej baner „UWAGA: …” i muzyka bossa. U góry pasek HP z nazwą bossa; gdy na mapie jest kilku, pasek pokazuje najnowszego. Po śmierci: wybuch, deszcz kryształów, czerwony gem, białko na koniec rundy i skrzynia, która leży aż do podniesienia. Skrzynia otwiera osobny ekran: karty przewijają nazwy ulepszeń i zatrzymują się po kolei, każde ulepszenie (z wylosowaną rzadkością) działa od razu; liczba ulepszeń 1-3 zależy od bossa. Gdy w tej samej chwili czekają karty level-upu, skrzynia otwiera się po nich. Debug: `config.debug.bossKey`, klawisz B, potem cyfra.
 - Limit 250 wrogów na ekranie, żeby gra nie klatkowała.
 
 ### XP i level up
@@ -143,10 +143,10 @@ Nazwa i logo Gigantów Programowania oraz cudze postacie zostają tylko w wersji
 
 Warunki odblokowania broni też są memami, np. aura Uncanny za przetrwanie 60 sekund bez ruszania się, ostrza Kratosa za 1000 zabitych.
 
-- **Gaz rozweselający** (wersja 3, krok 29): co 3 s chmura spada na jednego z 5 najbliższych wrogów, trwa 3 s, co 0,5 s rani wszystkich w środku; obraca się, nad nią wyskakują rysowane „HA”, na końcu blednie. Poziomy dają obrażenia, kolejne chmury, promień i czas (`config.weapons.gas`). Odblokowanie: „Dlaczego taki poważny?”, czyli 30 zabitych Jokerów w jednej rundzie (`run.killsByType`).
+- **Gaz rozweselający** (wersja 3, krok 29): co 3 s chmura spada na jednego z 5 najbliższych wrogów, trwa 2 s, co 0,5 s rani wszystkich w środku; obraca się, nad nią wyskakują rysowane „HA”, na końcu blednie. Poziomy dają obrażenia, kolejne chmury, promień i czas (`config.weapons.gas`). Odblokowanie: „Dlaczego taki poważny?”, czyli 30 zabitych Jokerów w jednej rundzie (`run.killsByType`).
 - **Laser z oczu** (wersja 3, krok 29): co 2,5 s promień z oczu Bartka (z okularów) w stronę najbliższego wroga, rani wszystkich na linii na całym zasięgu; rysowany w kodzie (poświata, czerwony promień, białe jądro), gaśnie w 0,26 s. Poziomy dają obrażenia, kolejne promienie (do kolejnych najbliższych wrogów), szerokość i zasięg (`config.weapons.laser`). Odblokowanie: „Wzrok, który zabija”, czyli wygrana runda z pokonanym Wielkim Homelanderem (`run.bossesKilled`).
 - **Tarcza Kapitana** (wersja 3): leci do najbliższego wroga, odbija się do kolejnych (nietrafionych w tym rzucie), wraca do Bartka i czeka chwilę; obraca się w locie, przy każdym odbiciu `impacts/metal-clang`. Poziomy dają odbicia, obrażenia i kolejne tarcze (`config.weapons.shield`). Dostępna od startu (od kroku 35c; wcześniej odblokowywana jako ostatnia) i jest jedną z trzech broni startowych. Grafika `assets/captain_shield.png` to eksport z `captain_shield.aseprite`. Debug: `config.debug.giveWeapon` (id albo lista, np. `['gas', 'laser', 'shield']`) odblokowuje bronie i daje je na start.
-- **Shotgun** (krok 35c, grafika `assets/Shotgun.png` w ręce Bartka i jako ikonka): co 1,1 s wachlarz 5 śrucin w rozrzucie 50° w najbliższego wroga. Zasięg to 70% zasięgu pistoletu (Okulary z siłowni go zwiększają), śrucina leci najwyżej ten dystans. Śrucina za 5 obrażeń. Poziomy dają śruciny i obrażenia (`config.weapons.shotgun`). Bez odblokowania, jedna z trzech broni startowych.
+- **Shotgun** (krok 35c, grafika `assets/Shotgun.png` w ręce Bartka i jako ikonka): co 1,1 s wachlarz 5 śrucin w rozrzucie 50° w najbliższego wroga. Zasięg to 70% zasięgu pistoletu (Okulary z siłowni go zwiększają), śrucina leci najwyżej ten dystans. Śrucina za 7 obrażeń. Poziomy dają śruciny i obrażenia (`config.weapons.shotgun`). Bez odblokowania, jedna z trzech broni startowych.
 - **Topór krasnoluda** (krok 35c, rysowany w kodzie): topór krąży wokół Bartka (`src/systems/orbit.js`, 85 px, 230°/s) i kręci się wokół własnej osi. Każde trafienie odbija wszystkie topory w drugą stronę, nie częściej niż co 150 ms, więc w tłumie topór wahadłowo tnie tam i z powrotem. Rani tego samego wroga najwyżej co 0,4 s. Poziomy dają obrażenia, topory i promień (`config.weapons.axe`). Bez odblokowania, tylko z kart.
 - Broń startowa: `config.weapons.start` to lista, gra losuje z niej jedną. Debug: `config.debug.startWeapon` (id) wymusza broń startową.
 
@@ -237,7 +237,7 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 **Jak działa (krok 32):**
 - Pole `evolution` broni: `{ passive, id, name, icon, description, evolve? }`, liczby w `config.weapons.<broń>.evolution`. Ewoluowana broń ma `w.evolved`, a jej zwykłe `update` czyta tę flagę.
 - Skrzynia: gdy jakaś broń jest gotowa (maksymalny poziom + jej pasywka w slocie), pierwsza karta skrzyni to ewolucja: złota ramka i napis „BROŃ → EWOLUCJA”. Pozostałe karty są losowane jak zwykle. Jedna skrzynia daje jedną ewolucję, kolejność jak w slotach broni. Po ewolucji jest baner „EWOLUCJA: …”, a ikonka w slocie zmienia się na ewoluowaną (złota ramka).
-- Liczby: Uzi strzela co 120 ms pociskami za 60% obrażeń, każdy przebija 1 wroga. Tarcza Bemowa wraca do rzutu bez czekania (złota), każde trafienie leczy 1 HP. Smog: tyle chmur, ile chmur ma gaz, nie znikają, każda płynie 45 px/s za innym wrogiem (szara chmura). Wzrok Homelandera: promienie świecą stale, obracają się 200°/s za celem i palą co 200 ms za 35% obrażeń lasera. Pasieka: 2x pszczół, zabity przez pszczołę zostawia pierogi z szansą 4%.
+- Liczby: Uzi strzela co 150 ms pociskami za 50% obrażeń, każdy przebija 1 wroga. Tarcza Bemowa wraca do rzutu bez czekania (złota), każde trafienie leczy 1 HP. Smog: tyle chmur, ile chmur ma gaz, nie znikają, każda płynie 60 px/s za innym wrogiem i rani 2x mocniej niż gaz (szara chmura). Wzrok Homelandera: promienie świecą stale, obracają się 200°/s za celem i palą co 200 ms za 30% obrażeń lasera. Pasieka: 2x pszczół, żądła 1,5x mocniejsze, zabity przez pszczołę zostawia pierogi z szansą 4%.
 - Podpowiedź „Ewolucja: Broń + Pasywka” stoi na dole karty broni i karty pasywki (na level upie i w skrzyni), dopóki ta broń nie ewoluowała w tej rundzie.
 - `save.evolutions`: odkryte ewolucje. Ekran końca gry pokazuje „Nowa ewolucja: …!” przy pierwszym odkryciu.
 - Debug: `config.debug.evolveKey`, klawisz E daje noszonym broniom maksymalny poziom i ich pasywki; następna skrzynia (P z `pickupKey`) ewoluuje pierwszą gotową broń.
@@ -301,7 +301,7 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 - Wydarzenia: liczby w `config.events`. Runda bierze 3 wydarzenia, najpierw te, których nie było w poprzedniej rundzie. Każde startuje w losowej sekundzie między 0:50 a 9:00, co najmniej 60 s po poprzednim i 30 s od każdego slotu bossa. Wydarzenie z czasem trwania ma pasek pod HUD-em.
 - Liczby wydarzeń: Burza uderza co 400 ms za 30 obrażeń (przez mnożnik obrażeń broni). Deszcz kryształów to fioletowy kryształ co 60 ms do 380 px od Bartka. Festyn kładzie 3 różne znajdźki 250-450 px od Bartka. Chorda nadchodzi (`config.events.horde`): przez 20 s spawn x3 (mnożony razem z Zakładami z Unc), a każdy punkt na pierścieniu spawnu (też fale i Kontrola biletów) leży w łuku 70° po jednej losowej stronie (`run.hordeAngle`). Na koniec baner „CHORDA ODPARTA!” i skrzynia z 1 kartą (bez ewolucji) 120 px od Bartka.
 - Promocja w Żabce: sklep stoi 500-700 px od Bartka przez 45 s, strzałka HUD-u wskazuje go przed innymi znajdźkami. Wejście otwiera `ShopScene`: 3 karty z rzadkością, cena w białku z monet tej rundy (`run.coinProtein`): bez rzadkości 15, zwykła 8, rzadka 15, epicka 25, legendarna 40. Można kupić ile się da, każdą kartę raz. Wydane białko nie wraca na koniec rundy. Jedna wizyta na promocję.
-- Bossowie: slot daje minutę, HP (1000, 2000, 3000, 4800), skrzynię i białko. Pule: 2:30 Wielki Zombie, Wielki Uncanny albo Wielki Goblin; 4:30 Wielki Sportakus, Wielki Joker albo Wielki Goblin; 6:30 Wielki Joker, Wielki Sportakus albo Wielki Zombie; 9:30 Wielki Homelander. Ten sam boss nie trafia się dwa razy w rundzie, a skład różni się od poprzedniej rundy.
+- Bossowie: slot daje minutę, HP (1000, 1600, 2400, 3600), skrzynię i białko. Pule: 2:30 Wielki Zombie, Wielki Uncanny albo Wielki Goblin; 4:30 Wielki Sportakus, Wielki Joker albo Wielki Goblin; 6:30 Wielki Joker, Wielki Sportakus albo Wielki Zombie; 9:00 Wielki Homelander. Ten sam boss nie trafia się dwa razy w rundzie, a skład różni się od poprzedniej rundy.
 - Debug: `config.debug.eliteKey` (L: elita obok Bartka, co naciśnięcie kolejna cecha), `config.debug.eventKey` (V, potem 1-8: wydarzenie w kolejności z `events.js`).
 - Wydajność: Awaria prądu to jeden obrazek z miękką dziurą, narysowany raz w BootScene. Przy 250 wrogach FPS z nią i bez niej był taki sam (82-88).
 
@@ -508,6 +508,32 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 **Pytania techniczne:**
 - Brak dźwięku na iPhonie: do sprawdzenia. Najczęstsza przyczyna to przełącznik wyciszenia w iPhonie (wycisza Web Audio) albo dźwięk odblokowany dopiero po dotknięciu ekranu.
 - Zbieranie statystyk gry od graczy i Firebase (wyniki graczy, tabela wyników dla zalogowanych mailem): możliwe na GitHub Pages przez Firebase z poziomu przeglądarki, ale to backend, logowanie i dane osobowe graczy (RODO), więc osobna decyzja.
+
+### 16. Balans końcowy (krok 39)
+
+Zmienione tylko liczby w `config.js`, poza dwiema rzeczami uzgodnionymi przed krokiem: waga kart broni (`weapons.cardWeight`, 2: karta nowej broni i poziomu broni wypada 2x częściej niż pasywka, czytana w `systems/cards.js`) i mnożniki obrażeń Smogu (`gas.evolution.damageMult` 2) i Pasieki (`bees.evolution.damageMult` 1,5).
+
+- **Bronie:** pistolet co 0,5 s (było 0,6); Shotgun 7 obrażeń (było 5); Tarcza poziomy +1 odbicie / +5 / +1 tarcza / +1 odbicie / +5 / +1 odbicie (było z +10 i +2 odbiciami); gaz trwa 2 s (było 3), poziomy +2/+3 obrażeń; laser 15 → 18, Wzrok Homelandera 35% → 30%; Ul 5 obrażeń, promień 85 (było 4 i 70), poziomy +3/+4; Topór poziomy +2/+3/+3; Uzi co 150 ms za 50% (było 120 ms i 60%); Smog płynie 60 px/s (było 45).
+- **Trudność:** start spawnu 1,0 wroga/s (było 1,6), krzywa `curvePow` 1,5 (było 0,9: horda rośnie później), obrażenia wrogów +10%/min (było 8%), fale +6 wrogów na falę (było +10).
+- **Bossowie:** HP 1600 / 2400 / 3600 (było 2000 / 3000 / 4800), ostatni o 9:00 (było 9:30, miał tylko 30 s okna).
+
+Pomiary botem (kiting, zbieranie kryształów, czołg, gdy gotowy; pojedyncze przebiegi, duży rozrzut):
+
+| Co | Przed | Po |
+|---|---|---|
+| Nowy gracz (bez siłowni): śmierć | 2:56–5:17 | 3:21–6:44 |
+| Białko z rundy nowego gracza | ok. 50–150 | 70–239 (siłownia od 10) |
+| Pełna siłownia, start pistolet | — | wygrana (2 z 2) |
+| Pełna siłownia, start Shotgun | śmierć 6:24 (śrucina za 6) | śmierć 9:04–9:42 |
+| Pełna siłownia, start Tarcza | — | śmierć 7:35–9:12 |
+| Horda 250 (limit) | od 3. min | od 6.–9. min |
+| Największa utrata HP | min. 6–7 | min. 6–9 |
+| Bossowie (dobre buildy) | 30–224 s, 3. i 4. prawie nigdy | 10–47 s, czasem 67–93 s; słabe buildy nie zdążą |
+| Ewolucja pistoletu (celowane karty) | ok. 5:00 | 2:46–4:56 |
+| Maks. poziom broni dobranej kartą (laser) | 8:57 (waga karty 1) | 5:33 |
+| Maks. poziom Shotguna / Tarczy (start, celowane) | — | 5:39 (ewolucja przy skrzyni bossa 6:30) |
+
+Zostaje: ewolucja wymaga skrzyni bossa po zebraniu broni na maks i pasywki, więc bez zabicia bossa 6:30 przychodzi dopiero o 9:00. Bot nie umie grać Ulem ani Toporem (nie wpuszcza wrogów blisko), więc tych dwóch nie da się nim zmierzyć; do sprawdzenia ręcznie. Plany i Zakłady z Unc zmierzone przed tym krokiem (żaden plan nie jest obowiązkowy, Dzień nóg najmocniejszy; Zakłady na 100%: bot ginie 3:48 i 6:07), nie zmieniane.
 
 ## Architektura
 

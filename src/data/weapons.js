@@ -151,7 +151,7 @@ export const weapons = [
       check: (run) => (run.killsByType.joker ?? 0) >= gz.unlockJokers,
     },
     evolution: { passive: 'gymPass', id: 'smog', name: 'Smog nad Bemowem', icon: 'weapon_smog',
-      description: 'Chmury nie znikają i powoli płyną za najbliższym wrogiem.',
+      description: `Chmury nie znikają, płyną za najbliższym wrogiem i bolą ${gz.evolution.damageMult}x mocniej.`,
       // The short-lived clouds go; update() keeps the lasting smog clouds from now on.
       evolve(scene, w) { for (const c of w.pool.getChildren()) c.setActive(false).setVisible(false); } },
     description(level, m) {
@@ -245,7 +245,7 @@ export const weapons = [
     maxLevel: bz.levels.length + 1,
     unlock: null,
     evolution: { passive: 'broth', id: 'apiary', name: 'Pasieka babci', icon: 'weapon_apiary',
-      description: `${bz.evolution.beesMult}x więcej pszczół. Kto zginie od żądła, czasem zostawia pierogi.` },
+      description: `${bz.evolution.beesMult}x więcej pszczół, żądła ${String(bz.evolution.damageMult).replace('.', ',')}x mocniejsze. Kto zginie od żądła, czasem zostawia pierogi.` },
     description(level, m) {
       if (level === 1) return `Pszczoły są szczęśliwe.\n${bz.bees} pszczoły krążą wokół Bartka i żądlą wrogów.`;
       const b = bz.levels[level - 2];
@@ -257,7 +257,7 @@ export const weapons = [
       w.damage = bz.damage;
       w.orbit = createOrbit(scene, {
         source: w, // its hits count for this weapon on the end screen
-        texture: 'bee', maxSize: config.pools.bees, damage: () => scene.weaponDamage(w.damage), hitCooldownMs: bz.hitCooldownMs,
+        texture: 'bee', maxSize: config.pools.bees, damage: () => scene.weaponDamage(w.damage * (w.evolved ? bz.evolution.damageMult : 1)), hitCooldownMs: bz.hitCooldownMs,
         vfx: 'beeSting', hitScale: bz.hitScale, hitMs: bz.hitMs, faceTravel: true,
         onKill: (z) => { if (w.evolved && Math.random() < bz.evolution.pierogiChance) scene.dropPickupById('pierogi', z.x, z.y); },
       });
@@ -396,7 +396,7 @@ function updateCloud(scene, w, c, delta) {
     c.tickMs += gz.tickMs;
     for (const z of scene.enemies.getChildren()) {
       if (z.active && Phaser.Math.Distance.Squared(c.x, c.y, z.x, z.y) <= c.radius * c.radius) {
-        scene.hurtEnemy(z, scene.weaponDamage(w.damage), z.x, z.y, 'gasHit');
+        scene.hurtEnemy(z, scene.weaponDamage(w.damage * (w.evolved ? gz.evolution.damageMult : 1)), z.x, z.y, 'gasHit');
       }
     }
   }
