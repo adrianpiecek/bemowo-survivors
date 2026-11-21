@@ -152,7 +152,7 @@ const SAVE_KEY = 'bemowo-survivors-save-v1';
 const SAVE_VERSION = 1;
 
 function freshSave() {
-  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, orientation: 'portrait', orientationSet: false, evolutions: [], runsPlayed: 0, stats: freshStats(),
+  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, uiScale: 1, cameraZoom: 1, orientation: 'portrait', orientationSet: false, evolutions: [], runsPlayed: 0, stats: freshStats(),
     bets: {}, // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
     bestiary: {} }; // enemy type id -> kills over all runs (BestiaryScene)
 }
@@ -183,6 +183,7 @@ export function loadSave() {
   if (Array.isArray(d.unlocks)) s.unlocks = d.unlocks;
   if (typeof d.muted === 'boolean') s.muted = d.muted;
   for (const k of ['musicVolume', 'sfxVolume']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], 0, 1);
+  for (const k of ['uiScale', 'cameraZoom']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], config.ui.settings[k].min, config.ui.settings[k].max);
   if (d.orientation === 'landscape') s.orientation = 'landscape';
   if (Array.isArray(d.evolutions)) s.evolutions = d.evolutions.filter((id) => typeof id === 'string');
   if (isObject(d.stats)) for (const k of Object.keys(s.stats)) if (Number.isFinite(d.stats[k]) && d.stats[k] >= 0) s.stats[k] = d.stats[k];
@@ -198,7 +199,8 @@ export function loadSave() {
 // "Nowa gra" in the settings: progress (protein, gym, unlocks, stats, bets) back to a fresh save, the player's own
 // settings (sound, screen) kept. In place, since every module holds this same `save` object.
 export function resetProgress() {
-  const keep = { muted: save.muted, musicVolume: save.musicVolume, sfxVolume: save.sfxVolume, orientation: save.orientation, orientationSet: save.orientationSet };
+  const keep = { muted: save.muted, musicVolume: save.musicVolume, sfxVolume: save.sfxVolume, uiScale: save.uiScale, cameraZoom: save.cameraZoom,
+    orientation: save.orientation, orientationSet: save.orientationSet };
   for (const key of Object.keys(save)) delete save[key];
   Object.assign(save, freshSave(), keep);
   writeSave(save);

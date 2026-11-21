@@ -149,11 +149,11 @@ export const events = [
 // shows first; then they come from startDist px behind and leave on the other side (GameScene removes 'line' enemies
 // once they are far from where they started).
 function skaterRow(scene) {
-  const n = c.nightskating, pl = scene.player, def = enemies.find((d) => d.id === 'skater');
+  const n = c.nightskating, pl = scene.player, def = enemies.find((d) => d.id === 'skater'), start = n.startDist * scene.offscreenMult();
   const a = Phaser.Math.FloatBetween(0, Math.PI * 2), dx = Math.cos(a), dy = Math.sin(a);
   const off = Phaser.Math.FloatBetween(-n.laneJitter, n.laneJitter); // the lane's middle, sideways from Bartek
-  const sx = pl.x - dx * n.startDist - dy * off, sy = pl.y - dy * n.startDist + dx * off;
-  warnLine(scene, sx, sy, a, n.startDist * 2, n.count * n.gap, n.warnMs, () => {
+  const sx = pl.x - dx * start - dy * off, sy = pl.y - dy * start + dx * off;
+  warnLine(scene, sx, sy, a, start * 2, n.count * n.gap, n.warnMs, () => {
     for (let i = 0; i < n.count; i++) {
       const side = (i - (n.count - 1) / 2) * n.gap, z = scene.spawnEnemy(def, sx - dy * side, sy + dx * side);
       if (!z) break; // pool full

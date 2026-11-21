@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { save, resetProgress } from '../state.js';
+import { save, resetProgress, writeSave } from '../state.js';
 import { setVolume, playSfx, pauseSfx, resumeSfx, toggleMute } from '../systems/audio.js';
 import { font, panel, drawBar, button } from '../systems/ui.js';
 import { setOrientation } from '../systems/layout.js';
@@ -13,7 +13,7 @@ export function openSettings(scene) {
   scene.scene.launch('SettingsScene', { from: scene.scene.key });
 }
 
-// Settings over a paused scene: music and sound effect volume, screen orientation (kept in the save). In a run it is the
+// Settings over a paused scene: music and sound effect volume, the HUD's size, the camera's zoom, screen orientation (kept in the save). In a run it is the
 // pause screen, and the orientation only says where to change it: the run's world is built for one screen shape.
 // "Wróć", Esc or Enter close it and resume the scene under it (in a run also P, the pause key). "Wycisz" mutes everything
 // (as M does); in a run "Wyjdź do menu" ends the run as a loss: the end screen counts the protein so far. Outside a run
@@ -29,7 +29,13 @@ export default class SettingsScene extends Phaser.Scene {
 
   create() {
     const u = config.ui, st = u.settings, { width, height } = this.scale, cx = width / 2;
-    const rows = [['Muzyka', 'musicVolume'], ['Efekty dźwiękowe', 'sfxVolume']];
+    // [label, save key, min, max, what a change does]. The view rows apply at once in a run too.
+    const rows = [
+      ['Muzyka', 'musicVolume', 0, 1, (v) => setVolume('musicVolume', v)],
+      ['Efekty dźwiękowe', 'sfxVolume', 0, 1, (v) => { setVolume('sfxVolume', v); playSfx(this, 'pick'); }], // hear the new level
+      ['Wielkość interfejsu', 'uiScale', st.uiScale.min, st.uiScale.max, (v) => this.setView('uiScale', v)],
+      ['Przybliżenie kamery', 'cameraZoom', st.cameraZoom.min, st.cameraZoom.max, (v) => this.setView('cameraZoom', v)],
+    ];
     const panelH = st.padding * 4 + st.titleFontSize * 1.2 + (rows.length + 1) * st.rowHeight + st.actionHeight + st.backHeight + st.hintFontSize * 2;
     const x0 = cx - st.width / 2, y0 = (height - panelH) / 2;
     this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps meant for the HUD below
@@ -37,25 +43,24 @@ export default class SettingsScene extends Phaser.Scene {
     const inRun = this.from === 'GameScene';
     this.add.text(cx, y0 + st.padding, inRun ? 'Pauza' : 'Ustawienia', font(st.titleFontSize, { fontStyle: 'bold', color: '#ffc400' })).setOrigin(0.5, 0);
 
-    // One row per volume: the label above, then [-] bar [+] and the percent.
+    // One row per setting: the label above, then [-] bar [+] and the percent.
     const bars = this.add.graphics();
     const barX = x0 + st.padding + st.stepButton + st.padding / 2;
     const barW = st.width - st.padding * 3 - st.stepButton * 2 - st.valueWidth;
     const values = [];
     const redraw = () => {
       bars.clear();
-      rows.forEach(([, kind], i) => {
-        drawBar(bars, barX, values[i].y - st.barHeight / 2, barW, st.barHeight, save[kind], st.barColor);
+      rows.forEach(([, kind, min, max], i) => {
+        drawBar(bars, barX, values[i].y - st.barHeight / 2, barW, st.barHeight, (save[kind] - min) / (max - min), st.barColor);
         values[i].setText(`${Math.round(save[kind] * 100)}%`);
       });
     };
-    rows.forEach(([label, kind], i) => {
+    rows.forEach(([label, kind, min, max, apply], i) => {
       const top = y0 + st.padding * 2 + st.titleFontSize * 1.2 + i * st.rowHeight;
       const y = top + st.labelFontSize * 1.2 + st.stepButton / 2;
       this.add.text(x0 + st.padding, top, label, font(st.labelFontSize, { fontStyle: 'bold' }));
       const change = (dir) => {
-        setVolume(kind, save[kind] + dir * st.step);
-        if (kind === 'sfxVolume') playSfx(this, 'pick'); // hear the new level
+        apply(Phaser.Math.Clamp(Math.round((save[kind] + dir * st.step) * 100) / 100, min, max)); // no 0.30000000004
         redraw();
       };
       button(this, x0 + st.padding + st.stepButton / 2, y, '−', () => change(-1), { width: st.stepButton, height: st.stepButton, variant: 'secondary' });
@@ -115,6 +120,16 @@ export default class SettingsScene extends Phaser.Scene {
       .setOrigin(0.5, 0);
     this.input.keyboard.once('keydown-ESC', () => this.close());
     this.input.keyboard.once('keydown-ENTER', () => this.close());
+  }
+
+  // Wielkość interfejsu / Przybliżenie kamery: saved, and in a run shown at once (the HUD is laid out again, quietly).
+  setView(kind, value) {
+    save[kind] = value;
+    writeSave(save);
+    if (this.from !== 'GameScene') return;
+    const gs = this.scene.get('GameScene');
+    if (kind === 'cameraZoom') gs.cameras.main.setZoom(value);
+    else this.scene.get('UIScene').scene.restart({ run: gs.run, quiet: true });
   }
 
   close() {

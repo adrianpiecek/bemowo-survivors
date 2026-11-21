@@ -528,6 +528,10 @@ export const config = {
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
       valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, inventoryWidth: 240, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
       actionHeight: 60, actionFontSize: 22, wipeColor: '#ff8a80', // wipeColor: the "Nowa gra" warning
+      // Wielkość interfejsu (the HUD's zoom, save.uiScale) and Przybliżenie kamery (the run's camera zoom, save.cameraZoom):
+      // kept between min and max, changed by `step` (the same step as the volumes).
+      // uiScale max: the top HUD row (HP panel, pause, clock) still fits the 720 px wide portrait screen.
+      uiScale: { min: 0.8, max: 1.2 }, cameraZoom: { min: 0.8, max: 1.2 },
       barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 46 }, // gearSize: the icons after the gym's title
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
@@ -605,6 +609,9 @@ export const config = {
     landscape: {
       game: { width: 1280, height: 720 },
       ui: {
+        // Five rows of settings fit the low screen.
+        settings: { padding: 16, titleFontSize: 40, labelFontSize: 20, rowHeight: 78, stepButton: 48, backHeight: 56, backFontSize: 26,
+          actionHeight: 48, actionFontSize: 20, hintFontSize: 16 },
         card: { row: true, width: 260, height: 320, gap: 40, nameFontSize: 22, textFontSize: 18, rarityFontSize: 18, hintFontSize: 16, iconSize: 56 },
         title: { bemowoY: 250, survivorsY: 410, pressBottom: 90 },
         bossBar: { y: 76 },

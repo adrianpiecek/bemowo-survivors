@@ -485,7 +485,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 
 **Ekrany i menu:**
 - Lepsze menu główne zamiast siłowni, w której jest wszystko.
-- Ustawienia: wielkość GUI i odległość kamery.
 
 **Pytania techniczne:**
 - Brak dźwięku na iPhonie: do sprawdzenia. Najczęstsza przyczyna to przełącznik wyciszenia w iPhonie (wycisza Web Audio) albo dźwięk odblokowany dopiero po dotknięciu ekranu.
@@ -714,6 +713,16 @@ Nowa statystyka gracza `dodge` (w `run.player`) i pasywka **Śliski dres** (`tra
 - Nad Bartkiem pojawia się niebieskie „Unik!” (z puli liczb obrażeń; tekst i kolor w `config.ui.damageNumbers`).
 - Ekwipunek pokazuje „Unik”. Ikona `passive_tracksuit`: niebieska bluza z białymi paskami.
 - Sprawdzone: przy limicie 50% przeszło 49% z 2000 ciosów, a 12 poziomów pasywki zatrzymuje się na 50%.
+
+### 35. Ustawienia: wielkość interfejsu i kamera (krok 59)
+
+Dwa nowe wiersze w ustawieniach (i na ekranie pauzy), takie same jak głośności: [−] pasek [+] i procent, krok 10%. Oba zapisują się w `save` (`uiScale`, `cameraZoom`, sprawdzane w `loadSave`) i zostają po „Nowa gra”, jak głośności. Zakresy w `config.ui.settings`.
+
+- **Wielkość interfejsu** (80–120%): zoom kamery `UIScene` od lewego górnego rogu; HUD układa się na ekranie 1/uiScale razy większym, więc wszystko zostaje przy krawędziach. Joystick i dotknięcie paska czołgu przeliczają pozycję palca. Górna granica 120%: przy 130% w pionie panel HP nachodził na przycisk pauzy. Działa tylko na HUD w rundzie, nie na okna (karty, siłownia, ustawienia).
+- **Przybliżenie kamery** (80–120%): zoom kamery `GameScene`; poniżej 100% widać więcej mapy. Żeby wrogowie dalej pojawiali się poza ekranem, pierścień spawnu i start rolkarzy z Nightskatingu są dalej o 1/zoom (`GameScene.offscreenMult`). Mapa dokłada bloki na cały widok, a ciemność z Awarii prądu i czarna zasłona śmierci pokrywają cały ekran przy każdym zoomie.
+- W rundzie obie zmiany działają od razu: kamera dostaje nowy zoom, a HUD uruchamia się od nowa (bez napisu powitania).
+- W poziomie panel ustawień ma mniejsze wiersze (`layouts.landscape.ui.settings`), żeby pięć wierszy zmieściło się w 720 px.
+- Sprawdzone w przeglądarce: kliknięcia +/− zmieniają wartości i zapis, przy 80% kamery żaden z 200 punktów spawnu nie leży w widoku, gra i HUD przy 120% wyglądają poprawnie, panel w poziomie mieści się. Joysticka na telefonie nie sprawdzano.
 
 ## Architektura
 

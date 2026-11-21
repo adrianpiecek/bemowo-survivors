@@ -46,7 +46,7 @@ export default class GameScene extends Phaser.Scene {
     this.baseScale = config.textures.bartek.height / this.player.height;
     this.tankScale = config.textures.tank.height / this.textures.getFrame('tank').height;
     this.player.setScale(this.baseScale).setDepth(1);
-    cam.startFollow(this.player);
+    cam.startFollow(this.player).setZoom(save.cameraZoom); // Przybliżenie kamery from the settings
 
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,LEFT,DOWN,RIGHT');
     this.moveDir = new Phaser.Math.Vector2();
@@ -120,7 +120,7 @@ export default class GameScene extends Phaser.Scene {
     this.bossQueue = this.drawBosses();
     this.scheduleEvents();
     // Awaria prądu: a dark overlay fixed to the screen, its soft hole on Bartek (the camera keeps him in the middle).
-    const cover = Math.hypot(width, height) / 2;
+    const cover = Math.hypot(width, height) / 2 / config.ui.settings.cameraZoom.min; // covers the screen at the farthest camera too
     this.darkness = this.add.image(width / 2, height / 2, 'darkness').setScrollFactor(0).setDisplaySize(cover * 2, cover * 2)
       .setDepth(config.events.blackout.depth).setVisible(false);
     this.shop = null; // the Żabka shop sprite while its promotion lasts
@@ -264,7 +264,8 @@ export default class GameScene extends Phaser.Scene {
     this.physics.pause();
     this.time.removeAllEvents(); // boss strikes still warning, timed pickups: none land now
     this.scene.get('UIScene').scene.setVisible(false);
-    const cover = this.add.rectangle(0, 0, width, height, 0x000000).setOrigin(0).setScrollFactor(0).setDepth(d.coverDepth).setAlpha(0);
+    const cover = this.add.rectangle(width / 2, height / 2, width / cam.zoom, height / cam.zoom, 0x000000) // zoom shrinks it around the middle
+      .setScrollFactor(0).setDepth(d.coverDepth).setAlpha(0);
     this.player.setDepth(d.coverDepth + 1);
     this.tweens.add({ targets: cover, alpha: 1, duration: d.fadeMs });
     cam.stopFollow();
@@ -869,9 +870,14 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // A random point on the spawn ring around Bartek (during Chorda nadchodzi only on its side).
+  // How much farther than usual things must start to stay off screen: more than 1 only with the camera zoomed out.
+  offscreenMult() {
+    return Math.max(1, 1 / this.cameras.main.zoom);
+  }
+
   ringPoint() {
     const { ringMinRadius, ringMaxRadius } = config.spawn, side = this.run.hordeAngle, half = Phaser.Math.DegToRad(config.events.horde.arcDeg) / 2;
-    const angle = side === null ? Phaser.Math.FloatBetween(0, Math.PI * 2) : side + Phaser.Math.FloatBetween(-half, half), r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius);
+    const angle = side === null ? Phaser.Math.FloatBetween(0, Math.PI * 2) : side + Phaser.Math.FloatBetween(-half, half), r = Phaser.Math.FloatBetween(ringMinRadius, ringMaxRadius) * this.offscreenMult();
     return { x: this.player.x + Math.cos(angle) * r, y: this.player.y + Math.sin(angle) * r };
   }
 

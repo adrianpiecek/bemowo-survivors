@@ -275,7 +275,7 @@ export function createMap(scene) {
 
   // The blocks within margin px of the screen around Bartek; only recounted when that range changes.
   function sync() {
-    const p = scene.player, hw = scene.scale.width / 2 + m.margin, hh = scene.scale.height / 2 + m.margin;
+    const p = scene.player, z = scene.cameras.main.zoom, hw = scene.scale.width / 2 / z + m.margin, hh = scene.scale.height / 2 / z + m.margin;
     const x0 = Math.floor((p.x - hw) / B), x1 = Math.floor((p.x + hw) / B), y0 = Math.floor((p.y - hh) / B), y1 = Math.floor((p.y + hh) / B);
     const now = `${x0},${x1},${y0},${y1}`;
     if (now === range) return;

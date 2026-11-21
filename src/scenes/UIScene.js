@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { xpToNextLevel, formatTime } from '../state.js';
+import { xpToNextLevel, formatTime, save } from '../state.js';
 import { isEffectActive } from '../systems/effects.js';
 import { pickups } from '../data/pickups.js';
 import { events } from '../data/events.js';
@@ -14,11 +14,16 @@ import { items } from '../data/items.js';
 export default class UIScene extends Phaser.Scene {
   constructor() { super('UIScene'); }
 
-  init(data) { this.run = data.run; }
+  // quiet: restarted from the settings (a new Wielkość interfejsu), no welcome text.
+  init(data) { this.run = data.run; this.quiet = data.quiet; }
 
   create() {
     const u = config.ui, h = u.hud, m = u.margin;
-    const { width, height } = this.scale;
+    // Wielkość interfejsu: the camera zooms from the top left corner, so the HUD is laid out on a screen 1/uiScale as big.
+    this.cameras.main.setOrigin(0, 0).setZoom(save.uiScale);
+    this.vw = this.scale.width / save.uiScale;
+    this.vh = this.scale.height / save.uiScale;
+    const width = this.vw, height = this.vh;
     const outline = { stroke: '#000000', strokeThickness: 3 };
     const barFont = font(h.barFontSize, { fontStyle: 'bold', ...outline });
 
@@ -129,6 +134,7 @@ export default class UIScene extends Phaser.Scene {
     this.banner = this.add.container(width / 2, bn.y, [this.bannerBg, this.bannerTitle, this.bannerSub]).setDepth(1).setVisible(false);
 
     const w = u.welcome;
+    if (this.quiet) return;
     const welcome = this.add.text(width / 2, height / 2, 'Witamy na Bemowie', font(w.fontSize, {
       fontStyle: 'bold', stroke: '#000000', strokeThickness: u.banner.strokeThickness,
     })).setOrigin(0.5);
@@ -187,7 +193,7 @@ export default class UIScene extends Phaser.Scene {
     this.bossText.setVisible(bossOn);
     if (bossOn) {
       this.bossText.setText(boss.stats.name.toUpperCase());
-      drawBar(this.bars, (this.scale.width - bb.width) / 2, bb.y, bb.width, bb.height, boss.hp / boss.stats.hp, bb.color);
+      drawBar(this.bars, (this.vw - bb.width) / 2, bb.y, bb.width, bb.height, boss.hp / boss.stats.hp, bb.color);
     }
     this.tankButton.setVisible(full && r.tankMs <= 0);
     this.updateEffectHud();
@@ -220,7 +226,7 @@ export default class UIScene extends Phaser.Scene {
   // Weapon slots bottom left, passive slots in a row right above them: every slot has a frame (empty ones dimmed);
   // a carried item shows its icon and a level badge over its corner. Redrawn only when an item or a level changes.
   updateWeaponHud() {
-    const wh = config.ui.weaponHud, m = config.ui.margin, bottom = this.scale.height - m - wh.size;
+    const wh = config.ui.weaponHud, m = config.ui.margin, bottom = this.vh - m - wh.size;
     // Debug weapons may be more than the slots: then every one still shows.
     const pl = this.run.player, rows = [[this.run.weapons, Math.max(pl.weaponSlots, this.run.weapons.length), bottom],
       [this.run.passives, Math.max(pl.passiveSlots, this.run.passives.length), bottom - wh.size - wh.gap]];
@@ -259,7 +265,7 @@ export default class UIScene extends Phaser.Scene {
     const sig = owned.map(([id, n]) => `${id}${n}`).join();
     if (sig === this.itemSig) return;
     this.itemSig = sig;
-    const y = this.scale.height - m - 2 * (wh.size + wh.gap) - ih.size, g = this.itemSlots.clear();
+    const y = this.vh - m - 2 * (wh.size + wh.gap) - ih.size, g = this.itemSlots.clear();
     owned.forEach(([id, n], i) => {
       const x = m + i * (ih.size + ih.gap);
       drawPanel(g, x, y, ih.size, ih.size);
@@ -285,7 +291,7 @@ export default class UIScene extends Phaser.Scene {
     this.pickupArrow.setVisible(!!best);
     if (!best) return;
     // Scale the direction until it touches the screen rectangle shrunk by the margin.
-    const dx = best.x - cx, dy = best.y - cy, { width, height } = this.scale;
+    const dx = best.x - cx, dy = best.y - cy, width = this.vw, height = this.vh;
     const k = Math.min((width / 2 - pa.margin) / Math.abs(dx || 1e-6), (height / 2 - pa.margin) / Math.abs(dy || 1e-6));
     this.pickupArrow.setPosition(width / 2 + dx * k, height / 2 + dy * k).setRotation(Math.atan2(dy, dx));
   }
@@ -327,20 +333,21 @@ export default class UIScene extends Phaser.Scene {
     const knob = this.add.circle(0, 0, j.knobRadius, j.color, j.knobAlpha).setVisible(false);
     let active = null;
 
+    const s = save.uiScale; // pointers are in screen px, the HUD in px 1/uiScale as big
     this.input.on('pointerdown', (p, over) => {
       if (!p.wasTouch || active || over.length) return; // a tap on a button is not a joystick
       // On a phone there is no Space: a tap on the tank bar starts the tank instead of the joystick.
-      if (this.tankBar.contains(p.x, p.y)) {
+      if (this.tankBar.contains(p.x / s, p.y / s)) {
         this.scene.get('GameScene').activateTank();
         return;
       }
       active = p;
-      base.setPosition(p.x, p.y).setVisible(true);
-      knob.setPosition(p.x, p.y).setVisible(true);
+      base.setPosition(p.x / s, p.y / s).setVisible(true);
+      knob.setPosition(p.x / s, p.y / s).setVisible(true);
     });
     this.input.on('pointermove', (p) => {
       if (p !== active) return;
-      const dx = p.x - base.x, dy = p.y - base.y;
+      const dx = p.x / s - base.x, dy = p.y / s - base.y;
       const k = Math.min(1, j.radius / (Math.hypot(dx, dy) || 1)); // keep the knob inside the base
       knob.setPosition(base.x + dx * k, base.y + dy * k);
       move.x = (dx * k) / j.radius;
