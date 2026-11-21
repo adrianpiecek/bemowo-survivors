@@ -116,6 +116,7 @@ export default class GameScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE', () => this.activateTank());
     if (config.debug.klapaKey) this.input.keyboard.on('keydown-K', () => this.spawnEnemy(enemies.find((d) => d.id === 'klapa')));
     this.boss = null; // the newest boss on the map; UIScene reads it for the HP bar
+    this.dying = false; // die(): Bartek falling, the run stopped
     this.bossQueue = this.drawBosses();
     this.scheduleEvents();
     // Awaria prądu: a dark overlay fixed to the screen, its soft hole on Bartek (the camera keeps him in the middle).
@@ -243,8 +244,27 @@ export default class GameScene extends Phaser.Scene {
     if (vfx) playVfx(this, vfx, this.player.x, this.player.y);
     playSfx(this, 'playerDamage');
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
-    if (pl.hp === 0) this.scene.start('GameOverScene', { run: this.run, won: false });
+    if (pl.hp === 0) this.die();
     return true;
+  }
+
+  // Bartek's last moment (config.death): the run stops, the world and the HUD go black around him, the camera zooms in,
+  // he falls over, then the end screen.
+  die() {
+    if (this.dying) return;
+    this.dying = true;
+    const d = config.death, cam = this.cameras.main, { width, height } = this.scale;
+    this.physics.pause();
+    this.time.removeAllEvents(); // boss strikes still warning, timed pickups: none land now
+    this.scene.get('UIScene').scene.setVisible(false);
+    const cover = this.add.rectangle(0, 0, width, height, 0x000000).setOrigin(0).setScrollFactor(0).setDepth(d.coverDepth).setAlpha(0);
+    this.player.setDepth(d.coverDepth + 1);
+    this.tweens.add({ targets: cover, alpha: 1, duration: d.fadeMs });
+    cam.stopFollow();
+    cam.pan(this.player.x, this.player.y, d.zoomMs, 'Sine.easeInOut');
+    cam.zoomTo(cam.zoom * d.zoom, d.zoomMs, 'Sine.easeInOut');
+    this.tweens.add({ targets: this.player, angle: d.fallDeg, y: this.player.y + d.fallDrop, duration: d.fallMs, delay: d.fallDelayMs, ease: 'Bounce.easeOut' });
+    this.time.delayedCall(d.totalMs, () => this.scene.start('GameOverScene', { run: this.run, won: false }));
   }
 
   onBulletHit(bullet, enemy) {
@@ -576,7 +596,7 @@ export default class GameScene extends Phaser.Scene {
   // Space or a tap on the HUD bar. Ignored while paused, already a tank, or not fully charged.
   activateTank() {
     const run = this.run, t = config.tank;
-    if (!this.scene.isActive() || run.tankMs > 0 || run.tankCharge < run.tankCost) return;
+    if (!this.scene.isActive() || this.dying || run.tankMs > 0 || run.tankCharge < run.tankCost) return;
     run.tankCharge = 0;
     run.tankCost = Math.round(run.tankCost * t.chargeGrowth);
     run.tankMs = t.durationSec * 1000;
@@ -869,6 +889,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    if (this.dying) return; // die(): only the fall plays
     const run = this.run, total = config.run.durationSec * 1000;
     run.elapsedMs += delta;
     if (run.elapsedMs >= total) {

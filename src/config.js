@@ -271,6 +271,10 @@ export const config = {
     gloves: { critChance: 0.02 }, scratch: { luckPct: 0.05 }, plaster: { maxHp: 6 }, fridgeMagnet: { magnetPct: 0.08 },
   },
   run: { durationSec: 600 },
+  // Bartek's death: the run stops, everything but Bartek goes black over fadeMs while the camera zooms in by `zoom` over
+  // zoomMs; after fallDelayMs he falls over (fallDeg, fallDrop px lower) in fallMs; the end screen comes after totalMs.
+  // coverDepth: the black over the world and the HUD-less screen; Bartek is drawn just above it.
+  death: { fadeMs: 700, zoom: 1.8, zoomMs: 900, fallDelayMs: 400, fallMs: 600, fallDeg: 90, fallDrop: 12, totalMs: 2200, coverDepth: 50 },
   protein: { perKills: 10, perMinute: 2, winBonus: 20 }, // awarded at the end of a run
   // Debug flags, all off by default.
   debug: {

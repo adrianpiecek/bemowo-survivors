@@ -498,7 +498,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Okno wyzwań (warunki odblokowania broni i planów).
 - Lepsze menu główne zamiast siłowni, w której jest wszystko.
 - Ustawienia: wielkość GUI i odległość kamery.
-- Animacja śmierci: wszystko poza Bartkiem robi się czarne, kamera się przybliża, Bartek się przewraca.
 
 **Pytania techniczne:**
 - Brak dźwięku na iPhonie: do sprawdzenia. Najczęstsza przyczyna to przełącznik wyciszenia w iPhonie (wycisza Web Audio) albo dźwięk odblokowany dopiero po dotknięciu ekranu.
@@ -578,6 +577,10 @@ Każdy boss co kilka sekund używa swojej mocy (`src/data/bossPowers.js`, liczby
 | Wielki Homelander | 3 lasery z oczu wachlarzem w stronę Bartka, długie na 1100 px | 5 s |
 
 Nowe efekty: `barrelBreak` (drewno i kurz), `stompWave` (pierścień kurzu). Debug: jak wcześniej `config.debug.bossKey` (B, potem cyfra).
+
+### 20. Animacja śmierci (krok 44)
+
+Gdy HP Bartka spada do zera (`GameScene.die`), gra staje: fizyka i zegar sceny się zatrzymują, HUD znika, wszystko poza Bartkiem przez 0,7 s robi się czarne. Kamera najeżdża na Bartka i przybliża się 1,8x, a Bartek przewraca się na bok z odbiciem. Po 2,2 s pojawia się ekran śmierci. W tym czasie nie da się otworzyć pauzy ani wezwać czołgu. Liczby w `config.death`.
 
 ## Architektura
 

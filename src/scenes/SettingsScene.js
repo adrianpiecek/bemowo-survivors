@@ -7,7 +7,7 @@ import { setOrientation } from '../systems/layout.js';
 // Pauses `scene` (GameScene or GymScene) and opens the settings over it. Ignored when that scene is already paused
 // (level-up cards, a chest, or the settings themselves are open), so closing never resumes a run under the cards.
 export function openSettings(scene) {
-  if (!scene.scene.isActive()) return;
+  if (!scene.scene.isActive() || scene.dying) return; // Bartek falling: the end screen is coming
   scene.scene.pause();
   pauseSfx(scene);
   scene.scene.launch('SettingsScene', { from: scene.scene.key });
