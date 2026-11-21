@@ -12,6 +12,7 @@ import { evolutionReady } from '../systems/cards.js';
 import { applyBets } from '../data/bets.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { updateLeaper } from '../systems/charge.js';
+import { bossPowers, updateBossPower } from '../data/bossPowers.js';
 import { playVfx } from '../systems/vfx.js';
 import { createMap } from '../systems/map.js';
 import { playSfx, playMusic } from '../systems/audio.js';
@@ -226,18 +227,24 @@ export default class GameScene extends Phaser.Scene {
       if (!enemy.stats.isBoss || enemy.hp <= 0) this.killEnemy(enemy);
       return;
     }
-    if (this.time.now < this.run.invulnUntilMs || isEffectActive(this.run, 'bubble')) return;
     if (this.isWalker(enemy) && isEffectActive(this.run, 'freeze')) return; // frozen walkers do not bite
-    // Touches hit harder as the run goes on; armor (Kurtka puchowa) takes off a flat amount.
+    if (this.hurtPlayer(enemy.stats.contactDamage, enemy.stats.touchVfx) && enemy.stats.leavesScar) this.run.scarred = true;
+  }
+
+  // An enemy's touch or a boss power (systems/telegraph.js) hits Bartek for `base`, which grows as the run goes on; armor
+  // (Kurtka puchowa, Ochraniacze) takes off a flat amount. Nothing in the tank, while invulnerable or in a bubble.
+  // Returns whether it hurt.
+  hurtPlayer(base, vfx) {
+    if (this.run.tankMs > 0 || this.time.now < this.run.invulnUntilMs || isEffectActive(this.run, 'bubble')) return false;
     const grow = 1 + config.spawn.damagePerMinutePct * this.run.elapsedMs / 60000;
-    const pl = this.run.player, damage = Math.max(1, Math.round(enemy.stats.contactDamage * grow) - pl.armor);
+    const pl = this.run.player, damage = Math.max(1, Math.round(base * grow) - pl.armor);
     pl.hp = Math.max(0, pl.hp - damage);
     this.run.damageTaken += damage;
-    if (enemy.stats.touchVfx) playVfx(this, enemy.stats.touchVfx, this.player.x, this.player.y);
+    if (vfx) playVfx(this, vfx, this.player.x, this.player.y);
     playSfx(this, 'playerDamage');
-    if (enemy.stats.leavesScar) this.run.scarred = true;
     this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
     if (pl.hp === 0) this.scene.start('GameOverScene', { run: this.run, won: false });
+    return true;
   }
 
   onBulletHit(bullet, enemy) {
@@ -341,7 +348,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   announceBoss(def) {
-    this.scene.get('UIScene').showBanner(`UWAGA: ${def.name.toUpperCase()}`, '', config.boss.bannerSec * 1000);
+    this.scene.get('UIScene').showBanner(`UWAGA: ${def.name.toUpperCase()}`, bossPowers[def.id]?.hint ?? '', config.boss.bannerSec * 1000);
     playSfx(this, 'boss');
     playMusic(this, 'boss');
   }
@@ -818,6 +825,7 @@ export default class GameScene extends Phaser.Scene {
     z.speed = def.speed * this.run.enemySpeedMult; // its walk; a fast elite raises its own
     z.charge = null; // a pooled sprite may have died mid-leap
     z.leapMs = 0;
+    z.powerMs = 0; // a boss's count to its power (data/bossPowers.js)
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
     z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000) * this.run.enemyHpMult
       * (1 + this.run.pressure * config.dda.hpBonus);
@@ -1000,6 +1008,7 @@ export default class GameScene extends Phaser.Scene {
       }
       else if (Phaser.Math.Distance.Between(z.x, z.y, z.startX, z.startY) > lineRange) z.disableBody(true, true);
       else z.angle += z.stats.spinDegPerSec * delta / 1000;
+      if (z.stats.isBoss) updateBossPower(this, z, delta);
       if (!z.elite) continue;
       if (walker && !frozen && !squats && !moonwalk) for (const t of z.elite) t.update?.(this, z, delta);
       z.eliteLabel.setPosition(z.x, z.y - z.displayHeight / 2 - config.elites.labelGap);

@@ -122,6 +122,20 @@ export const config = {
       bigJoker: { base: 'joker', name: 'Wielki Joker', scale: 2.2, speedMult: 0.9, damageMult: 2 },
       bigHomelander: { base: 'homelander', name: 'Wielki Homelander', scale: 2, speedMult: 0.9, damageMult: 2 },
     },
+    // Boss powers (data/bossPowers.js): every everySec, warned attacks (systems/telegraph.js) on a red area that fills up
+    // over warnMs, then strikes for `damage` (grows with the run like a touch; armor takes off its share). range: only
+    // used when Bartek is this close. depth: the warning on the ground, beamDepth: a laser over the enemies.
+    // playerRadius: Bartek's half width for a beam hit.
+    powers: {
+      warnColor: 0xff1744, warnAlpha: 0.22, warnLine: 3, warnLineAlpha: 0.9, pulseMs: 180, pulseAlpha: 0.55, depth: 0.55,
+      beamColor: 0xff5252, beamMs: 300, beamDepth: 5, playerRadius: 14,
+      bigZombie: { everySec: 7, count: 6, radius: 110 }, // zombies rise in a ring around him
+      bigUncanny: { everySec: 7, range: 700, offset: 60, radius: 100, warnMs: 1000, damage: 18 }, // lands offset px from Bartek
+      bigGoblin: { everySec: 5, radius: 90, warnMs: 1100, damage: 14, goblins: 3 }, // a barrel on Bartek, goblins inside
+      bigSportakus: { everySec: 5, range: 320, radius: 190, warnMs: 800, damage: 18 }, // a stomp around himself
+      bigJoker: { everySec: 6, bombs: 3, radius: 75, spread: 170, warnMs: 1200, damage: 14 }, // cards on and around Bartek
+      bigHomelander: { everySec: 5, beams: 3, spreadDeg: 25, length: 1100, width: 34, warnMs: 1000, damage: 22 }, // eye lasers
+    },
   },
   // Elites (data/elites.js): every everySec the next walking enemy that spawns alone (no boss, pack or klapa) becomes an
   // elite with a random trait: hpMult x HP, scale x size, a glow in the trait's colour and its name over its head.
@@ -603,6 +617,12 @@ export const config = {
       { image: { texture: 'fx_ring', scale: [0.3, 5], alpha: [1, 0], ms: 650, tint: 0xff6d00 } },
       { particles: { texture: 'fx_puff', count: 24, speed: [80, 300], lifeMs: 900, scale: [1, 2.5], alpha: [0.9, 0], tint: [0xff6d00, 0xffc400, 0x424242] } },
       { particles: { texture: 'fx_spark', count: 20, speed: [200, 500], lifeMs: 600, scale: [1.2, 0], tint: 0xffe082, add: true } }] },
+    barrelBreak: { layers: [ // the Big Goblin's barrel breaks: wood bits and dust
+      { particles: { texture: 'fx_spark', count: 10, speed: [120, 280], lifeMs: 450, scale: [1.1, 0.4], tint: [0x8d6e63, 0x5d4037], gravityY: 400 } },
+      { particles: { texture: 'fx_puff', count: 5, speed: [20, 70], lifeMs: 500, scale: [0.6, 1.4], alpha: [0.6, 0], tint: [0xbcaaa4, 0x8d6e63] } }] },
+    stompWave: { layers: [ // the Big Sportakus stomps: a dusty ring going out
+      { image: { texture: 'fx_ring', scale: [0.5, 8], alpha: [0.9, 0], ms: 450, tint: 0xffab40 } },
+      { particles: { texture: 'fx_puff', count: 10, speed: [150, 260], lifeMs: 450, scale: [0.6, 1.2], alpha: [0.6, 0], tint: [0xd7ccc8, 0xa1887f] } }] },
     targetMark: { layers: [ // where the Sportakus will land, lasts about his warnMs
       { image: { texture: 'fx_target', scale: [2, 1], alpha: [0.3, 1], ms: 700, tint: 0xff1744, spinDeg: 90, ease: 'Sine.easeInOut' } }] },
     dashDust: { layers: [ // the Sportakus takes off

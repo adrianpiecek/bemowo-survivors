@@ -486,7 +486,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Drzewo „Klon Bartek” na mapie (musi się wyróżniać od tła): klonuje wybrany przedmiot, poświęcając losowy inny przedmiot tej samej rzadkości.
 
 **Bossowie, elity, wydarzenia, plany:**
-- Bossowie z mocami: Homelander strzela laserami, Goblin rzuca beczki z goblinami itd.
 - Więcej planów treningowych, w tym plany z kilkoma bossami naraz i z większą liczbą elit.
 - Wydarzenie Nightskating: zombie na rolkach przejeżdżają z jednej strony ekranu na drugą.
 - Bartek bardzo lubi jeździć na rolkach: wykorzystać to (np. znajdźka, plan albo ultimate).
@@ -564,6 +563,21 @@ Bot (te same zasady co w sekcji 16, pojedyncze przebiegi):
 | Brak (nowy gracz) | śmierć 3:21–6:44 | śmierć 2:21–5:49 (pistolet najdłużej), 28–200 białka |
 | Połowa poziomów | — | śmierć 5:30–6:51 |
 | Pełna | wygrana prawie bez strat HP | wygrana, na koniec 57–222 HP; straty HP od 6. minuty |
+
+### 19. Bossowie z mocami (krok 43)
+
+Każdy boss co kilka sekund używa swojej mocy (`src/data/bossPowers.js`, liczby w `config.boss.powers`). Większość to ataki z ostrzeżeniem (`src/systems/telegraph.js`): czerwone pole na ziemi z obrysem pulsuje i wypełnia się przez `warnMs`, potem uderza. Bartek w środku obrywa przez `GameScene.hurtPlayer`, czyli tak samo jak od dotyku: obrażenia rosną z czasem rundy, pancerz odejmuje swoje, nietykalność, Bańka AI i czołg chronią. Baner „UWAGA: …” ma pod nazwą bossa podpis jego mocy.
+
+| Boss | Moc | Co ile |
+|---|---|---|
+| Wielki Zombie | woła hordę: 6 zombie wstaje w kręgu wokół niego | 7 s |
+| Wielki Uncanny | gdy Bartek jest do 700 px: pole tuż przy Bartku, po ostrzeżeniu boss się tam przenosi i rani | 7 s |
+| Wielki Goblin | beczka na miejsce Bartka: rani i wypuszcza 3 gobliny | 5 s |
+| Wielki Sportakus | gdy Bartek jest do 320 px: tupnięcie, fala wokół bossa | 5 s |
+| Wielki Joker | 3 wybuchające karty: jedna na Bartku, dwie obok | 6 s |
+| Wielki Homelander | 3 lasery z oczu wachlarzem w stronę Bartka, długie na 1100 px | 5 s |
+
+Nowe efekty: `barrelBreak` (drewno i kurz), `stompWave` (pierścień kurzu). Debug: jak wcześniej `config.debug.bossKey` (B, potem cyfra).
 
 ## Architektura
 

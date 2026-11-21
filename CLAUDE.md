@@ -40,6 +40,7 @@ src/data/elites.js       cechy elit jako dane (od kroku 34)
 src/data/events.js       wydarzenia rundy jako dane (od kroku 34)
 src/data/bets.js         Zakłady z Unc jako dane (od kroku 35)
 src/data/plans.js        plany treningowe jako dane (od kroku 33)
+src/data/bossPowers.js   moce bossów jako dane (od kroku 43)
 src/systems/             wspólne mechaniki: efekty czasowe, orbita, efekty wizualne rysowane w kodzie (vfx.js) itp.
 src/systems/ui.js        wspólny wygląd UI: font, panele, paski, przyciski
 src/scenes/BootScene.js
