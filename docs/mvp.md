@@ -21,7 +21,7 @@ MVP to bazowy Bartek z pistoletem, 2 typy zombie, XP z 5 ulepszeniami i jedna ru
 
 ### Gracz
 
-- Ruch WASD i strzałkami, 100 HP.
+- Ruch WASD i strzałkami, 100 HP (od kroku 72: 80 HP).
 - Na telefonie wirtualny joystick: pojawia się tam, gdzie dotkniesz ekranu.
 - Po trafieniu 0,5 s nietykalności, bo bez tego horda zabija w ułamek sekundy.
 - Sprite: statyczny obrazek całego Bartka.
@@ -462,7 +462,6 @@ Dodane w kroku 38:
 Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejnych wersji. Każdy pomysł przed realizacją dostaje osobny krok z treścią zadania.
 
 **Problemy z obecnej gry:**
-- Może mniej bazowego HP, żeby karta Max HP miała sens.
 
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
 
@@ -883,6 +882,22 @@ Gdy bronie i pasywki były na maksie, a sloty pełne, level up dawał już tylko
 - Losowane bez powtórzeń. Można je wywalić (Wywal) na resztę rundy, poza Leczeniem.
 - Działa tak samo w skrzyniach, gdy zabraknie kart.
 - Sprawdzone w przeglądarce: z bronią na maksie i bez wolnych slotów level up pokazał 3 różne karty z tej listy, z rzadkością (legendarna Dokładka: +30 max HP), a wybrana Dodatkowa seria dodała 4% obrażeń.
+
+### 48. Mniej bazowego HP (krok 72)
+
+Bartek zaczyna z **80 HP zamiast 100** (`config.player.maxHp`). Karty i ulepszenia HP liczą się teraz bardziej: Gainer (+20 na poziom) to +25% zamiast +20%, Dokładka (+10) to +12,5%, a Plecak w siłowni (+10 na poziom) działa jak dotąd. Zwykły wróg (6 obrażeń) zabija teraz w 14 dotknięciach zamiast 17, Homelander (20) w 4 zamiast 5. Ukryta presja (DDA) dalej zwalnia, gdy Bartek ma mało HP.
+
+**Pomiar botem nie rozstrzygnął.** Bot ucieka przed wrogami, a w wolnej chwili idzie po kryształy do 250 px, bierze losowe karty i gra bez siłowni. Ginie po 1,5–3,5 minuty, dużo szybciej niż żywy gracz, a rozrzut (73–283 s) jest większy niż różnica między wariantami:
+
+| Bazowe HP | Rundy | Średni czas przeżycia |
+|---|---|---|
+| 100 | 4 | 165 s |
+| 80 | 4 | ok. 140 s |
+| 70 | 4 | 172 s |
+
+Dlatego zmiana jest umiarkowana (80, nie 70). Do sprawdzenia w grze: czy pierwsze 2–3 minuty nie są za trudne.
+
+- Sprawdzone w przeglądarce: nowa runda startuje z 80/80 HP, bez błędów w konsoli.
 
 ## Architektura
 
