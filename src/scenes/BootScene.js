@@ -615,6 +615,12 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.discLabel).fillCircle(c, c, s * 0.18);
     g.fillStyle(o).fillCircle(c, c, s * 0.05);
     done('limp');
+    // Rękawice bokserskie: a red glove with a thumb and a white cuff.
+    g.fillStyle(ic.boxingGlove).fillRoundedRect(s * 0.24, s * 0.12, s * 0.54, s * 0.56, s * 0.2).lineStyle(2, o).strokeRoundedRect(s * 0.24, s * 0.12, s * 0.54, s * 0.56, s * 0.2);
+    g.fillStyle(ic.boxingGlove).fillEllipse(s * 0.24, s * 0.46, s * 0.2, s * 0.3).lineStyle(2, o).strokeEllipse(s * 0.24, s * 0.46, s * 0.2, s * 0.3);
+    g.fillStyle(ic.boxingCuff).fillRect(s * 0.3, s * 0.66, s * 0.42, s * 0.22).lineStyle(2, o).strokeRect(s * 0.3, s * 0.66, s * 0.42, s * 0.22);
+    g.fillStyle(0xffffff, 0.35).fillEllipse(s * 0.6, s * 0.26, s * 0.16, s * 0.1);
+    done('boxing');
     this.drawItemIcons(g);
   }
 

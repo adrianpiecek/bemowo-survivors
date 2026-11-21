@@ -116,6 +116,8 @@ export const config = {
     bag: { magnetPct: 0.2, maxLevel: 5 },
     goggins: { critChance: 0.05, maxLevel: 5 }, // flat share of hits added per level
     limp: { critMult: 0.25, maxLevel: 5 }, // added to the crit multiplier per level
+    // Rękawice bokserskie: +damagePct per level to hits on enemies at most `range` px from Bartek (sword, axe, bees, gas).
+    boxing: { damagePct: 0.15, range: 200, maxLevel: 5 },
   },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
@@ -495,7 +497,7 @@ export const config = {
       syringe: 0xe3f2fd, steroid: 0xe53935, barWrap: 0x6a1b9a, barChoc: 0x6d4c41, can: 0x00c853, canDark: 0x1b5e20,
       sock: 0xfafafa, sockStripe: 0xd32f2f, glove: 0x263238, gloveStrap: 0xff7043, scratch: 0xfff176, scratchFoil: 0x9e9e9e,
       plaster: 0xffcc80, plasterPad: 0xfff3e0, magnet: 0xd32f2f,
-      book: 0x212121, bookPage: 0xfafafa, bookTitle: 0xffc400, disc: 0x263238, discShine: 0x90a4ae, discLabel: 0xd32f2f,
+      book: 0x212121, bookPage: 0xfafafa, bookTitle: 0xffc400, disc: 0x263238, discShine: 0x90a4ae, discLabel: 0xd32f2f, boxingGlove: 0xd32f2f, boxingCuff: 0xfafafa,
       planRing: 0xd32f2f },
     // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.
     hud: { width: 330, padding: 10, rowHeight: 30, iconSize: 26, barWidth: 270, barHeight: 20, barGap: 8, barFontSize: 15,

@@ -287,7 +287,8 @@ export default class GameScene extends Phaser.Scene {
   // Every hit can crit (run.player.critChance): critMult times the damage, a golden burst and flash.
   hurtEnemy(enemy, damage, x, y, vfx = 'hitSpark') {
     playVfx(this, vfx, x, y);
-    const pl = this.run.player, crit = Math.random() < pl.critChance;
+    const pl = this.run.player, crit = Math.random() < pl.critChance, cr = config.passives.boxing.range;
+    if (pl.closeDamage > 0 && Phaser.Math.Distance.Squared(this.player.x, this.player.y, enemy.x, enemy.y) <= cr * cr) damage *= 1 + pl.closeDamage;
     if (crit) {
       damage *= pl.critMult;
       playVfx(this, 'critHit', x, y);

@@ -463,7 +463,7 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 
 **Problemy z obecnej gry:**
 - Jaki jest sens ewolucji, jeśli przychodzi na ostatnie kilkadziesiąt sekund? Częściowo zrobione w kroku 39 (sekcja 16): karty broni z wagą 2, mocniejsze Smog i Pasieka. Zostaje to, że ewolucja czeka na skrzynię bossa.
-- Bronie krótkiego zasięgu (Topór, Ul, Smog) zawsze mają dużo gorsze liczby niż bronie dalekiego zasięgu. Pasywka albo przedmiot na obrażenia z bliska pomoże tylko częściowo.
+- Bronie krótkiego zasięgu (Topór, Ul, Smog) zawsze mają dużo gorsze liczby niż bronie dalekiego zasięgu. Częściowo zrobione w kroku 56 (sekcja 32): pasywka Rękawice bokserskie.
 - Może mniej bazowego HP, żeby karta Max HP miała sens.
 
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
@@ -472,7 +472,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Odrzut jako statystyka broni, z kartami i przedmiotami, które go zwiększają.
 - Prędkość pocisków jako pasywka i statystyka broni.
 - Unik i pancerz.
-- Pasywka albo przedmiot: więcej obrażeń na krótkim dystansie.
 - Pasywka na częstsze elity.
 - Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
 
@@ -683,6 +682,15 @@ Pomiar botem: Bartek stoi w miejscu z nieśmiertelnym HP w 5. minucie (stała fa
 - **Miecz** na 1. poziomie bił mocniej niż wszystko inne: 16 → 11 obrażeń. Teraz jest na poziomie Topora i Pszczół.
 - **Progi odblokowań** zostały bez zmian (1000 zabić, 150 Uncanny, śmierć po 8. minucie, Wielki Sportakus); bot ich nie mierzył.
 - Ze starych broni Shotgun i Tarcza wypadają słabo na maksie. Tego kroku to nie dotyczyło.
+
+### 32. Rękawice bokserskie (krok 56)
+
+Nowa pasywka (`boxing` w `src/data/passives.js`, liczby w `config.passives.boxing`): +15% obrażeń na poziom, max 5 poziomów, ale tylko dla trafień we wrogów do 200 px od Bartka (liczy się środek wroga). Dostępna od początku, bez odblokowania. Działa na każdą broń, ale najwięcej dają jej Miecz, Topór, Ul i Smog, które zawsze biją z bliska.
+
+- Nowa statystyka gracza `closeDamage` (w `run.player`). Bonus liczony w `GameScene.hurtEnemy`, przed krytykiem, więc krytyk go mnoży.
+- Ekwipunek pokazuje „Obrażenia z bliska”.
+- Ikona `passive_boxing`: czerwona rękawica z białym mankietem.
+- Sprawdzone: z bonusem 30% trafienie za 10 zadaje 13 wrogom 150 i 199 px od Bartka, a 10 wrogowi 260 px dalej. Balansu botem nie mierzono.
 
 ## Architektura
 

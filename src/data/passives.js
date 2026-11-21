@@ -89,6 +89,11 @@ export const passives = [
     apply(pl, level, m) { pl.critMult += c.limp.critMult * m; },
   },
   {
+    id: 'boxing', name: 'Rękawice bokserskie', icon: 'passive_boxing', maxLevel: c.boxing.maxLevel, unlock: null,
+    description: (level, m) => `+${pct(c.boxing.damagePct * m)} obrażeń wrogom do ${c.boxing.range} px od Bartka`,
+    apply(pl, level, m) { pl.closeDamage += c.boxing.damagePct * m; },
+  },
+  {
     id: 'bag', name: 'Wór na kryształy', icon: 'passive_bag', maxLevel: c.bag.maxLevel, unlock: null,
     description: (level, m) => `+${pct(c.bag.magnetPct * m)} zasięgu przyciągania kryształów`,
     apply(pl, level, m) { addShare(pl, 'magnetRadius', c.bag.magnetPct * m); },
