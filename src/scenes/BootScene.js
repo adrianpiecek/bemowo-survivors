@@ -392,6 +392,11 @@ export default class BootScene extends Phaser.Scene {
     g.lineStyle(3, ic.bubble).strokeCircle(c, c, c - 2);
     g.fillStyle(0xffffff, 0.8).fillCircle(c * 0.65, c * 0.65, s * 0.08);
     g.generateTexture('pickup_bubble', s, s).clear();
+    // Rolki: a red boot (shaft and foot) on a bar with three yellow wheels.
+    g.fillStyle(ic.rollerBoot).fillRect(s * 0.3, s * 0.08, s * 0.32, s * 0.5).fillRoundedRect(s * 0.3, s * 0.4, s * 0.55, s * 0.24, s * 0.08);
+    g.fillStyle(0x424242).fillRect(s * 0.24, s * 0.64, s * 0.62, s * 0.08);
+    g.fillStyle(ic.rollerWheel).fillCircle(s * 0.32, s * 0.82, s * 0.1).fillCircle(s * 0.55, s * 0.82, s * 0.1).fillCircle(s * 0.78, s * 0.82, s * 0.1);
+    g.generateTexture('pickup_rollers', s, s).clear();
     g.fillStyle(ic.pierogi).slice(c, s * 0.7, c * 0.95, Math.PI, 0, false).fillPath(); // pierogi: half moon, crimped edge
     g.lineStyle(2, ic.pierogiLine).beginPath().arc(c, s * 0.7, c * 0.95, Math.PI, 0, false).strokePath();
     g.generateTexture('pickup_pierogi', s, s).clear();

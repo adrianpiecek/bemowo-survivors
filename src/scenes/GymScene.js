@@ -2,12 +2,9 @@ import { config } from '../config.js';
 import { gymUpgrades } from '../data/gym.js';
 import { save, writeSave, gymLevel } from '../state.js';
 import { playMusic, playSfx } from '../systems/audio.js';
-import { font, panel, drawPanel, button } from '../systems/ui.js';
-import { openSettings } from './SettingsScene.js';
-import { startRun } from './PlanScene.js';
-import { betsOpen, betSum } from '../data/bets.js';
+import { font, panel, button } from '../systems/ui.js';
 
-// Between runs: spend protein on permanent upgrades, then start the next run.
+// Between runs, from the main menu (MenuScene): spend protein on permanent upgrades. "Wróć", Esc or Enter go back to the menu.
 // A purchase restarts the scene with { bought, cost, page }, so the new pip pops and the cost floats up from the protein.
 // Rows that do not fit above the start button go on further pages ("<" ">" or the arrow keys).
 export default class GymScene extends Phaser.Scene {
@@ -25,20 +22,6 @@ export default class GymScene extends Phaser.Scene {
 
     // Title on the left, protein on the right: the narrow screen has no room for both in the middle.
     const title = this.add.text(x0, gs.titleY, 'Siłownia', font(gs.titleFontSize, { fontStyle: 'bold', color: '#ffc400', ...outline }));
-    // Settings (volume) next to the title; Esc opens them too.
-    const gear = config.ui.settings.gearSize;
-    this.add.image(title.x + title.width + gs.padding + gear / 2, title.y + title.height / 2, 'icon_gear').setDisplaySize(gear, gear)
-      .setInteractive({ useHandCursor: true }).on('pointerdown', () => openSettings(this));
-    // After the gear: Wyzwania (unlock conditions) behind the cup, Statystyki behind the chart, Bestiariusz behind the skull.
-    const windows = [['icon_trophy', 'ChallengesScene'], ['icon_stats', 'StatsScene'], ['icon_bestiary', 'BestiaryScene']];
-    windows.forEach(([icon, key], i) => {
-      this.add.image(title.x + title.width + gs.padding * (i + 2) + gear * (i + 1.5), title.y + title.height / 2, icon).setDisplaySize(gear, gear)
-        .setInteractive({ useHandCursor: true }).on('pointerdown', () => {
-          this.scene.pause();
-          this.scene.launch(key, { page: this.page });
-        });
-    });
-    this.input.keyboard.on('keydown-ESC', () => openSettings(this));
 
     // Protein in a pill, top right.
     const pr = gs.protein, prX = x0 + totalW - pr.width, prY = gs.titleY + (gs.titleFontSize * 1.2 - pr.height) / 2;
@@ -46,10 +29,9 @@ export default class GymScene extends Phaser.Scene {
     this.add.image(prX + gs.padding + pr.iconSize / 2, prY + pr.height / 2, 'coin_gold').setDisplaySize(pr.iconSize, pr.iconSize);
     const proteinText = this.add.text(prX + pr.width - gs.padding, prY + pr.height / 2, `${save.protein}${free ? ' (debug)' : ''}`,
       font(pr.fontSize, { fontStyle: 'bold' })).setOrigin(1, 0.5);
-    // "Białko:" before the pill only where the icons after the title leave room (portrait has none).
+    // "Białko:" before the pill only where the title leaves room.
     const label = this.add.text(prX - gs.padding, prY + pr.height / 2, 'Białko:', font(gs.nameFontSize, { color: gs.descColor })).setOrigin(1, 0.5);
-    const iconsRight = title.x + title.width + (windows.length + 1) * (gs.padding + gear);
-    if (label.x - label.width < iconsRight + gs.padding) label.destroy();
+    if (label.x - label.width < title.x + title.width + gs.padding) label.destroy();
 
     const gymMaxLevel = Math.max(...gymUpgrades.map((up) => up.maxLevel));
     // Rows per page: as many as fit between the top and the start button (landscape: it sits on the right, so the bottom
@@ -127,50 +109,18 @@ export default class GymScene extends Phaser.Scene {
       this.input.keyboard.on('keydown-RIGHT', () => turn(1));
       rowsBottom = py + gs.pagerHeight / 2;
     }
-    // Under the rows: Bartek with a speech bubble (a random quote) and a Bartkowanie definition; the start button at the bottom.
-    // Landscape keeps the start button on the right, so Bartek only has to stay above the bottom edge there.
-    const room = height - gs.bottom - (gs.goRight ? 0 : gs.goHeight + gs.sectionGap);
-    if (rowsBottom + gs.sectionGap + gs.bartekHeight <= room) this.addQuote(x0, rowsBottom);
-    this.addGoButtons(x0, totalW, cx);
+    this.addBackButton(x0, totalW, cx);
   }
 
-  // Bartek with a speech bubble (a random quote) and a Bartkowanie definition, under the rows.
-  addQuote(x0, rowsBottom) {
-    const gs = config.ui.gymScreen;
-    const bartek = this.add.image(x0, rowsBottom + gs.sectionGap, 'bartek').setOrigin(0, 0);
-    bartek.setScale(gs.bartekHeight / bartek.height);
-    const bx = x0 + bartek.displayWidth + gs.quoteGap + gs.tail, by = bartek.y;
-    const quote = this.add.text(bx + gs.padding, by + gs.padding, `„${Phaser.Utils.Array.GetRandom(config.gym.quotes)}”`,
-      font(gs.quoteFontSize, { color: '#1b1b1b', fontStyle: 'bold', wordWrap: { width: gs.quoteWidth } }));
-    const bw = quote.width + gs.padding * 2, bh = quote.height + gs.padding * 2;
-    const bubble = this.add.graphics().setDepth(-1);
-    drawPanel(bubble, bx, by, bw, bh, { color: 0xffffff, alpha: 1, borderColor: 0x000000, borderAlpha: 0.6 });
-    bubble.fillStyle(0xffffff).fillTriangle(bx + 1, by + bh * 0.35, bx + 1, by + bh * 0.75, bx - gs.tail, by + bh * 0.7); // tail toward Bartek
-    this.add.text(bx, by + bh + gs.padding, Phaser.Utils.Array.GetRandom(config.bartkowanie.definitions), font(gs.definitionFontSize, {
-      fontStyle: 'italic', color: gs.definitionColor, wordWrap: { width: gs.quoteWidth + gs.padding * 2 },
-    }));
-  }
-
-  addGoButtons(x0, totalW, cx) {
-    const gs = config.ui.gymScreen, u = config.ui, { height } = this.scale;
-
-    // "Na Bemowo!" at the bottom; after the first win "Zakłady z Unc" (with the bonus picked) left of it, the pair centred
-    // (portrait) or on the right (landscape).
-    const go = () => startRun(this); // the plan screen first
-    const bt = u.bets, bets = betsOpen(), rowW = gs.goWidth + (bets ? bt.gymButtonGap + bt.gymButtonWidth : 0);
-    const rowRight = gs.goRight ? x0 + totalW : cx + rowW / 2, goX = rowRight - gs.goWidth / 2, rowY = height - gs.bottom - gs.goHeight / 2;
-    button(this, goX, rowY, 'Na Bemowo!', go, {
-      width: gs.goWidth, height: gs.goHeight, fontSize: gs.goFontSize,
-    });
-    if (bets) {
-      const sum = Math.round(betSum() * 100);
-      button(this, rowRight - rowW + bt.gymButtonWidth / 2, rowY, `Zakłady z Unc\n${sum ? `+${sum}% białka` : 'bez zakładów'}`, () => {
-        this.scene.pause();
-        this.scene.launch('BetsScene');
-      }, { width: bt.gymButtonWidth, height: gs.goHeight, fontSize: bt.gymButtonFontSize, variant: 'secondary' });
-    }
-    this.add.text(goX, height - gs.bottom - gs.goHeight - gs.pipGap, '[Enter]', font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
-    this.input.keyboard.once('keydown-ENTER', go);
+  // "Wróć" where the start button used to be: at the bottom (portrait) or bottom right (landscape).
+  addBackButton(x0, totalW, cx) {
+    const gs = config.ui.gymScreen, { height } = this.scale;
+    const back = () => this.scene.start('MenuScene');
+    const x = gs.goRight ? x0 + totalW - gs.goWidth / 2 : cx, y = height - gs.bottom - gs.goHeight / 2;
+    button(this, x, y, 'Wróć', back, { width: gs.goWidth, height: gs.goHeight, fontSize: gs.goFontSize, variant: 'secondary' });
+    this.add.text(x, height - gs.bottom - gs.goHeight - gs.pipGap, '[Esc]', font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
+    this.input.keyboard.once('keydown-ESC', back);
+    this.input.keyboard.once('keydown-ENTER', back);
   }
 
   buy(up) {

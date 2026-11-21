@@ -161,6 +161,16 @@ export function createMapTextures(scene) {
 
   g.fillStyle(0x000000).fillEllipse(32, 10, 64, 20);
   g.generateTexture('shadow', 64, 20).clear();
+
+  // Boss skull: a big bone-white skull, dark sockets with red eyes, a nose and teeth.
+  const sk = config.skulls, s = sk.size, sh = s * 1.05;
+  g.fillStyle(sk.boneShade).fillCircle(s / 2, s * 0.44, s * 0.44).fillRoundedRect(s * 0.24, s * 0.6, s * 0.52, s * 0.42, s * 0.08);
+  g.fillStyle(sk.bone).fillCircle(s / 2, s * 0.42, s * 0.4).fillRoundedRect(s * 0.27, s * 0.6, s * 0.46, s * 0.38, s * 0.07);
+  g.fillStyle(sk.socket).fillEllipse(s * 0.34, s * 0.5, s * 0.22, s * 0.24).fillEllipse(s * 0.66, s * 0.5, s * 0.22, s * 0.24);
+  g.fillStyle(sk.eyeGlow).fillCircle(s * 0.34, s * 0.52, s * 0.05).fillCircle(s * 0.66, s * 0.52, s * 0.05);
+  g.fillStyle(sk.socket).fillTriangle(s / 2, s * 0.62, s * 0.45, s * 0.74, s * 0.55, s * 0.74);
+  for (let i = 0; i < 4; i++) g.fillRect(s * (0.34 + i * 0.1), s * 0.82, s * 0.03, s * 0.14);
+  g.generateTexture('boss_skull', s, sh).clear();
   g.destroy();
 }
 
@@ -169,7 +179,7 @@ export function createMap(scene) {
   const m = config.map, B = m.block, R = m.road, S = m.sidewalk;
   const grounds = scene.add.group({ classType: Phaser.GameObjects.Image, maxSize: m.pool.blocks });
   const decor = scene.add.group({ classType: Phaser.GameObjects.Image, maxSize: m.pool.decor });
-  const blocks = new Map(); // "bx,by" -> { ground, items, lights, chest }
+  const blocks = new Map(); // "bx,by" -> { ground, items, lights, chest, skull }
   const wc = config.worldChests, freeLabels = []; // price labels over chests, reused
   const labelStyle = { fontFamily: config.ui.font, fontSize: `${wc.labelFontSize}px`, fontStyle: 'bold', stroke: '#000000', strokeThickness: 4 };
   const light = m.light, cycle = light.ms.reduce((a, b) => a + b, 0);
@@ -225,7 +235,8 @@ export function createMap(scene) {
     }
     // Maybe a locked chest on the sidewalk ring (GameScene.updateWorldChests opens it), from this run's seed.
     const key = `${bx},${by}`, cr = blockRandom(bx + scene.run.chestSeed, by - scene.run.chestSeed);
-    if (cr() < wc.chance && !scene.run.openedChests.has(key)) {
+    const chestHere = cr() < wc.chance;
+    if (chestHere && !scene.run.openedChests.has(key)) {
       const along = between(cr, R + S + 60, B - S - 60), side = Math.floor(cr() * 4);
       const [x, y] = [[along, R + S - 4], [along, B - 6], [R + S * 0.5, along], [B - S * 0.5, along]][side];
       const img = put('chest_locked', x, y);
@@ -242,6 +253,14 @@ export function createMap(scene) {
             label.text.setPosition(left + wc.labelIconSize + wc.labelGap, ly);
           } };
       }
+    }
+    // Or, now and then, a boss skull on the sidewalk ring (GameScene.updateSkulls).
+    const skullChance = config.debug.skullEverywhere ? 1 : config.skulls.chance;
+    if (!chestHere && cr() < skullChance && !scene.run.usedSkulls.has(key)) {
+      const along = between(cr, R + S + 60, B - S - 60), side = Math.floor(cr() * 4);
+      const [x, y] = [[along, R + S - 4], [along, B - 6], [R + S * 0.5, along], [B - S * 0.5, along]][side];
+      const img = put('boss_skull', x, y);
+      if (img) block.skull = { key, img, x: x0 + x, y: y0 + y - img.height / 2 };
     }
     // A parking lot fills some of its spaces.
     if (kind.id === 'parking') {
@@ -307,6 +326,13 @@ export function createMap(scene) {
     blockCount: () => blocks.size,
     // The closed chests on the blocks around Bartek.
     *chests() { for (const block of blocks.values()) if (block.chest) yield block.chest; },
+    // The unused boss skulls on the blocks around Bartek.
+    *skulls() { for (const block of blocks.values()) if (block.skull) yield block.skull; },
+    useSkull(skull) {
+      scene.run.usedSkulls.add(skull.key);
+      free(skull.img);
+      blocks.get(skull.key).skull = null;
+    },
     openChest(chest) {
       scene.run.openedChests.add(chest.key);
       free(chest.img);

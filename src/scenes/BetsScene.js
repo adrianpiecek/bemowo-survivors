@@ -76,6 +76,6 @@ export default class BetsScene extends Phaser.Scene {
   close() {
     if (this.closing) return; // a click and a key press can land in the same frame
     this.closing = true;
-    this.scene.start('GymScene'); // stops this one; the gym redraws with the new bonus
+    this.scene.start('MenuScene'); // stops this one; the menu redraws with the new bonus
   }
 }

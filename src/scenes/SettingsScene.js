@@ -4,7 +4,7 @@ import { setVolume, playSfx, pauseSfx, resumeSfx, toggleMute } from '../systems/
 import { font, panel, drawBar, button } from '../systems/ui.js';
 import { setOrientation } from '../systems/layout.js';
 
-// Pauses `scene` (GameScene or GymScene) and opens the settings over it. Ignored when that scene is already paused
+// Pauses `scene` (GameScene or MenuScene) and opens the settings over it. Ignored when that scene is already paused
 // (level-up cards, a chest, or the settings themselves are open), so closing never resumes a run under the cards.
 export function openSettings(scene) {
   if (!scene.scene.isActive() || scene.dying) return; // Bartek falling: the end screen is coming

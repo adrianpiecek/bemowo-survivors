@@ -310,6 +310,12 @@ export const config = {
   // Locked chests on the map (systems/map.js): at most one per block, with `chance`, on the sidewalk, placed anew every
   // run. Walking into one with enough B coins opens it for an item (data/items.js); each chest opened this run raises
   // the price of all: round(basePrice x growth^opened). Over each: the price and a B coin, white if affordable, else red.
+  // Boss skulls (systems/map.js, GameScene.updateSkulls): a big skull `size` px wide lies on `chance` of the blocks that
+  // have no locked chest, from this run's seed. Standing within touchRadius of it for holdMs fills a ring (ringRadius)
+  // around it; then the banner of a boss comes and riseMs later the boss stands up where the skull lay. The boss: from the
+  // last boss slot already reached (the first before that), with that slot's hp, chest and protein. A used skull is gone.
+  skulls: { chance: 0.1, size: 84, touchRadius: 70, holdMs: 2000, riseMs: 1500, ringRadius: 62, ringWidth: 7, ringBackAlpha: 0.25,
+    ringDepth: 0.5, bone: 0xeceff1, boneShade: 0xb0bec5, socket: 0x212121, eyeGlow: 0xff1744 },
   worldChests: { chance: 0.35, basePrice: 5, growth: 1.3, touchRadius: 40, labelY: 52, labelFontSize: 20, labelIconSize: 20,
     labelGap: 4, labelDepth: 5, affordColor: '#ffffff', poorColor: '#ff5252' },
   // Items (data/items.js): small run-long gains from chests, no slots, no stack limit.
@@ -328,6 +334,7 @@ export const config = {
     resetSave: false, // true wipes the save on page load
     freeProtein: false, // true makes gym purchases free
     pickupKey: false, // true: the P key drops a random pickup next to Bartek
+    skullEverywhere: false, // true: every block without a locked chest has a boss skull
     tankKey: false, // true: the T key fills the tank bar at once
     klapaKey: false, // true: the K key launches a klapa at Bartek
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
@@ -377,6 +384,11 @@ export const config = {
     preworkout: { dropChance: 0.003, cooldownSec: 60, durationSec: 8, fireRateMult: 2 },
     bubble: { dropChance: 0.003, cooldownSec: 60, durationSec: 6 }, // no damage taken
     pierogi: { dropChance: 0.004, cooldownSec: 30, heal: 30 },
+    // Rolki Bartka: speedPct faster for durationSec; a walker or flyer (not a boss) touching him takes ramDamage (weapon
+    // damage bonuses count) instead of biting, at most once per ramCooldownMs, and a walker is pushed away at knockSpeed
+    // for knockMs. He leans leanDeg into the turn and leaves a streak every trailEveryMs, trailBack px behind.
+    rollers: { dropChance: 0.003, cooldownSec: 60, durationSec: 8, speedPct: 0.6, ramDamage: 25, ramCooldownMs: 400,
+      knockSpeed: 420, knockMs: 220, leanDeg: 12, trailEveryMs: 110, trailBack: 18 },
   },
   // Permanent upgrades bought with protein. Percentages multiply with the in-run upgrades.
   gym: {
@@ -512,8 +524,7 @@ export const config = {
       // Top center clock pill and the top right stats (kills, protein from coins).
       clock: { width: 150, height: 46, fontSize: 30, iconSize: 26 }, stat: { width: 140, height: 38, fontSize: 22, iconSize: 26, gap: 8 } },
     // Settings / pause screen (SettingsScene): a panel with a row per volume (label, -, bar, +, percent) and a back button.
-    // step: how much one press of - or + changes a volume. pauseButton: the HUD's square pause button left of the clock;
-    // gearSize: the gym's settings button next to its title.
+    // step: how much one press of - or + changes a volume. pauseButton: the HUD's square pause button left of the clock.
     // Odśwież / Pomiń / Wywal under the level-up cards, `top` px under the lowest card; the key hint line under them.
     drawButtons: { width: 200, height: 64, gap: 20, top: 40, fontSize: 24, hintFontSize: 18, hintGap: 14, hintColor: '#b0bec5',
       banishColor: '#ff5252', banishBorder: 0xff5252 },
@@ -537,7 +548,7 @@ export const config = {
       // kept between min and max, changed by `step` (the same step as the volumes).
       // uiScale max: the top HUD row (HP panel, pause, clock) still fits the 720 px wide portrait screen.
       uiScale: { min: 0.8, max: 1.2 }, cameraZoom: { min: 0.8, max: 1.2 },
-      barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 46 }, // gearSize: the icons after the gym's title
+      barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 } },
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
     // Arrow at the screen edge toward the nearest pickup lying off screen.
@@ -572,7 +583,14 @@ export const config = {
     banner: { y: 400, fontSize: 52, strokeThickness: 6, durationMs: 3200, fadeMs: 250, subFontSize: 26, subStrokeThickness: 4, padX: 30, padY: 14, gap: 6 },
     olxCard: { width: 420, height: 440, padding: 24, photoSize: 200, titleFontSize: 34, textFontSize: 20, bigFontSize: 38 },
     buttonOffsetX: 160, // two buttons side by side sit this far left and right of center
-    gymPulse: { scale: 1.12, ms: 500 }, // game over gym button after the first run
+    gymPulse: { scale: 1.12, ms: 500 }, // after the first run: the end screen's menu button and the menu's gym button
+    // Main menu (MenuScene): title, protein pill proteinGap under it, then a button column `width` wide at columnX of the
+    // screen from `top`: Na Bemowo! (goHeight), Siłownia and Zakłady z Unc (height), the small windows two per row
+    // (smallHeight, an icon iconPad from the left). Bartek's quote under it where it fits above `bottom`, or with
+    // quoteSide at (quoteLeft, top).
+    menu: { titleY: 120, titleFontSize: 60, proteinGap: 18, top: 380, columnX: 0.5, width: 480, gap: 16, goHeight: 96, goFontSize: 40,
+      height: 72, fontSize: 28, betsFontSize: 22, smallHeight: 64, smallFontSize: 20, iconSize: 32, iconPad: 14, hintFontSize: 16,
+      quoteSide: false, quoteLeft: 0, quoteGap: 40, bottom: 40 },
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
@@ -633,6 +651,8 @@ export const config = {
         stats: { width: 1000, columns: 2, columnGap: 24, padding: 16, gap: 10, titleFontSize: 34, rowHeight: 36, fontSize: 17, backHeight: 52 },
         challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15,
           rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 14, backHeight: 52 },
+        menu: { titleY: 24, titleFontSize: 52, top: 190, columnX: 0.72, width: 440, gap: 12, goHeight: 80, goFontSize: 36, height: 60,
+          smallHeight: 54, quoteSide: true, quoteLeft: 60 },
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30, top: 96, rowHeight: 112, rowGap: 8, bartekHeight: 90 },
       },
@@ -812,7 +832,7 @@ export const config = {
     },
     // Drawn icons of the timed pickups, size x size px.
     pickupIcons: { size: 36, magnet: 0xd32f2f, magnetTip: 0xcfd8dc, freeze: 0x81d4fa, freezeLine: 0xffffff,
-      preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a },
+      preworkout: 0x8e24aa, preworkoutCap: 0x212121, bubble: 0x4dd0e1, pierogi: 0xf3e0b5, pierogiLine: 0xc8a96a, rollerBoot: 0xe53935, rollerWheel: 0xffeb3b },
     // Effect shapes (systems/vfx.js), radius in px (flash: width and height, shell: height, twice as long).
     fx: { blob: 14, streak: 16, dizzy: 16, leaf: 6, dot: 4, spark: 8, puff: 12, ring: 32, ringWidth: 4, target: 28, star: 10, rays: 64, plus: 6, flake: 8, flash: 28, shell: 3, chevron: 9, ha: 9,
       bolt: 64 }, // bolt: a zigzag down the middle of a bolt*2 square

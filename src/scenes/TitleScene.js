@@ -101,6 +101,6 @@ export default class TitleScene extends Phaser.Scene {
       font(t.promptFontSize, { fontStyle: 'bold', stroke: '#000000', strokeThickness: t.promptStroke, align: 'center',
         wordWrap: { width: width - 2 * config.ui.margin } })).setOrigin(0.5);
     this.tweens.add({ targets: press, alpha: 0, duration: t.blinkMs, yoyo: true, repeat: -1 });
-    this.onFirstInput(() => this.scene.start(save.runsPlayed ? 'GymScene' : 'GameScene'));
+    this.onFirstInput(() => this.scene.start(save.runsPlayed ? 'MenuScene' : 'GameScene'));
   }
 }

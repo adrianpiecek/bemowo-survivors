@@ -65,6 +65,6 @@ export default class ChallengesScene extends Phaser.Scene {
   close() {
     if (this.closing) return; // a click and a key press can land in the same frame
     this.closing = true;
-    this.scene.start('GymScene', { page: this.page }); // stops this one
+    this.scene.start('MenuScene'); // stops this one; the menu opened it
   }
 }

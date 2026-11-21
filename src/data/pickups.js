@@ -13,7 +13,7 @@ import { addEffect } from '../systems/effects.js';
 //   heals  it heals Bartek: never drops with the bet Bez pierogów
 // apply(scene, sprite) gets the pickup's sprite too (the chest reads its count from it). No bannerText: no banner.
 const pk = config.pickups, o = pk.olx, ps = pk.photoshop;
-const fr = pk.freeze, pw = pk.preworkout, bb = pk.bubble, pi = pk.pierogi, mg = pk.magnet;
+const fr = pk.freeze, pw = pk.preworkout, bb = pk.bubble, pi = pk.pierogi, mg = pk.magnet, rl = pk.rollers;
 
 // Timed effect from the Photoshop pickup.
 const smallB = {
@@ -99,6 +99,22 @@ export const pickups = [
     effect: 'bubble',
     aura: 'bubble',
     apply(scene) { addEffect(scene.run, { id: 'bubble', durationMs: bb.durationSec * 1000, apply() {} }); },
+  },
+  {
+    // The ramming itself is in GameScene.onEnemyTouch, the lean and the streaks in its update.
+    id: 'rollers',
+    name: 'Rolki Bartka',
+    bannerText: 'ROLKI!',
+    bannerSubtext: `Bartek kocha rolki.\nO ${Math.round(rl.speedPct * 100)}% szybszy i taranuje wrogów (nie bossów) przez ${rl.durationSec} s`,
+    dropChance: rl.dropChance,
+    cooldownSec: rl.cooldownSec,
+    icon: 'pickup_rollers',
+    onMap: true,
+    effect: 'rollers',
+    vfx: 'smokePuff',
+    apply(scene) {
+      addEffect(scene.run, { id: 'rollers', durationMs: rl.durationSec * 1000, apply(pl) { pl.speed *= 1 + rl.speedPct; } });
+    },
   },
   {
     // Bosses drop it with count = their slot's chest; events with one card and evolution false (no evolution inside);

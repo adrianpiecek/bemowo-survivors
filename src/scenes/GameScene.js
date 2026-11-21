@@ -229,6 +229,20 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     if (this.isWalker(enemy) && isEffectActive(this.run, 'freeze')) return; // frozen walkers do not bite
+    // Rolki Bartka: he rams whatever is not a boss: it gets hurt (and a walker pushed off) instead of biting him.
+    if (isEffectActive(this.run, 'rollers') && !enemy.stats.isBoss) {
+      const rl = config.pickups.rollers;
+      if (!enemy.active || this.time.now < enemy.ramUntil) return;
+      enemy.ramUntil = this.time.now + rl.ramCooldownMs;
+      if (this.isWalker(enemy)) {
+        const a = Phaser.Math.Angle.Between(player.x, player.y, enemy.x, enemy.y);
+        enemy.setVelocity(Math.cos(a) * rl.knockSpeed, Math.sin(a) * rl.knockSpeed);
+        enemy.knockMs = rl.knockMs;
+      }
+      this.damageSource = null; // not a weapon's damage
+      this.hurtEnemy(enemy, this.weaponDamage(rl.ramDamage), enemy.x, enemy.y);
+      return;
+    }
     if (this.hurtPlayer(enemy.stats.contactDamage, enemy.stats.touchVfx) && enemy.stats.leavesScar) this.run.scarred = true;
   }
 
@@ -383,8 +397,9 @@ export default class GameScene extends Phaser.Scene {
     playMusic(this, 'boss');
   }
 
-  spawnBoss(def) {
-    this.boss = this.spawnEnemy(def) ?? this.boss;
+  // x, y: where it stands up (a boss skull); without them it walks in from the spawn ring.
+  spawnBoss(def, x, y) {
+    this.boss = this.spawnEnemy(def, x, y) ?? this.boss;
   }
 
   bossKilled(boss) {
@@ -437,6 +452,41 @@ export default class GameScene extends Phaser.Scene {
       this.openChest(1, false, true);
       return; // the price just went up
     }
+  }
+
+  // Boss skulls (config.skulls): standing by one fills a ring around it; full, it is used up and calls a boss there.
+  updateSkulls(delta) {
+    const sk = config.skulls, r2 = sk.touchRadius ** 2, { x, y } = this.player;
+    this.skullRing ??= this.add.graphics().setDepth(sk.ringDepth);
+    this.skullRing.clear();
+    let near = null;
+    for (const s of this.map.skulls()) if ((s.x - x) ** 2 + (s.y - y) ** 2 <= r2) near = s;
+    if (near !== this.skullAt) this.skullMs = 0; // walked off (or to another one): start over
+    this.skullAt = near;
+    if (!near) return;
+    this.skullMs += delta;
+    const p = Math.min(1, this.skullMs / sk.holdMs), top = -Math.PI / 2;
+    this.skullRing.lineStyle(sk.ringWidth, sk.eyeGlow, sk.ringBackAlpha).strokeCircle(near.x, near.y, sk.ringRadius);
+    this.skullRing.lineStyle(sk.ringWidth, sk.eyeGlow).beginPath().arc(near.x, near.y, sk.ringRadius, top, top + p * Math.PI * 2).strokePath();
+    if (p < 1) return;
+    this.map.useSkull(near);
+    this.skullAt = null;
+    this.summonSkullBoss(near.x, near.y);
+  }
+
+  // A boss from the last slot reached (its hp, chest and protein), outside the run's boss plan: the banner now, the boss
+  // riseMs later where the skull lay.
+  summonSkullBoss(x, y) {
+    const slots = config.boss.slots, sec = this.run.elapsedMs / 1000;
+    const slot = slots.filter((s) => s.atSec <= sec).at(-1) ?? slots[0];
+    const id = Phaser.Utils.Array.GetRandom(slot.pool);
+    const def = { ...enemies.find((d) => d.id === id), hp: slot.hp, chest: slot.chest, protein: slot.protein };
+    this.announceBoss(def);
+    playVfx(this, 'smokePuff', x, y);
+    this.time.delayedCall(config.skulls.riseMs, () => {
+      playVfx(this, 'bossBoom', x, y);
+      this.spawnBoss(def, x, y);
+    });
   }
 
   openScreen(scene, data = {}) { this.run.screenQueue.push({ scene, data }); }
@@ -858,6 +908,8 @@ export default class GameScene extends Phaser.Scene {
     z.speed = def.speed * this.run.enemySpeedMult; // its walk; a fast elite raises its own
     z.charge = null; // a pooled sprite may have died mid-leap
     z.leapMs = 0;
+    z.knockMs = 0; // pushed off by Bartek on rollers
+    z.ramUntil = 0;
     z.powerMs = 0; // a boss's count to its power (data/bossPowers.js)
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
     z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000) * this.run.enemyHpMult
@@ -979,8 +1031,17 @@ export default class GameScene extends Phaser.Scene {
     this.player.setVelocity(this.moveDir.x, this.moveDir.y);
     // A sway while walking (not in the tank, not while a tween turns him, e.g. the Bartkowanie spins).
     const lk = config.look, bobW = Math.PI * 2 * lk.bobHz;
+    // On rollers he glides leaning into the way he goes instead, leaving streaks behind.
+    const rolling = isEffectActive(run, 'rollers') && run.tankMs <= 0, moving = this.moveDir.lengthSq() > 0, rl = config.pickups.rollers;
     if (!this.tweens.isTweening(this.player)) {
-      this.player.setAngle(this.moveDir.lengthSq() > 0 && run.tankMs <= 0 ? Math.sin(run.elapsedMs / 1000 * bobW) * lk.bobDeg : 0);
+      const sway = rolling ? Math.sign(this.moveDir.x) * rl.leanDeg : Math.sin(run.elapsedMs / 1000 * bobW) * lk.bobDeg;
+      this.player.setAngle(moving && run.tankMs <= 0 ? sway : 0);
+    }
+    this.rollTrailMs = (this.rollTrailMs ?? 0) + delta;
+    if (rolling && moving && this.rollTrailMs >= rl.trailEveryMs) {
+      this.rollTrailMs = 0;
+      const back = this.moveDir.angle() + Math.PI;
+      playVfx(this, 'moonwalkTrail', this.player.x + Math.cos(back) * rl.trailBack, this.player.y + Math.sin(back) * rl.trailBack, Phaser.Math.RadToDeg(back));
     }
 
     if (run.tankMs > 0) {
@@ -1041,6 +1102,7 @@ export default class GameScene extends Phaser.Scene {
       if (walker && frozen) z.setVelocity(0, 0);
       else if (walker && squats) z.setVelocity(0, bk.squatAmp * hopW * Math.cos(hopW * hopT + z.x));
       else if (z.stats.behavior === 'leap' && !moonwalk) updateLeaper(this, z, delta);
+      else if (walker && z.knockMs > 0) z.knockMs -= delta; // rammed: flies off with the push it got
       else if (walker) {
         this.physics.moveToObject(z, this.player, z.speed * (moonwalk ? -1 : 1));
         z.setAngle(Math.sin(hopT * bobW + z.bobPhase) * lk.bobDeg);
@@ -1059,6 +1121,7 @@ export default class GameScene extends Phaser.Scene {
       .setDisplaySize(this.player.displayWidth * lk.shadowW, this.player.displayWidth * lk.shadowW * lk.shadowFlat);
     this.map.update(delta);
     this.updateWorldChests();
+    this.updateSkulls(delta);
 
     // The scar follows Bartek's head and his size; the tank hides it.
     const sc = config.scar;

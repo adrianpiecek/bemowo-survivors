@@ -478,11 +478,9 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 
 **Bossowie, elity, wydarzenia, plany:**
 - Więcej planów treningowych, w tym plany z kilkoma bossami naraz i z większą liczbą elit.
-- Bartek bardzo lubi jeździć na rolkach: wykorzystać to (np. znajdźka, plan albo ultimate).
 - Po przejściu mapy: możliwość zwiększenia zarabianego białka razem z poziomem trudności (jak poziomy trudności po wygranej).
 
 **Ekrany i menu:**
-- Lepsze menu główne zamiast siłowni, w której jest wszystko.
 
 **Pytania techniczne:**
 - Brak dźwięku na iPhonie: do sprawdzenia. Najczęstsza przyczyna to przełącznik wyciszenia w iPhonie (wycisza Web Audio) albo dźwięk odblokowany dopiero po dotknięciu ekranu.
@@ -746,6 +744,42 @@ Piksele nic graczowi nie mówią, więc teksty w grze podają rozmiary względni
 - **Rękawice bokserskie:** zasięg w wzrostach Bartka: „wrogom bliżej niż 2,5 Bartka od niego”. W configu `boxing.rangeBartek` 2,5 zamiast `range` 200 px; zasięg w px to `rangeBartek × textures.bartek.height`.
 - **Ekwipunek:** „Zbieranie” i „Zasięg pistoletu” jako zmiana względem startu (np. „+20%”), a nie w px.
 - Liczby w `config.js` i opisy w tym dokumencie zostają w px (dla dewelopera). Linia debugowa balansu w HUD też.
+
+### 39. Rolki Bartka (krok 63)
+
+Nowa znajdźka (`rollers` w `src/data/pickups.js`, liczby w `config.pickups.rollers`), wypada z wrogów i leży na mapie jak pozostałe (szansa 0,003, odstęp 60 s). Przez 8 s Bartek jeździ na rolkach: jest o 60% szybszy i taranuje wrogów.
+
+- **Taranowanie** (`GameScene.onEnemyTouch`): wróg, który nie jest bossem, przy dotyku nie gryzie, tylko dostaje 25 obrażeń (z bonusami do obrażeń i krytykiem), najwyżej raz na 0,4 s. Chodzący wróg odlatuje od Bartka (420 px/s przez 0,22 s, `z.knockMs`). Boss gryzie normalnie. Czołg i Zimny prysznic mają pierwszeństwo.
+- **Wygląd:** zamiast kołysania Bartek pochyla się w stronę jazdy (12°) i zostawia za sobą smugi (`moonwalkTrail`). Baner „ROLKI!”, ikona efektu w HUD i ikona znajdźki `pickup_rollers` (czerwony but na trzech żółtych kółkach).
+- Debug: `config.debug.pickupKey`, P zrzuca kolejne znajdźki, w tym rolki.
+- Sprawdzone w przeglądarce: prędkość 200 → 320 i z powrotem po 8 s, taranowany wróg dostaje obrażenia i odlatuje, Bartek nie traci HP, drugie dotknięcie w czasie odnowienia nic nie robi.
+
+### 40. Menu główne zamiast siłowni ze wszystkim (krok 64)
+
+Siłownia robiła za menu: ulepszenia, cztery ikony przy tytule, start rundy, Zakłady z Unc i cytat Bartka naraz. Teraz między rundami jest osobne **menu główne** (`src/scenes/MenuScene.js`, liczby w `config.ui.menu`):
+
+- Tytuł „Bemowo Survivors” i białko pod nim.
+- Kolumna przycisków: **Na Bemowo!** (duży, Enter), **Siłownia**, **Zakłady z Unc** (z wybranym bonusem; po pierwszej wygranej, jak dotąd), a pod nimi małe przyciski z ikonami po dwa w rzędzie: **Wyzwania**, **Statystyki**, **Bestiariusz**, **Ustawienia** (też Esc).
+- Bartek z cytatem i definicją Bartkowania: pod przyciskami w pionie, po lewej w poziomie (`quoteSide`).
+- Po pierwszej rundzie pulsuje przycisk Siłownia, żeby gracz znalazł, gdzie wydać białko.
+
+Co się zmieniło gdzie indziej:
+
+- **Siłownia** (`GymScene`) ma tylko tytuł, białko, ulepszenia (ze stronami) i „Wróć” na miejscu dawnego startu; Esc i Enter też wracają do menu. Ikony przy tytule, cytat i przyciski startu zniknęły (`gearSize` usunięty z configu).
+- Okna Wyzwania, Statystyki, Bestiariusz i Zakłady z Unc otwierają się nad menu i do niego wracają.
+- Ekran tytułowy (gdy były już rundy) i przycisk na ekranie końca rundy (teraz „Menu” zamiast „Siłownia”) prowadzą do menu.
+- Sprawdzone w przeglądarce w pionie i poziomie: menu z Zakładami i bez, przejście do siłowni i z powrotem, okno Wyzwań wraca Escape'em do menu.
+
+### 41. Czacha bossa (krok 65)
+
+Na mapie leży czasem duża czacha (biała, czerwone oczy, rysowana w `createMapTextures`, liczby w `config.skulls`). Kto przy niej postoi, wzywa dodatkowego bossa.
+
+- **Gdzie:** na chodniku 10% bloków, które nie mają zamkniętej skrzyni; losowanie z ziarna rundy, jak skrzynie na mapie. Zużyta czacha znika na resztę rundy (`run.usedSkulls`).
+- **Wezwanie:** Bartek stoi w promieniu 70 px od czachy, a wokół niej zapełnia się czerwony pierścień. Pełny po 2 s; odejście zeruje licznik. Potem baner „UWAGA: …” i dym, a po 1,5 s boss wstaje w miejscu czachy (`GameScene.updateSkulls`, `summonSkullBoss`).
+- **Boss:** losowy z puli ostatniego slotu bossa, który już minął (przed pierwszym: z pierwszego), z HP, skrzynią i białkiem tego slotu. Dochodzi poza planem rundy: zwykli bossowie przychodzą jak dotąd.
+- Zabity liczy się do statystyki bossów, więc na końcu rundy może być np. „5 / 4”.
+- Debug: `config.debug.skullEverywhere`, czacha na każdym bloku bez skrzyni.
+- Sprawdzone w przeglądarce: w 4:40 (po drugim slocie) przyszedł Wielki Goblin z 2200 HP w miejscu czachy; po 1 s pierścień był w połowie; odejście zeruje licznik; po zabiciu skrzynia i +15 białka.
 
 ## Architektura
 

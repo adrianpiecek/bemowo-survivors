@@ -48,7 +48,8 @@ src/scenes/GameScene.js
 src/scenes/UIScene.js
 src/scenes/LevelUpScene.js
 src/scenes/GameOverScene.js
-src/scenes/GymScene.js   (od kroku 11)
+src/scenes/GymScene.js   (od kroku 11; od kroku 64 tylko ulepszenia)
+src/scenes/MenuScene.js  (od kroku 64, menu główne między rundami)
 src/scenes/SettingsScene.js pauza i głośność
 src/scenes/ChestScene.js (od kroku 26, skrzynia po bossie)
 src/scenes/ShopScene.js  (od kroku 34, sklep z wydarzenia Promocja w Żabce)

@@ -117,13 +117,13 @@ export default class GameOverScene extends Phaser.Scene {
     y += go.buttonsGap;
 
     // GameScene.create() calls newRun(), so restarting it gives a clean run.
-    const buttons = [['Siłownia', 'GymScene', -u.buttonOffsetX], ['Jeszcze raz', 'GameScene', u.buttonOffsetX]];
+    const buttons = [['Menu', 'MenuScene', -u.buttonOffsetX], ['Jeszcze raz', 'GameScene', u.buttonOffsetX]];
     for (const [label, scene, dx] of buttons) {
       const btn = button(this, cx + dx, y, label, () => (scene === 'GameScene' ? startRun(this) : this.scene.start(scene)), {
-        fontSize: u.buttonFontSize, variant: scene === 'GymScene' ? 'secondary' : 'primary',
+        fontSize: u.buttonFontSize, variant: scene === 'MenuScene' ? 'secondary' : 'primary',
       });
-      // After the very first run (which skipped the gym) the gym button pulses, so the player finds where protein goes.
-      if (scene === 'GymScene' && save.runsPlayed === 1) {
+      // After the very first run (which skipped the menu) the menu button pulses, so the player finds where protein goes.
+      if (scene === 'MenuScene' && save.runsPlayed === 1) {
         this.tweens.add({ targets: btn, scale: u.gymPulse.scale, duration: u.gymPulse.ms, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
     }
