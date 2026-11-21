@@ -15,6 +15,7 @@ import ShopScene from './scenes/ShopScene.js';
 import BetsScene from './scenes/BetsScene.js';
 import ChallengesScene from './scenes/ChallengesScene.js';
 import InventoryScene from './scenes/InventoryScene.js';
+import StatsScene from './scenes/StatsScene.js';
 
 applyLayout(); // portrait or landscape from the save, before the game size is read
 const game = new Phaser.Game({
@@ -24,7 +25,7 @@ const game = new Phaser.Game({
   backgroundColor: config.game.background,
   scale: { parent: 'game', mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { debug: false } },
-  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, ShopScene, GameOverScene, GymScene, BetsScene, ChallengesScene, PlanScene, InventoryScene, SettingsScene], // SettingsScene last: drawn over the rest
+  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, ShopScene, GameOverScene, GymScene, BetsScene, ChallengesScene, StatsScene, PlanScene, InventoryScene, SettingsScene], // SettingsScene last: drawn over the rest
 });
 
 // iPhone: Safari mutes web audio while the ring/silent switch is on silent; 'playback' plays it like a video does

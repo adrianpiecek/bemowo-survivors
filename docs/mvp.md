@@ -490,7 +490,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Po przejściu mapy: możliwość zwiększenia zarabianego białka razem z poziomem trudności (jak poziomy trudności po wygranej).
 
 **Ekrany i menu:**
-- Statystyki gracza (łączne z wszystkich rund).
 - Bestiariusz pokonanych wrogów.
 - Lepsze menu główne zamiast siłowni, w której jest wszystko.
 - Ustawienia: wielkość GUI i odległość kamery.
@@ -613,6 +612,13 @@ Nowe, dziesiąte wydarzenie rundy (`nightskating` w `src/data/events.js`, liczby
 - Debug: `config.debug.eventKey`, potem V i cyfra; 9 to Chorda nadchodzi, 0 to Nightskating (wcześniej klawisze sięgały tylko do 8).
 
 Test: Bartek stojący w miejscu przez całe wydarzenie traci dużo HP (rolkarze razem ze zwykłymi wrogami: 216 HP w 1. minucie). Unikanie pasów nie zostało sprawdzone ręcznie.
+
+### 25. Statystyki gracza (krok 49)
+
+W siłowni po zębatce i pucharze jest ikona wykresu. Otwiera okno **Statystyki** (`src/scenes/StatsScene.js`, wygląd w `config.ui.stats`) nad zatrzymaną siłownią. W oknie są sumy i rekordy ze wszystkich rund: rozegrane i wygrane rundy, łączny czas gry, najdłużej przeżyta runda, zabici wrogowie, najwięcej zabitych w jednej rundzie, pokonani bossowie, najwyższy poziom, zdobyte białko, zjedzone pierogi, przyjęte obrażenia, duże złote monety, Bartkowania i odkryte ewolucje (x/8). W poziomie okno ma dwie kolumny. Wróć, Esc albo Enter wracają do siłowni.
+
+- Nowe pola w `save.stats` (`state.js freshStats`): `kills`, `bosses`, `playMs`, `protein`, `bestMs`, `bestKills`. GameOverScene dolicza je po każdej rundzie, także po wyjściu do menu. Starszy zapis dostaje je jako 0 (stąd dopisek w oknie, że liczą się od tej wersji); `loadSave` czyta je jak pozostałe statystyki. „Nowa gra” je zeruje.
+- W pionie nad siłownią nie ma już miejsca na napis „Białko:” przed licznikiem, więc znika, gdy nachodziłby na ikony (zostaje moneta w ramce). W poziomie zostaje.
 
 ## Architektura
 

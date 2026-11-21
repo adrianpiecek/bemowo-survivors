@@ -543,6 +543,10 @@ export const config = {
     inventory: { width: 680, padding: 20, gap: 12, columns: 2, statColumns: 2, rowHeight: 52, statHeight: 26, iconSize: 40,
       titleFontSize: 44, headFontSize: 22, nameFontSize: 18, textFontSize: 15, headColor: '#ffc400', dimColor: '#b0bec5',
       evoColor: '#ffc400', backWidth: 240, backHeight: 60, backFontSize: 26 },
+    // Statystyki (StatsScene, the chart next to the cup in the gym): label and value rows in `columns` columns, every other
+    // row lighter (stripeAlpha).
+    stats: { width: 640, columns: 1, columnGap: 0, padding: 22, inner: 12, gap: 14, titleFontSize: 44, rowHeight: 40, fontSize: 19,
+      stripeAlpha: 0.06, labelColor: '#b0bec5', hintFontSize: 15, backWidth: 240, backHeight: 60, backFontSize: 26 },
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
     // done ones with a doneColor frame; a locked one's icon at lockedAlpha.
     challenges: { width: 680, columns: 1, columnGap: 0, padding: 20, inner: 10, gap: 14, titleFontSize: 44, textFontSize: 17,
@@ -577,6 +581,7 @@ export const config = {
         banner: { y: 150 },
         inventory: { width: 1220, padding: 16, gap: 8, columns: 4, statColumns: 3, rowHeight: 46, statHeight: 22, iconSize: 36,
           titleFontSize: 34, headFontSize: 19, backHeight: 52 },
+        stats: { width: 1000, columns: 2, columnGap: 24, padding: 16, gap: 10, titleFontSize: 34, rowHeight: 36, fontSize: 17, backHeight: 52 },
         challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15,
           rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 14, backHeight: 52 },
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,

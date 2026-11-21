@@ -29,6 +29,12 @@ export default class GameOverScene extends Phaser.Scene {
     st.bartkowanie += r.bartkowanieCount;
     if (!this.won && r.elapsedMs < config.plans.lazy.earlyDeathSec * 1000) st.earlyDeaths++;
     if (this.won) st.wins++;
+    st.kills += r.kills;
+    st.bosses += r.bossesKilled.length;
+    st.playMs += r.elapsedMs;
+    st.protein += this.earned;
+    st.bestMs = Math.max(st.bestMs, r.elapsedMs);
+    st.bestKills = Math.max(st.bestKills, r.kills);
     // One at a time, in list order, so the shield (last weapon) already sees the others unlocked by this same run.
     this.newUnlocks = [];
     for (const def of [...weapons, ...passives, ...plans]) {

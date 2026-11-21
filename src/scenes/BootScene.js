@@ -458,6 +458,10 @@ export default class BootScene extends Phaser.Scene {
     g.fillRect(s * 0.45, s * 0.54, s * 0.1, s * 0.18).fillRoundedRect(s * 0.3, s * 0.72, s * 0.4, s * 0.1, s * 0.03);
     g.lineStyle(2, ic.outline).strokeRoundedRect(s * 0.27, s * 0.16, s * 0.46, s * 0.4, { tl: 0, tr: 0, bl: s * 0.2, br: s * 0.2 });
     g.generateTexture('icon_trophy', s, s).clear();
+    // Statystyki: three bars of a chart on a base line.
+    g.fillStyle(ic.metal).fillRect(s * 0.16, s * 0.52, s * 0.18, s * 0.3).fillRect(s * 0.41, s * 0.3, s * 0.18, s * 0.52).fillRect(s * 0.66, s * 0.14, s * 0.18, s * 0.68);
+    g.fillStyle(ic.accent).fillRect(s * 0.1, s * 0.82, s * 0.8, s * 0.07);
+    g.generateTexture('icon_stats', s, s).clear();
 
     this.drawPassiveIcons(g);
   }

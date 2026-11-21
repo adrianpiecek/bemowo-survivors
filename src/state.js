@@ -154,10 +154,12 @@ function freshSave() {
     bets: {} }; // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
 }
 
-// Totals over all runs, for the passives' and plans' unlocks. Added in GameOverScene.
-// bartkowanie: Bartkowania seen; earlyDeaths: runs lost before config.plans.lazy.earlyDeathSec; wins: runs won.
+// Totals over all runs, for the passives' and plans' unlocks and the Statystyki window. Added in GameOverScene.
+// bartkowanie: Bartkowania seen; earlyDeaths: runs lost before config.plans.lazy.earlyDeathSec; wins: runs won;
+// playMs: time in runs; protein: protein earned; bestMs, bestKills: the longest run and the most kills in one.
 function freshStats() {
-  return { pierogi: 0, damageTaken: 0, goldCoins: 0, maxLevel: 0, bartkowanie: 0, earlyDeaths: 0, wins: 0 };
+  return { pierogi: 0, damageTaken: 0, goldCoins: 0, maxLevel: 0, bartkowanie: 0, earlyDeaths: 0, wins: 0,
+    kills: 0, bosses: 0, playMs: 0, protein: 0, bestMs: 0, bestKills: 0 };
 }
 
 // Unreadable save (corrupt JSON, private mode, blocked storage) gives a fresh one, never an error.
