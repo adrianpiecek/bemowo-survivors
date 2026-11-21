@@ -698,5 +698,34 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.magnet).fillRect(s * 0.16, s * 0.2, s * 0.16, s * 0.28).fillRect(s * 0.68, s * 0.2, s * 0.16, s * 0.28);
     g.fillStyle(ic.metal).fillRect(s * 0.16, s * 0.1, s * 0.16, s * 0.12).fillRect(s * 0.68, s * 0.1, s * 0.16, s * 0.12);
     done('fridgeMagnet');
+    // Skarbonka: a pink piggy bank with a coin slot, a snout and legs.
+    g.fillStyle(ic.piggy).fillEllipse(c, s * 0.54, s * 0.74, s * 0.52).fillRect(s * 0.26, s * 0.72, s * 0.1, s * 0.14).fillRect(s * 0.62, s * 0.72, s * 0.1, s * 0.14);
+    g.fillTriangle(s * 0.3, s * 0.34, s * 0.4, s * 0.18, s * 0.46, s * 0.32);
+    g.lineStyle(2, o).strokeEllipse(c, s * 0.54, s * 0.74, s * 0.52);
+    g.fillStyle(ic.piggyDark).fillEllipse(s * 0.86, s * 0.54, s * 0.12, s * 0.16).fillRect(s * 0.42, s * 0.3, s * 0.18, s * 0.05);
+    g.fillStyle(o).fillCircle(s * 0.68, s * 0.46, s * 0.03);
+    done('piggy');
+    // Paragon z Żabki: a long white receipt with a zigzag bottom and grey lines.
+    g.fillStyle(ic.receipt).fillRect(s * 0.26, s * 0.06, s * 0.48, s * 0.8);
+    for (let i = 0; i < 4; i++) g.fillTriangle(s * (0.26 + i * 0.12), s * 0.86, s * (0.38 + i * 0.12), s * 0.86, s * (0.32 + i * 0.12), s * 0.94);
+    g.lineStyle(2, o).strokeRect(s * 0.26, s * 0.06, s * 0.48, s * 0.8);
+    g.fillStyle(ic.receiptInk);
+    for (let i = 0; i < 5; i++) g.fillRect(s * 0.32, s * (0.16 + i * 0.12), s * (i % 2 ? 0.26 : 0.36), s * 0.04);
+    done('receipt');
+    // Zeszyt z kreskami: a notebook page with tally marks, four and a strike through.
+    g.fillStyle(ic.page).fillRect(s * 0.16, s * 0.1, s * 0.68, s * 0.8).lineStyle(2, o).strokeRect(s * 0.16, s * 0.1, s * 0.68, s * 0.8);
+    g.lineStyle(1, ic.grid);
+    for (let i = 1; i < 5; i++) g.lineBetween(s * 0.16, s * (0.1 + i * 0.16), s * 0.84, s * (0.1 + i * 0.16));
+    g.lineStyle(3, o);
+    for (let i = 0; i < 4; i++) g.lineBetween(s * (0.3 + i * 0.1), s * 0.3, s * (0.3 + i * 0.1), s * 0.7);
+    g.lineBetween(s * 0.24, s * 0.64, s * 0.66, s * 0.36);
+    done('tally');
+    // Medal z zawodów: a gold medal on a blue and red ribbon.
+    g.fillStyle(ic.ribbon).fillTriangle(s * 0.28, s * 0.04, s * 0.46, s * 0.04, s * 0.56, s * 0.46);
+    g.fillStyle(ic.ribbonDark).fillTriangle(s * 0.72, s * 0.04, s * 0.54, s * 0.04, s * 0.44, s * 0.46);
+    g.fillStyle(ic.medal).fillCircle(c, s * 0.64, s * 0.26).lineStyle(2, o).strokeCircle(c, s * 0.64, s * 0.26);
+    g.fillStyle(ic.medalDark).fillCircle(c, s * 0.64, s * 0.16);
+    g.fillStyle(ic.medal).fillTriangle(c, s * 0.52, s * 0.44, s * 0.7, s * 0.56, s * 0.7);
+    done('medal');
   }
 }

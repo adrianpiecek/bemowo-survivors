@@ -470,7 +470,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
 
 **Przedmioty:**
-- Przedmioty wyższej rzadkości mają ciekawsze, złożone efekty zamiast większych liczb, np. więcej obrażeń za każdą srebrną monetę albo większa prędkość za każdą otwartą skrzynkę.
 - Drzewo „Klon Bartek” na mapie (musi się wyróżniać od tła): klonuje wybrany przedmiot, poświęcając losowy inny przedmiot tej samej rzadkości.
 
 **Bossowie, elity, wydarzenia, plany:**
@@ -898,6 +897,25 @@ Bartek zaczyna z **80 HP zamiast 100** (`config.player.maxHp`). Karty i ulepszen
 Dlatego zmiana jest umiarkowana (80, nie 70). Do sprawdzenia w grze: czy pierwsze 2–3 minuty nie są za trudne.
 
 - Sprawdzone w przeglądarce: nowa runda startuje z 80/80 HP, bez błędów w konsoli.
+
+### 49. Rzadkie przedmioty, które rosną z rundą (krok 73)
+
+Przedmioty (`src/data/items.js`) dostały **rzadkość**. Skrzynia z przedmiotem (elita, skrzynia na mapie) losuje najpierw rzadkość tak jak karty: wagi z `config.rarity`, rosnące z poziomem, a szczęście się liczy. Potem bierze losowy przedmiot tej rzadkości (`drawItem`). Karta w skrzyni ma ramkę i napis rzadkości. Osiem dotychczasowych przedmiotów jest zwykłych.
+
+Cztery nowe nie dają stałej liczby, tylko rosną z tym, co się dzieje w rundzie (liczby w `config.items`, każda kopia liczy się osobno):
+
+| Przedmiot | Rzadkość | Efekt |
+|---|---|---|
+| Skarbonka | rzadka | +1% obrażeń za każde 5 zebranych monet B (wydane też się liczą) |
+| Paragon z Żabki | rzadka | +2% szybkości chodzenia za każdą otwartą skrzynię (każdego rodzaju, od początku rundy) |
+| Zeszyt z kreskami | epicka | +1% obrażeń za każde 100 zabitych wrogów (od początku rundy) |
+| Medal z zawodów | legendarna | +10% obrażeń i -5% czasu odnowienia za każdego pokonanego bossa (także z czachy) |
+
+- Mechanizm: przedmiot ma `scale: { source(run), every, apply(player, steps) }`. `updateItems` co klatkę dolicza kroki, których jeszcze nie było (`run.itemSteps`). Liczniki w rundzie: `run.bCoinsTotal` (monety B zebrane) i `run.chestsTotal` (otwarte skrzynie, liczone w `ChestScene`).
+- Szansa na poziomie 1: ok. 81% zwykły, 15% rzadki, 3,5% epicki, 0,4% legendarny. Na poziomie 20: 53% / 31% / 13% / 3%.
+- Debug: `config.debug.forceRarity` wymusza rzadkość także przedmiotów.
+- Ikony rysowane w `BootScene`: różowa świnka, paragon, kartka z kreskami, złoty medal na wstążce.
+- Sprawdzone w przeglądarce: Skarbonka (12 monet B), dwa Zeszyty (250 zabić), Medal (1 boss) i Paragon (3 skrzynie) dały razem +16% obrażeń, +6% szybkości i -5% czasu odnowienia. Kolejna klatka niczego nie dolicza drugi raz, a 300 zabić dokłada +2%. Skrzynia z wymuszoną legendą pokazała Medal w pomarańczowej ramce.
 
 ## Architektura
 

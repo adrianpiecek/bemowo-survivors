@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { newRun, xpToNextLevel, save, writeSave } from '../state.js';
 import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
+import { updateItems } from '../data/items.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
@@ -793,6 +794,7 @@ export default class GameScene extends Phaser.Scene {
     playSfx(this, 'pick');
     if (gem.coin === 'b') {
       this.run.bCoins += gem.value;
+      this.run.bCoinsTotal += gem.value;
       playVfx(this, 'coinPickup', gem.x, gem.y);
       return;
     }
@@ -1121,6 +1123,7 @@ export default class GameScene extends Phaser.Scene {
     this.map.update(delta);
     this.updateWorldChests();
     this.updateSkulls(delta);
+    updateItems(this.run);
 
     // The scar follows Bartek's head and his size; the tank hides it.
     const sc = config.scar;

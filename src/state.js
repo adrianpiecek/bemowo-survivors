@@ -68,6 +68,9 @@ export function newRun() {
     pierogiEaten: 0, // for save.stats
     goldCoins: 0, // for save.stats
     bCoins: config.debug.startBCoins ?? 0, // B coins: this run's money for the chests on the map
+    bCoinsTotal: 0, // B coins picked up this run, spent or not (the Skarbonka item)
+    chestsTotal: 0, // chests of any kind opened this run (the Paragon z Żabki item)
+    itemSteps: {}, // item id -> steps of its growing gain already added (data/items.js updateItems)
     chestsOpened: 0, // chests on the map bought this run: each raises the price of the next
     openedChests: new Set(), // keys of the blocks whose chest is opened (systems/map.js)
     usedSkulls: new Set(), // keys of the blocks whose boss skull was used (systems/map.js)

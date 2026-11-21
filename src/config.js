@@ -319,10 +319,15 @@ export const config = {
     ringDepth: 3, bone: 0xeceff1, boneShade: 0xb0bec5, socket: 0x212121, eyeGlow: 0xff1744 },
   worldChests: { chance: 0.35, basePrice: 5, growth: 1.3, touchRadius: 40, labelY: 52, labelFontSize: 20, labelIconSize: 20,
     labelGap: 4, labelDepth: 5, affordColor: '#ffffff', poorColor: '#ff5252' },
-  // Items (data/items.js): small run-long gains from chests, no slots, no stack limit.
+  // Items (data/items.js): small run-long gains from chests, no slots, no stack limit. An item chest rolls a rarity
+  // (config.rarity, luck counts) and gives an item of it. The rarer ones grow with the run, per copy:
+  // piggy +damagePct for every everyBCoins B coins picked up, receipt +speedPct for every chest opened (any kind),
+  // tally +damagePct for every everyKills kills, medal +damagePct and -cooldownPct for every boss killed.
   items: {
     steroids: { regenPerMin: 6 }, bar: { damagePct: 0.04 }, energy: { cooldownPct: 0.03 }, socks: { speedPct: 0.03 },
     gloves: { critChance: 0.02 }, scratch: { luckPct: 0.05 }, plaster: { maxHp: 6 }, fridgeMagnet: { magnetPct: 0.08 },
+    piggy: { damagePct: 0.01, everyBCoins: 5 }, receipt: { speedPct: 0.02 }, tally: { damagePct: 0.01, everyKills: 100 },
+    medal: { damagePct: 0.1, cooldownPct: 0.05 },
   },
   run: { durationSec: 600 },
   // Bartek's death: the run stops, everything but Bartek goes black over fadeMs while the camera zooms in by `zoom` over
@@ -519,7 +524,8 @@ export const config = {
       // Item icons (item_<id>).
       syringe: 0xe3f2fd, steroid: 0xe53935, barWrap: 0x6a1b9a, barChoc: 0x6d4c41, can: 0x00c853, canDark: 0x1b5e20,
       sock: 0xfafafa, sockStripe: 0xd32f2f, glove: 0x263238, gloveStrap: 0xff7043, scratch: 0xfff176, scratchFoil: 0x9e9e9e,
-      plaster: 0xffcc80, plasterPad: 0xfff3e0, magnet: 0xd32f2f,
+      plaster: 0xffcc80, plasterPad: 0xfff3e0, magnet: 0xd32f2f, piggy: 0xf48fb1, piggyDark: 0xc2185b, receipt: 0xfafafa,
+      receiptInk: 0x616161, medal: 0xffc400, medalDark: 0xff8f00, ribbon: 0x1e88e5, ribbonDark: 0xd32f2f,
       book: 0x212121, bookPage: 0xfafafa, bookTitle: 0xffc400, disc: 0x263238, discShine: 0x90a4ae, discLabel: 0xd32f2f, boxingGlove: 0xd32f2f, boxingCuff: 0xfafafa, tracksuit: 0x1565c0, tracksuitStripe: 0xfafafa,
       planRing: 0xd32f2f },
     // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.

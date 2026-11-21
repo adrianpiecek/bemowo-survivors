@@ -5,7 +5,7 @@ import { passives } from '../data/passives.js';
 import { rollRarity, drawUpgrades, applyUpgrade, evolutionCard, makeCard } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
-import { items, giveItem } from '../data/items.js';
+import { items, giveItem, drawItem, itemRarity } from '../data/items.js';
 
 // Any chest (boss, elite, event, the map) over the paused GameScene: `count` cards spin through upgrade names and stop one by one.
 // Each card's upgrade (with a rolled rarity) is applied the moment it stops. Once all stop, Space, Enter or a click closes it.
@@ -17,6 +17,7 @@ export default class ChestScene extends Phaser.Scene {
     this.count = data.count;
     this.items = data.items ?? false; // true: an item chest (elites, the map), random items in place of cards
     this.closing = false;
+    this.run.chestsTotal++; // Paragon z Żabki
   }
 
   create() {
@@ -30,7 +31,7 @@ export default class ChestScene extends Phaser.Scene {
     // An evolution ready (weapon at max level + its passive) takes the first card of any chest; one per chest, the rest as usual.
     const evo = evolutionCard(this.run), rest = this.count - (evo ? 1 : 0);
     const prizes = [...(evo ? [evo] : []),
-      ...(this.items ? Array.from({ length: rest }, () => Phaser.Utils.Array.GetRandom(items)) : drawUpgrades(this.run, rest))];
+      ...(this.items ? Array.from({ length: rest }, () => drawItem(this.run)) : drawUpgrades(this.run, rest))];
     while (prizes.length < this.count) prizes.push(fallbackUpgrade); // everything maxed: the heal fills in
     // The spin shows every name there is: upgrades, weapons, passives; or the items.
     const names = (this.items ? items : [...upgrades, ...weapons, ...passives]).map((d) => d.name), n = prizes.length, gs = this.scene.get('GameScene');
@@ -43,7 +44,7 @@ export default class ChestScene extends Phaser.Scene {
       this.time.delayedCall(ch.spinMs + i * ch.stopGapMs, () => {
         spin.remove();
         const asItem = this.items && !up.evolution;
-        const rarity = asItem ? null : rollRarity(up, this.run);
+        const rarity = asItem ? itemRarity(up) : rollRarity(up, this.run);
         if (asItem) {
           giveItem(this.run, up);
           if (up.vfx) playVfx(gs, up.vfx, gs.player.x, gs.player.y); // plays once the run resumes
