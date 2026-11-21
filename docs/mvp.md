@@ -471,7 +471,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 **Nowe statystyki i karty:**
 - Odrzut jako statystyka broni, z kartami i przedmiotami, które go zwiększają.
 - Prędkość pocisków jako pasywka i statystyka broni.
-- Unik i pancerz.
 - Pasywka na częstsze elity.
 - Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
 
@@ -706,6 +705,15 @@ Ten sam pomiar co w sekcji 31. Po ewolucji obie bronie miały już ok. 300 DPS, 
 - **Shotgun:** obrażenia śruciny 7 → 10, strzał co 1,1 → 0,95 s, wachlarz 50° → 40° (więcej śruciny trafia), poziomy obrażeń +2/+3/+3 → +4/+5/+6.
 - **Tarcza:** obrażenia 20 → 26, czas odnowienia 1,8 → 1,4 s, poziomy obrażeń +5/+5 → +8/+8.
 - Teraz wszystkie bronie mają na maksie co najmniej ok. 130 DPS. Najsłabszy zostaje pistolet (67 na poz. 4), bo to broń startowa z innymi zasadami.
+
+### 34. Unik: Śliski dres (krok 58)
+
+Nowa statystyka gracza `dodge` (w `run.player`) i pasywka **Śliski dres** (`tracksuit` w `src/data/passives.js`, liczby w `config.passives.tracksuit`): +5% szansy na unik na poziom, max 5 poziomów, nigdy więcej niż 50% (`dodgeMax`). Dostępna od początku. Pancerz już był (Kurtka puchowa, Ochraniacze z siłowni), więc ten krok dodaje tylko unik.
+
+- Unik liczony w `GameScene.hurtPlayer`, więc działa na dotyk wroga i na moce bossów. Uniknięty cios nie rani, ale włącza zwykłą chwilę nietykalności (`config.player.invulnMs`), żeby tłum nie losował co klatkę.
+- Nad Bartkiem pojawia się niebieskie „Unik!” (z puli liczb obrażeń; tekst i kolor w `config.ui.damageNumbers`).
+- Ekwipunek pokazuje „Unik”. Ikona `passive_tracksuit`: niebieska bluza z białymi paskami.
+- Sprawdzone: przy limicie 50% przeszło 49% z 2000 ciosów, a 12 poziomów pasywki zatrzymuje się na 50%.
 
 ## Architektura
 

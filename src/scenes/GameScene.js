@@ -234,9 +234,16 @@ export default class GameScene extends Phaser.Scene {
 
   // An enemy's touch or a boss power (systems/telegraph.js) hits Bartek for `base`, which grows as the run goes on; armor
   // (Kurtka puchowa, Ochraniacze) takes off a flat amount. Nothing in the tank, while invulnerable or in a bubble.
+  // A dodge (Śliski dres) hurts nothing but still starts the invulnerability, so a crowd does not roll again every frame.
   // Returns whether it hurt.
   hurtPlayer(base, vfx) {
     if (this.run.tankMs > 0 || this.time.now < this.run.invulnUntilMs || isEffectActive(this.run, 'bubble')) return false;
+    if (Math.random() < this.run.player.dodge) {
+      this.run.invulnUntilMs = this.time.now + config.player.invulnMs;
+      const dn = config.ui.damageNumbers;
+      this.showDamage(this.player.x, this.player.y - this.player.displayHeight / 2, 0, false, dn.dodgeText, dn.dodgeColor);
+      return false;
+    }
     const grow = 1 + config.spawn.damagePerMinutePct * this.run.elapsedMs / 60000;
     const pl = this.run.player, damage = Math.max(1, Math.round(base * grow) - pl.armor);
     pl.hp = Math.max(0, pl.hp - damage);
@@ -323,11 +330,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // A number rising over a hit, from the pool; none when the whole pool is in the air.
-  showDamage(x, y, amount, crit) {
+  // text, color: shown instead of the number (the dodge).
+  showDamage(x, y, amount, crit, text, color) {
     const t = this.damageNumbers.find((d) => !d.visible);
     if (!t) return;
     const dn = config.ui.damageNumbers;
-    t.setText(Math.max(1, Math.round(amount))).setFontSize(crit ? dn.critFontSize : dn.fontSize).setColor(crit ? dn.critColor : dn.color)
+    t.setText(text ?? Math.max(1, Math.round(amount))).setFontSize(crit ? dn.critFontSize : dn.fontSize).setColor(color ?? (crit ? dn.critColor : dn.color))
       .setPosition(x + Phaser.Math.Between(-dn.jitterX, dn.jitterX), y).setAlpha(1).setVisible(true);
     t.startY = t.y;
     t.ageMs = 0;

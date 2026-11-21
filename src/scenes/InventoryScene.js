@@ -60,6 +60,7 @@ export default class InventoryScene extends Phaser.Scene {
       ['HP', `${Math.ceil(pl.hp)}/${Math.round(pl.maxHp)}`],
       ['Regeneracja', `${num(pl.regen * 60, 1)} HP/min`],
       ['Pancerz', `${pl.armor}`],
+      ['Unik', `${Math.round(pl.dodge * 100)}%`],
       ['Szybkość', `${Math.round(pl.speed)}`],
       ['Obrażenia', pct(pl.damageMult - 1)],
       ['Czas odnowienia', pct(pl.cooldownMult - 1)],

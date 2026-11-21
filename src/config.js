@@ -118,6 +118,8 @@ export const config = {
     limp: { critMult: 0.25, maxLevel: 5 }, // added to the crit multiplier per level
     // Rękawice bokserskie: +damagePct per level to hits on enemies at most `range` px from Bartek (sword, axe, bees, gas).
     boxing: { damagePct: 0.15, range: 200, maxLevel: 5 },
+    // Śliski dres: +dodge per level, the share of hits (touches and boss powers) Bartek dodges; never above dodgeMax.
+    tracksuit: { dodge: 0.05, maxLevel: 5, dodgeMax: 0.5 },
   },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
@@ -497,7 +499,7 @@ export const config = {
       syringe: 0xe3f2fd, steroid: 0xe53935, barWrap: 0x6a1b9a, barChoc: 0x6d4c41, can: 0x00c853, canDark: 0x1b5e20,
       sock: 0xfafafa, sockStripe: 0xd32f2f, glove: 0x263238, gloveStrap: 0xff7043, scratch: 0xfff176, scratchFoil: 0x9e9e9e,
       plaster: 0xffcc80, plasterPad: 0xfff3e0, magnet: 0xd32f2f,
-      book: 0x212121, bookPage: 0xfafafa, bookTitle: 0xffc400, disc: 0x263238, discShine: 0x90a4ae, discLabel: 0xd32f2f, boxingGlove: 0xd32f2f, boxingCuff: 0xfafafa,
+      book: 0x212121, bookPage: 0xfafafa, bookTitle: 0xffc400, disc: 0x263238, discShine: 0x90a4ae, discLabel: 0xd32f2f, boxingGlove: 0xd32f2f, boxingCuff: 0xfafafa, tracksuit: 0x1565c0, tracksuitStripe: 0xfafafa,
       planRing: 0xd32f2f },
     // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.
     hud: { width: 330, padding: 10, rowHeight: 30, iconSize: 26, barWidth: 270, barHeight: 20, barGap: 8, barFontSize: 15,
@@ -514,6 +516,7 @@ export const config = {
     // Damage numbers over hit enemies: a pool of `pool` texts, each rising riseY px and fading for ms; a crit in gold and
     // bigger. When all are in the air a hit shows none. enabled: false turns them off.
     damageNumbers: { enabled: true, pool: 40, fontSize: 18, critFontSize: 26, color: '#ffffff', critColor: '#ffc400', stroke: 4,
+      dodgeText: 'Unik!', dodgeColor: '#80d8ff', // over Bartek when he dodges a hit
       riseY: 36, ms: 650, jitterX: 12, depth: 4 },
     fireworkEveryMs: 350, // a won run's end screen: a firework this often
     // End screen (GameOverScene): the title from `top`, a panel with the run's numbers and every weapon's damage (icon,

@@ -621,6 +621,13 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.boxingCuff).fillRect(s * 0.3, s * 0.66, s * 0.42, s * 0.22).lineStyle(2, o).strokeRect(s * 0.3, s * 0.66, s * 0.42, s * 0.22);
     g.fillStyle(0xffffff, 0.35).fillEllipse(s * 0.6, s * 0.26, s * 0.16, s * 0.1);
     done('boxing');
+    // Śliski dres: a blue track jacket with white stripes down the sleeves and a zip.
+    g.fillStyle(ic.tracksuit).fillRoundedRect(s * 0.28, s * 0.14, s * 0.44, s * 0.76, s * 0.06).lineStyle(2, o).strokeRoundedRect(s * 0.28, s * 0.14, s * 0.44, s * 0.76, s * 0.06);
+    g.fillStyle(ic.tracksuit).fillRect(s * 0.1, s * 0.18, s * 0.18, s * 0.6).fillRect(s * 0.72, s * 0.18, s * 0.18, s * 0.6);
+    g.lineStyle(2, o).strokeRect(s * 0.1, s * 0.18, s * 0.18, s * 0.6).strokeRect(s * 0.72, s * 0.18, s * 0.18, s * 0.6);
+    g.fillStyle(ic.tracksuitStripe).fillRect(s * 0.16, s * 0.2, s * 0.05, s * 0.56).fillRect(s * 0.79, s * 0.2, s * 0.05, s * 0.56);
+    g.lineStyle(2, ic.tracksuitStripe).lineBetween(c, s * 0.18, c, s * 0.88);
+    done('tracksuit');
     this.drawItemIcons(g);
   }
 
