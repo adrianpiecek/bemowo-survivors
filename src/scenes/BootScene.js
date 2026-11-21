@@ -139,6 +139,12 @@ export default class BootScene extends Phaser.Scene {
     const b = t.bullet;
     g.fillStyle(b.color).fillCircle(b.radius, b.radius, b.radius);
     g.generateTexture('bullet', b.radius * 2, b.radius * 2).clear();
+    // Bow arrow pointing right: shaft, a triangle head at the right end, two feathers at the left.
+    const arw = t.arrow, arH = arw.height;
+    g.fillStyle(arw.shaft).fillRect(arH * 0.6, arH * 0.39, arw.length - arH * 1.4, arH * 0.22);
+    g.fillStyle(arw.head).fillTriangle(arw.length - arH, arH * 0.15, arw.length, arH / 2, arw.length - arH, arH * 0.85);
+    g.fillStyle(arw.feather).fillTriangle(0, 0, arH, arH * 0.42, arH * 0.5, arH * 0.42).fillTriangle(0, arH, arH, arH * 0.58, arH * 0.5, arH * 0.58);
+    g.generateTexture('arrow', arw.length, arH).clear();
 
     // Bee facing right: wings on top, a striped body, a stinger at the back, an eye at the front.
     const bee = t.bee, bw = bee.width, bh = bee.height;
@@ -244,6 +250,17 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(wi.orbColor).fillCircle(ws * 0.58, ws * 0.24, ws * 0.13).fillStyle(0xffffff).fillCircle(ws * 0.54, ws * 0.2, ws * 0.04);
     g.fillStyle(wi.boltColor).fillPoints(bolt(ws * 0.62, ws * 0.45, ws * 0.32), true);
     g.generateTexture('weapon_staff', ws, ws).clear();
+    // Łuk: a curved bow with its string, an arrow across it.
+    const drawBow = () => {
+      g.lineStyle(ws * 0.08, wi.bowColor).beginPath().arc(ws * 0.3, ws * 0.5, ws * 0.36, -1.1, 1.1).strokePath();
+      g.lineStyle(1.5, wi.stringColor).lineBetween(ws * 0.3 + Math.cos(-1.1) * ws * 0.36, ws * 0.5 + Math.sin(-1.1) * ws * 0.36,
+        ws * 0.3 + Math.cos(1.1) * ws * 0.36, ws * 0.5 + Math.sin(1.1) * ws * 0.36);
+      g.lineStyle(ws * 0.05, t.arrow.shaft).lineBetween(ws * 0.16, ws * 0.5, ws * 0.82, ws * 0.5);
+      g.fillStyle(t.arrow.head).fillTriangle(ws * 0.78, ws * 0.42, ws * 0.92, ws * 0.5, ws * 0.78, ws * 0.58);
+    };
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    drawBow();
+    g.generateTexture('weapon_bow', ws, ws).clear();
 
     // Evolved weapons: the same framed square with a gold frame.
     const evoFrame = () => g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(3, wi.evoBorder).strokeRect(1.5, 1.5, ws - 3, ws - 3);
@@ -292,6 +309,11 @@ export default class BootScene extends Phaser.Scene {
     [[0.3, 0.36, 0.16], [0.5, 0.28, 0.2], [0.7, 0.36, 0.16], [0.5, 0.42, 0.16]].forEach(([x, y, r]) => g.fillStyle(wi.stormColor).fillCircle(ws * x, ws * y, ws * r));
     g.fillStyle(wi.boltColor).fillPoints(bolt(ws * 0.3, ws * 0.5, ws * 0.42), true);
     g.generateTexture('weapon_storm', ws, ws).clear();
+    // Łuk bez wymówek: the bow in a gold frame with two more arrows.
+    evoFrame();
+    drawBow();
+    g.lineStyle(ws * 0.04, t.arrow.shaft).lineBetween(ws * 0.2, ws * 0.3, ws * 0.8, ws * 0.3).lineBetween(ws * 0.2, ws * 0.7, ws * 0.8, ws * 0.7);
+    g.generateTexture('weapon_bow_evo', ws, ws).clear();
     // Laughing gas cloud: puffs scattered around the middle, see-through so they stack into a soft cloud.
     const gz = t.gasCloud, gcs = gz.size, gcc = gcs / 2;
     // The same puffs in other colors make the evolved Smog nad Bemowem cloud.

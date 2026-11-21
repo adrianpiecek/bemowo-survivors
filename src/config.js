@@ -73,6 +73,13 @@ export const config = {
       levels: [{ damage: 6 }, { bolts: 1 }, { radius: 15 }, { damage: 8 }, { bolts: 1 }, { damage: 10 }],
       // Burza nad Bemowem: each bolt jumps on to `chain` more enemies, each the nearest one not hit yet within chainRange.
       evolution: { chain: 3, chainRange: 220 } },
+    // Łuk: every cooldownMs `arrows` arrows (spreadDeg apart) fly at the nearest enemy within range, `speed` px/s, at most
+    // range px. An arrow goes through `pierce` enemies; each one it goes through leaves it falloff x its damage.
+    // Unlock: unlockRunners Uncanny (runner) kills in one run.
+    bow: { damage: 14, arrows: 1, pierce: 2, falloff: 0.7, cooldownMs: 1200, range: 650, speed: 750, spreadDeg: 10, unlockRunners: 150,
+      levels: [{ damage: 4 }, { pierce: 1 }, { arrows: 1 }, { damage: 5 }, { pierce: 2 }, { arrows: 1 }],
+      // Łuk bez wymówek: arrows go through every enemy on their way and keep their full damage.
+      evolution: {} },
   },
   // Passives (data/passives.js): items that raise one stat each level, up to startSlots at once (the gym's Plecak adds more). The numbers are one level
   // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
@@ -414,7 +421,7 @@ export const config = {
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   // enemies: spawn.maxEnemies + room for bosses, the school trip and split elites; pickups: room for boss and elite chests
   // vfxParticles: the most particles one effect layer keeps alive at once (a full horde cannot pile them up).
-  pools: { bullets: 160, enemies: 320, gems: 300, pickups: 20, vfx: 60, vfxParticles: 200, bees: 20, gas: 12, axes: 12 },
+  pools: { bullets: 160, enemies: 320, gems: 300, pickups: 20, vfx: 60, vfxParticles: 200, bees: 20, gas: 12, axes: 12, arrows: 40 },
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -747,6 +754,8 @@ export const config = {
       chainColor: 0x90a4ae, padlockColor: 0x9e9e9e },
     klapa: { width: 44, height: 26, color: 0x9a9a9a, borderColor: 0x555555, borderWidth: 4, bodyRadius: 13 },
     bullet: { radius: 3, color: 0xffffff },
+    // Bow arrow (drawn), pointing right: a wooden shaft, a steel head, red feathers; the body a circle of bodyRadius in the middle.
+    arrow: { length: 42, height: 14, shaft: 0xd7b98e, head: 0xcfd8dc, feather: 0xe53935, bodyRadius: 6 },
     // Bee facing right (it turns along its orbit): striped body, two wings, a stinger at the back.
     bee: { width: 24, height: 20, color: 0xffd400, stripeColor: 0x1b1b1b, wingColor: 0xffffff, wingAlpha: 0.75 },
     pickup: { size: 28, color: 0xffffff, borderColor: 0xffcc00, borderWidth: 3 },
@@ -775,7 +784,7 @@ export const config = {
     // Drawn weapon icons for the HUD, size x size px.
     weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41,
       gasColors: [0x9ccc65, 0xba68c8, 0x7cb342], laserColor: 0xff1744, eyeColor: 0xffffff,
-      staffColor: 0x8d6e63, orbColor: 0x4fc3f7, boltColor: 0xfff176, stormColor: 0x546e7a,
+      staffColor: 0x8d6e63, orbColor: 0x4fc3f7, boltColor: 0xfff176, stormColor: 0x546e7a, bowColor: 0xa1887f, stringColor: 0xeeeeee,
       // Evolved weapons: a gold frame.
       evoBorder: 0xffc400, uziColor: 0x37474f, smogColors: [0x9e9e9e, 0x757575, 0xbdbdbd], shieldColors: [0xd32f2f, 0xffd54f, 0xfafafa] },
     // Laughing gas cloud, size x size px, shown scaled to its radius: soft green and purple puffs.

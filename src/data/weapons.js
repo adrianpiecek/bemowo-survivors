@@ -20,7 +20,7 @@ import { createOrbit, updateOrbit } from '../systems/orbit.js';
 // scene.weaponArea(x), durations through scene.weaponDuration(ms) and counts through scene.weaponAmount(n),
 // so the passives, the gym and timed pickups work on every weapon.
 const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons.gas, lz = config.weapons.laser, bz = config.weapons.bees;
-const sg = config.weapons.shotgun, ax = config.weapons.axe, st = config.weapons.staff;
+const sg = config.weapons.shotgun, ax = config.weapons.axe, st = config.weapons.staff, bw = config.weapons.bow;
 const count = (n, mult) => Math.ceil(n * mult);
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
 const plural = (n, one, few, many) => (n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
@@ -415,7 +415,77 @@ export const weapons = [
       playSfx(scene, 'shotHit');
     },
   },
+  {
+    id: 'bow',
+    name: 'Łuk',
+    icon: 'weapon_bow',
+    levels: bw.levels,
+    maxLevel: bw.levels.length + 1,
+    unlock: {
+      text: `„Szybszy niż Uncanny”: zabij ${bw.unlockRunners} Uncanny w jednej rundzie`,
+      check: (run) => (run.killsByType.runner ?? 0) >= bw.unlockRunners,
+    },
+    evolution: { passive: 'goggins', id: 'bowNoExcuses', name: 'Łuk bez wymówek', icon: 'weapon_bow_evo',
+      description: 'Strzały przebijają wszystkich na swojej drodze i nie tracą obrażeń.' },
+    description(level, m) {
+      if (level === 1) return `Strzała przebija ${bw.pierce} wrogów, ale każdy zabiera jej część obrażeń.`;
+      const b = bw.levels[level - 2], n = count(b.arrows ?? 0, m), pi = count(b.pierce ?? 0, m);
+      return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'strzała', 'strzały', 'strzał')}`,
+        pi && `strzała przebija +${pi} ${plural(pi, 'wroga', 'wrogów', 'wrogów')}`].filter(Boolean).join(', ');
+    },
+    create(scene, w) {
+      Object.assign(w, { damage: bw.damage, arrows: bw.arrows, pierce: bw.pierce, cooldownMs: 0 });
+      const ar = config.textures.arrow;
+      w.pool = scene.physics.add.group({
+        defaultKey: 'arrow', maxSize: config.pools.arrows,
+        createCallback: (a) => a.setDepth(1).body.setCircle(ar.bodyRadius, ar.length / 2 - ar.bodyRadius, ar.height / 2 - ar.bodyRadius),
+      });
+      scene.physics.add.overlap(w.pool, scene.enemies, (a, z) => arrowHit(scene, w, a, z));
+    },
+    levelUp(scene, w, m) {
+      const b = bw.levels[w.level - 2];
+      w.damage += (b.damage ?? 0) * m;
+      w.arrows += count(b.arrows ?? 0, m);
+      w.pierce += count(b.pierce ?? 0, m);
+    },
+    update(scene, w, delta) {
+      const pl = scene.player;
+      for (const a of w.pool.getChildren()) {
+        if (a.active && Phaser.Math.Distance.Between(a.x, a.y, a.startX, a.startY) > bw.range) a.disableBody(true, true);
+      }
+      w.cooldownMs -= delta;
+      if (w.cooldownMs > 0) return;
+      const t = nearestEnemy(scene, pl.x, pl.y, bw.range, new Set());
+      if (!t) return; // nothing in range: ready again on the next frame
+      const aim = Phaser.Math.Angle.Between(pl.x, pl.y, t.x, t.y), n = scene.weaponAmount(w.arrows), spread = Phaser.Math.DegToRad(bw.spreadDeg);
+      for (let i = 0; i < n; i++) {
+        const a = w.pool.get(pl.x, pl.y);
+        if (!a) break; // pool full
+        const ang = aim + (i - (n - 1) / 2) * spread; // an even fan around the target
+        a.enableBody(true, pl.x, pl.y, true, true);
+        a.setScale(scene.weaponArea(1)).setRotation(ang);
+        a.body.setVelocity(Math.cos(ang) * bw.speed, Math.sin(ang) * bw.speed);
+        Object.assign(a, { startX: pl.x, startY: pl.y, damage: scene.weaponDamage(w.damage), pierceLeft: w.pierce });
+        (a.hit ??= new Set()).clear(); // enemies this arrow went through already
+      }
+      w.cooldownMs = scene.weaponCooldown(bw.cooldownMs);
+    },
+  },
 ];
+
+// An arrow touches an enemy: it hurts it once, then flies on through as long as it has pierce left; each one it goes
+// through costs it bw.falloff of its damage. Evolved: through everyone, at full damage.
+function arrowHit(scene, w, a, z) {
+  if (!a.active || !z.active || a.hit.has(z)) return;
+  a.hit.add(z);
+  playSfx(scene, 'shotHit');
+  scene.damageSource = w;
+  scene.hurtEnemy(z, a.damage, a.x, a.y);
+  scene.damageSource = null;
+  if (w.evolved) return;
+  if (a.pierceLeft-- <= 0) a.disableBody(true, true);
+  else a.damage *= bw.falloff;
+}
 
 // A lightning bolt from `from` to `to`: st.segments pieces, the middle points pushed up to st.jitter px sideways.
 function jaggedLine(from, to) {

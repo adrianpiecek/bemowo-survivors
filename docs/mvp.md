@@ -468,7 +468,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Rzeczy do zbierania mogłyby być trochę większe (skrzynki i znajdźki powiększone w sekcji 14; zostają kryształy i monety).
 
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
-- Łuk: strzały przebijają wrogów kosztem obrażeń.
 - Miecz z anime: cięcie w wycinku koła; liczba pocisków to liczba cięć pod rząd; poziomy wydłużają obszar cięcia.
 - Kostur NekroBartka: przywołuje miniony, mniejsze wersje Bartka.
 
@@ -619,6 +618,15 @@ W siłowni po zębatce i pucharze jest ikona wykresu. Otwiera okno **Statystyki*
 
 - Nowe pola w `save.stats` (`state.js freshStats`): `kills`, `bosses`, `playMs`, `protein`, `bestMs`, `bestKills`. GameOverScene dolicza je po każdej rundzie, także po wyjściu do menu. Starszy zapis dostaje je jako 0 (stąd dopisek w oknie, że liczą się od tej wersji); `loadSave` czyta je jak pozostałe statystyki. „Nowa gra” je zeruje.
 - W pionie nad siłownią nie ma już miejsca na napis „Białko:” przed licznikiem, więc znika, gdy nachodziłby na ikony (zostaje moneta w ramce). W poziomie zostaje.
+
+### 26. Łuk (krok 50)
+
+Nowa broń (`bow` w `src/data/weapons.js`, liczby w `config.weapons.bow`). Co 1,2 s strzała leci w najbliższego wroga do 650 px (750 px/s, 14 obrażeń). Przebija 2 wrogów, czyli trafia do 3, ale każdy przebity zabiera jej 30% obrażeń (`falloff` 0,7). Kilka strzał leci wachlarzem co 10°. Strzały mają własną pulę (`config.pools.arrows` 40) i własne trafienia; jedna strzała rani danego wroga tylko raz. Strzała jest rysowana w kodzie: jasne drzewce, stalowy grot, czerwone lotki.
+
+- **Poziomy:** +4 obrażeń, +1 przebicie, +1 strzała, +5 obrażeń, +2 przebicia, +1 strzała.
+- **Odblokowanie:** „Szybszy niż Uncanny”: zabij 150 Uncanny w jednej rundzie.
+- **Ewolucja:** z Książką Davida Gogginsa **Łuk bez wymówek**: strzały przebijają wszystkich na swojej drodze i nie tracą obrażeń.
+- Ikony: `weapon_bow`, `weapon_bow_evo`. Debug: `config.debug.startWeapon` albo `giveWeapon` = `'bow'`.
 
 ## Architektura
 
