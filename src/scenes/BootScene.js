@@ -261,6 +261,15 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
     drawBow();
     g.generateTexture('weapon_bow', ws, ws).clear();
+    // Kostur NekroBartka: a dark purple staff with a skull on top.
+    const drawNecro = (x, y, sz) => {
+      g.lineStyle(sz * 0.09, wi.necroColor).lineBetween(x + sz * 0.3, y + sz * 0.95, x + sz * 0.55, y + sz * 0.4);
+      g.fillStyle(wi.skullColor).fillCircle(x + sz * 0.6, y + sz * 0.28, sz * 0.17).fillRect(x + sz * 0.5, y + sz * 0.36, sz * 0.2, sz * 0.12);
+      g.fillStyle(wi.necroColor).fillCircle(x + sz * 0.54, y + sz * 0.28, sz * 0.045).fillCircle(x + sz * 0.66, y + sz * 0.28, sz * 0.045);
+    };
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    drawNecro(0, 0, ws);
+    g.generateTexture('weapon_necro', ws, ws).clear();
 
     // Evolved weapons: the same framed square with a gold frame.
     const evoFrame = () => g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(3, wi.evoBorder).strokeRect(1.5, 1.5, ws - 3, ws - 3);
@@ -314,6 +323,11 @@ export default class BootScene extends Phaser.Scene {
     drawBow();
     g.lineStyle(ws * 0.04, t.arrow.shaft).lineBetween(ws * 0.2, ws * 0.3, ws * 0.8, ws * 0.3).lineBetween(ws * 0.2, ws * 0.7, ws * 0.8, ws * 0.7);
     g.generateTexture('weapon_bow_evo', ws, ws).clear();
+    // Armia NekroBartka: the staff with two more skulls beside it.
+    evoFrame();
+    drawNecro(ws * 0.1, ws * 0.05, ws * 0.9);
+    g.fillStyle(wi.skullColor).fillCircle(ws * 0.22, ws * 0.62, ws * 0.1).fillCircle(ws * 0.78, ws * 0.7, ws * 0.1);
+    g.generateTexture('weapon_necro_army', ws, ws).clear();
     // Laughing gas cloud: puffs scattered around the middle, see-through so they stack into a soft cloud.
     const gz = t.gasCloud, gcs = gz.size, gcc = gcs / 2;
     // The same puffs in other colors make the evolved Smog nad Bemowem cloud.

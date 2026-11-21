@@ -80,6 +80,15 @@ export const config = {
       levels: [{ damage: 4 }, { pierce: 1 }, { arrows: 1 }, { damage: 5 }, { pierce: 2 }, { arrows: 1 }],
       // Łuk bez wymówek: arrows go through every enemy on their way and keep their full damage.
       evolution: {} },
+    // Kostur NekroBartka: every cooldownMs, while fewer than `minions` are up, a small Bartek (bartek.png at `height` px,
+    // tinted) rises next to Bartek for lifeMs. A minion runs at `speed` to the nearest enemy within leash px of Bartek and
+    // hits it for `damage` every hitCooldownMs while within hitDist of its edge; with nothing to fight it trots back to
+    // Bartek (followDist away). Unlock: die after unlockMinute minutes of a run.
+    necro: { damage: 7, minions: 2, cooldownMs: 2000, lifeMs: 9000, speed: 250, hitCooldownMs: 500, hitDist: 14, leash: 400,
+      followDist: 60, height: 30, tint: 0x9575ff, bobDeg: 10, bobHz: 4, fadeMs: 300, unlockMinute: 8,
+      levels: [{ damage: 2 }, { minions: 1 }, { lifeMs: 3000 }, { damage: 3 }, { minions: 1 }, { damage: 4 }],
+      // Armia NekroBartka: minionsMult x as many, and they never go away.
+      evolution: { minionsMult: 2 } },
   },
   // Passives (data/passives.js): items that raise one stat each level, up to startSlots at once (the gym's Plecak adds more). The numbers are one level
   // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
@@ -422,7 +431,7 @@ export const config = {
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
   // enemies: spawn.maxEnemies + room for bosses, the school trip and split elites; pickups: room for boss and elite chests
   // vfxParticles: the most particles one effect layer keeps alive at once (a full horde cannot pile them up).
-  pools: { bullets: 160, enemies: 320, gems: 300, pickups: 20, vfx: 60, vfxParticles: 200, bees: 20, gas: 12, axes: 12, arrows: 40 },
+  pools: { bullets: 160, enemies: 320, gems: 300, pickups: 20, vfx: 60, vfxParticles: 200, bees: 20, gas: 12, axes: 12, arrows: 40, minions: 16 },
   // Card rarity, rolled per card at every level up. A tier's draw weight is weight + perLevel * (level - 1),
   // so rarer cards come up more often later. mult scales the card's numbers.
   rarity: [
@@ -792,7 +801,7 @@ export const config = {
     // Drawn weapon icons for the HUD, size x size px.
     weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41,
       gasColors: [0x9ccc65, 0xba68c8, 0x7cb342], laserColor: 0xff1744, eyeColor: 0xffffff,
-      staffColor: 0x8d6e63, orbColor: 0x4fc3f7, boltColor: 0xfff176, stormColor: 0x546e7a, bowColor: 0xa1887f, stringColor: 0xeeeeee,
+      staffColor: 0x8d6e63, orbColor: 0x4fc3f7, boltColor: 0xfff176, stormColor: 0x546e7a, bowColor: 0xa1887f, stringColor: 0xeeeeee, necroColor: 0x7e57c2, skullColor: 0xeceff1,
       // Evolved weapons: a gold frame.
       evoBorder: 0xffc400, uziColor: 0x37474f, smogColors: [0x9e9e9e, 0x757575, 0xbdbdbd], shieldColors: [0xd32f2f, 0xffd54f, 0xfafafa] },
     // Laughing gas cloud, size x size px, shown scaled to its radius: soft green and purple puffs.

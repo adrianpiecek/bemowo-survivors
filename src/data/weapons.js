@@ -21,6 +21,7 @@ import { createOrbit, updateOrbit } from '../systems/orbit.js';
 // so the passives, the gym and timed pickups work on every weapon.
 const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons.gas, lz = config.weapons.laser, bz = config.weapons.bees;
 const sg = config.weapons.shotgun, ax = config.weapons.axe, st = config.weapons.staff, bw = config.weapons.bow;
+const nc = config.weapons.necro;
 const count = (n, mult) => Math.ceil(n * mult);
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
 const plural = (n, one, few, many) => (n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
@@ -471,7 +472,89 @@ export const weapons = [
       w.cooldownMs = scene.weaponCooldown(bw.cooldownMs);
     },
   },
+  {
+    id: 'necro',
+    name: 'Kostur NekroBartka',
+    icon: 'weapon_necro',
+    levels: nc.levels,
+    maxLevel: nc.levels.length + 1,
+    unlock: {
+      text: `„Powrót zza grobu”: zgiń po ${nc.unlockMinute}. minucie rundy`,
+      check: (run, won) => !won && run.elapsedMs >= nc.unlockMinute * 60000,
+    },
+    evolution: { passive: 'gainer', id: 'necroArmy', name: 'Armia NekroBartka', icon: 'weapon_necro_army',
+      description: `${nc.evolution.minionsMult}x więcej minionów. Już nie znikają.` },
+    description(level, m) {
+      if (level === 1) return `Przywołuje ${nc.minions} małych Bartków, które biegną bić wrogów.`;
+      const b = nc.levels[level - 2], n = count(b.minions ?? 0, m);
+      return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'minion', 'miniony', 'minionów')}`,
+        b.lifeMs && `+${(b.lifeMs * m / 1000).toFixed(1).replace('.', ',')} s życia minionów`].filter(Boolean).join(', ');
+    },
+    create(scene, w) {
+      Object.assign(w, { damage: nc.damage, minions: nc.minions, lifeMs: nc.lifeMs, cooldownMs: 0 });
+      w.pool = scene.add.group({ classType: Phaser.GameObjects.Image, defaultKey: 'bartek', maxSize: config.pools.minions });
+    },
+    levelUp(scene, w, m) {
+      const b = nc.levels[w.level - 2];
+      w.damage += (b.damage ?? 0) * m;
+      w.minions += count(b.minions ?? 0, m);
+      w.lifeMs += (b.lifeMs ?? 0) * m;
+    },
+    update(scene, w, delta) {
+      const up = w.pool.getChildren().filter((s) => s.active);
+      up.forEach((s, i) => updateMinion(scene, w, s, i, up.length, delta));
+      w.cooldownMs -= delta;
+      const max = scene.weaponAmount(w.minions) * (w.evolved ? nc.evolution.minionsMult : 1);
+      if (w.cooldownMs > 0 || up.length >= max) return;
+      const pl = scene.player, a = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      const s = w.pool.get(pl.x + Math.cos(a) * nc.followDist, pl.y + Math.sin(a) * nc.followDist);
+      if (!s) return; // pool full
+      s.setActive(true).setVisible(true).setAlpha(1).setTint(nc.tint).setDepth(1.4).setAngle(0);
+      s.setScale(scene.weaponArea(nc.height / s.height));
+      Object.assign(s, { lifeLeft: scene.weaponDuration(w.lifeMs), hitMs: 0, phase: Math.random() * Math.PI * 2 });
+      playVfx(scene, 'smokePuff', s.x, s.y);
+      w.cooldownMs = scene.weaponCooldown(nc.cooldownMs);
+    },
+  },
 ];
+
+// One minion: runs at the nearest enemy within leash px of Bartek and hits it while touching it; with no enemy near it
+// trots back to its own spot around Bartek (i of n). Sways while it runs. Not evolved: it fades out when its life is up.
+function updateMinion(scene, w, s, i, n, delta) {
+  const pl = scene.player;
+  if (!w.evolved) {
+    s.lifeLeft -= delta;
+    if (s.lifeLeft <= 0) {
+      playVfx(scene, 'smokePuff', s.x, s.y);
+      s.setActive(false).setVisible(false);
+      return;
+    }
+    s.setAlpha(Math.min(1, s.lifeLeft / nc.fadeMs));
+  }
+  s.hitMs -= delta;
+  let best = null, bestSq = Infinity;
+  for (const z of scene.enemies.getChildren()) {
+    if (!z.active || Phaser.Math.Distance.Squared(pl.x, pl.y, z.x, z.y) > nc.leash * nc.leash) continue;
+    const dSq = Phaser.Math.Distance.Squared(s.x, s.y, z.x, z.y);
+    if (dSq < bestSq) { bestSq = dSq; best = z; }
+  }
+  const spot = (i / n) * Math.PI * 2;
+  const goal = best ?? { x: pl.x + Math.cos(spot) * nc.followDist, y: pl.y + Math.sin(spot) * nc.followDist };
+  const reach = best ? (best.body?.halfWidth ?? 0) + nc.hitDist : nc.hitDist;
+  const dx = goal.x - s.x, dy = goal.y - s.y, d = Math.hypot(dx, dy), step = nc.speed * delta / 1000;
+  if (d > reach) {
+    const k = Math.min(step, d - reach) / d;
+    s.setPosition(s.x + dx * k, s.y + dy * k).setFlipX(dx > 0);
+    s.phase += Math.PI * 2 * nc.bobHz * delta / 1000;
+    s.setAngle(Math.sin(s.phase) * nc.bobDeg);
+  } else {
+    s.setAngle(0);
+    if (best && s.hitMs <= 0) {
+      s.hitMs = nc.hitCooldownMs;
+      scene.hurtEnemy(best, scene.weaponDamage(w.damage), best.x, best.y);
+    }
+  }
+}
 
 // An arrow touches an enemy: it hurts it once, then flies on through as long as it has pierce left; each one it goes
 // through costs it bw.falloff of its damage. Evolved: through everyone, at full damage.

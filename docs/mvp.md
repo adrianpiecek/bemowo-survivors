@@ -468,7 +468,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
 - Miecz z anime: cięcie w wycinku koła; liczba pocisków to liczba cięć pod rząd; poziomy wydłużają obszar cięcia.
-- Kostur NekroBartka: przywołuje miniony, mniejsze wersje Bartka.
 
 **Nowe statystyki i karty:**
 - Odrzut jako statystyka broni, z kartami i przedmiotami, które go zwiększają.
@@ -636,7 +635,16 @@ W siłowni po wykresie jest czaszka. Otwiera okno **Bestiariusz** (`src/scenes/B
 
 ### 28. Większe kryształy i monety (krok 52)
 
-Z listy problemów: rzeczy do zbierania były za małe na telefonie. Kryształy XP mają 26 px (było 20, `config.xp.gemSize`), monety białka i monety B 24 px (było 18, `config.coins.size`; mała moneta 0,8x, złota 1,3x tego). Kształty, kolory i zbieranie bez zmian.
+Z listy problemów: rzeczy do zbierania były za małe na telefonie. Kryształy XP mają 26 px (było 20, `config.xp.gemSize`), monety białka i monety B 24 px (było 18, `config.coins.size`; mała moneta 0,8x, złota 1,3x tego). Kształty, kolory i zbieranie bez zmian. Strona ma też ikonkę: Bartek (`assets/bartek.png`, `rel="icon"` i `apple-touch-icon` w `index.html`).
+
+### 29. Kostur NekroBartka (krok 53)
+
+Nowa broń (`necro` w `src/data/weapons.js`, liczby w `config.weapons.necro`). Co 2 s, dopóki jest ich mniej niż limit (2 na start), obok Bartka w kłębie dymu wstaje minion: mały, fioletowy Bartek (`bartek.png` 30 px, z odcieniem). Minion żyje 9 s, potem znika w dymie. Biegnie (250 px/s) do najbliższego wroga, który jest do 400 px od Bartka, i bije go co 0,5 s za 7. Gdy wrogów w pobliżu nie ma, wraca na swoje miejsce w kręgu wokół Bartka. Wrogowie minionów nie atakują. Pula `config.pools.minions` 16.
+
+- **Poziomy:** +2 obrażeń, +1 minion, +3 s życia, +3 obrażeń, +1 minion, +4 obrażeń. Pasywki działają: Bilet ZTM dodaje minionów, Karnet na siłownię wydłuża ich życie, Hantle powiększają.
+- **Odblokowanie:** „Powrót zza grobu”: zgiń po 8. minucie rundy.
+- **Ewolucja:** z Gainerem **Armia NekroBartka**: 2x więcej minionów i już nie znikają.
+- Ikony: `weapon_necro` (kostur z czaszką), `weapon_necro_army`. Debug: `config.debug.startWeapon` albo `giveWeapon` = `'necro'`.
 
 ## Architektura
 
