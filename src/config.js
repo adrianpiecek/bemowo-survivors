@@ -475,7 +475,8 @@ export const config = {
       shakeMs: 250, shakeIntensity: 0.02, pressBottom: 160, blinkMs: 600, pulseScale: 1.08, promptStroke: 6,
       // First launch: "Jak trzymasz ekran?" over two buttons orientWidth px wide, orientGap apart, orientGapY under it.
       orientFontSize: 40, orientWidth: 260, orientGap: 30, orientGapY: 90 },
-    bossBar: { y: 170, width: 600, height: 24, fontSize: 16, color: 0xd03030 }, // under the HUD panel and the stat pills; the effect rows go under it
+    // y: under the HUD panel and the three stat pills (portrait: the B coin pill ends at 200); the effect rows go under it
+    bossBar: { y: 212, width: 600, height: 24, fontSize: 16, color: 0xd03030 },
     // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
     chest: { titleY: 190, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
       popScale: 1.08, popMs: 120, promptBottom: 60 },

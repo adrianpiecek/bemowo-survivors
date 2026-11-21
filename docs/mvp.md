@@ -454,7 +454,60 @@ Dodane w kroku 38:
 - **Czołg drożeje.** Pierwszy kosztuje 100 zabitych, każdy kolejny 1,5x więcej (`tank.chargeGrowth`: 100, 150, 225...), więc później gracz polega głównie na broniach. Koszt bieżący w `run.tankCost`.
 - **Trudność wolniej.** Spawn pod koniec 14 → 12 wrogów na sekundę, HP wrogów +35% → +30% bazowego na minutę. Zasięg przyciągania bez zmian.
 - **DPS** na ekranie końca obok obrażeń broni (sekcja 12).
+- **Pasek HP bossa** w pionie wchodził na pigułkę z monetami B (dodaną w sekcji 11); teraz leży pod nią (`ui.bossBar.y` 212).
 - **Obrys.** Wszyscy wrogowie, kryształy XP, skrzynki i znajdźki mają ciemną krawędź (`look.outline`), żeby nie zlewały się z trawą. Kryształy rysują ją w swojej teksturze, obrazki wrogów oraz skrzynki i znajdźki dostają kopię z obrysem w `BootScene.outlineSprites`. Po playtestach skrzynki i znajdźki są nieco większe, a Shotgun w ręce Bartka ma skalę 1.
+
+### 15. Pomysły do rozważenia (luźne przemyślenia autora, po kroku 38)
+
+Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejnych wersji. Każdy pomysł przed realizacją dostaje osobny krok z treścią zadania.
+
+**Problemy z obecnej gry (do sprawdzenia przy balansie, krok 39):**
+- Jaki jest sens ewolucji, jeśli przychodzi na ostatnie kilkadziesiąt sekund? Ewolucja powinna wpadać wcześniej albo dawać wyraźnie więcej (Smog i Pasieka po ewolucji są prawie tak samo mocne jak przed).
+- Bronie krótkiego zasięgu (Topór, Ul, Smog) zawsze mają dużo gorsze liczby niż bronie dalekiego zasięgu. Pasywka albo przedmiot na obrażenia z bliska pomoże tylko częściowo.
+- Może mniej bazowego HP, żeby karta Max HP miała sens.
+- Rzeczy do zbierania mogłyby być trochę większe (skrzynki i znajdźki powiększone w sekcji 14; zostają kryształy i monety).
+- Żabka nie powinna znikać, gdy gracza na nic nie stać, i powinna pulsować światłem, żeby było widać, że można z nią wejść w interakcję.
+- Bartkowanie po level upie: gracz musi wiedzieć, że to, co się stało, to Bartkowanie (wyraźniejszy baner albo podpis).
+- Gołębie: niech widać, że to one zabijają, zamiast „przeleciały i wszyscy zniknęli”.
+- Zmiana nazwy znajdźki „Bańka” na „Bańka AI”.
+
+**Nowe bronie (wymagają odblokowania, więc też okna wyzwań):**
+- Łuk: strzały przebijają wrogów kosztem obrażeń.
+- Miecz z anime: cięcie w wycinku koła; liczba pocisków to liczba cięć pod rząd; poziomy wydłużają obszar cięcia.
+- Kostur Czarogeja: co jakiś czas piorun w najbliższego wroga.
+- Kostur NekroBartka: przywołuje miniony, mniejsze wersje Bartka.
+
+**Nowe statystyki i karty:**
+- Odrzut jako statystyka broni, z kartami i przedmiotami, które go zwiększają.
+- Prędkość pocisków jako pasywka i statystyka broni.
+- Unik i pancerz.
+- Pasywka albo przedmiot: więcej obrażeń na krótkim dystansie.
+- Pasywka na częstsze elity.
+- Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
+
+**Przedmioty:**
+- Przedmioty wyższej rzadkości mają ciekawsze, złożone efekty zamiast większych liczb, np. więcej obrażeń za każdą srebrną monetę albo większa prędkość za każdą otwartą skrzynkę.
+- Drzewo „Klon Bartek” na mapie (musi się wyróżniać od tła): klonuje wybrany przedmiot, poświęcając losowy inny przedmiot tej samej rzadkości.
+
+**Bossowie, elity, wydarzenia, plany:**
+- Bossowie z mocami: Homelander strzela laserami, Goblin rzuca beczki z goblinami itd.
+- Więcej planów treningowych, w tym plany z kilkoma bossami naraz i z większą liczbą elit.
+- Wydarzenie Nightskating: zombie na rolkach przejeżdżają z jednej strony ekranu na drugą.
+- Bartek bardzo lubi jeździć na rolkach: wykorzystać to (np. znajdźka, plan albo ultimate).
+- Po przejściu mapy: możliwość zwiększenia zarabianego białka razem z poziomem trudności (jak poziomy trudności po wygranej).
+
+**Ekrany i menu:**
+- Ekwipunek obok pauzy: posiadane przedmioty, ich statystyki i łączne statystyki Bartka ze wszystkich efektów.
+- Statystyki gracza (łączne z wszystkich rund).
+- Bestiariusz pokonanych wrogów.
+- Okno wyzwań (warunki odblokowania broni i planów).
+- Lepsze menu główne zamiast siłowni, w której jest wszystko.
+- Ustawienia: wielkość GUI i odległość kamery.
+- Animacja śmierci: wszystko poza Bartkiem robi się czarne, kamera się przybliża, Bartek się przewraca.
+
+**Pytania techniczne:**
+- Brak dźwięku na iPhonie: do sprawdzenia. Najczęstsza przyczyna to przełącznik wyciszenia w iPhonie (wycisza Web Audio) albo dźwięk odblokowany dopiero po dotknięciu ekranu.
+- Zbieranie statystyk gry od graczy i Firebase (wyniki graczy, tabela wyników dla zalogowanych mailem): możliwe na GitHub Pages przez Firebase z poziomu przeglądarki, ale to backend, logowanie i dane osobowe graczy (RODO), więc osobna decyzja.
 
 ## Architektura
 
