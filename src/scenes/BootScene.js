@@ -484,6 +484,11 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.metal).fillRect(s * 0.16, s * 0.52, s * 0.18, s * 0.3).fillRect(s * 0.41, s * 0.3, s * 0.18, s * 0.52).fillRect(s * 0.66, s * 0.14, s * 0.18, s * 0.68);
     g.fillStyle(ic.accent).fillRect(s * 0.1, s * 0.82, s * 0.8, s * 0.07);
     g.generateTexture('icon_stats', s, s).clear();
+    // Bestiariusz: a skull, two dark eyes, teeth under it.
+    g.fillStyle(ic.metal).fillCircle(c, s * 0.42, s * 0.32).fillRoundedRect(s * 0.3, s * 0.55, s * 0.4, s * 0.28, s * 0.06);
+    g.fillStyle(ic.metalDark).fillCircle(s * 0.38, s * 0.42, s * 0.09).fillCircle(s * 0.62, s * 0.42, s * 0.09);
+    g.fillRect(s * 0.4, s * 0.7, s * 0.04, s * 0.13).fillRect(s * 0.48, s * 0.7, s * 0.04, s * 0.13).fillRect(s * 0.56, s * 0.7, s * 0.04, s * 0.13);
+    g.generateTexture('icon_bestiary', s, s).clear();
 
     this.drawPassiveIcons(g);
   }

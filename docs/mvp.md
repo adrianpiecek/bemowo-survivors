@@ -489,7 +489,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Po przejściu mapy: możliwość zwiększenia zarabianego białka razem z poziomem trudności (jak poziomy trudności po wygranej).
 
 **Ekrany i menu:**
-- Bestiariusz pokonanych wrogów.
 - Lepsze menu główne zamiast siłowni, w której jest wszystko.
 - Ustawienia: wielkość GUI i odległość kamery.
 
@@ -627,6 +626,14 @@ Nowa broń (`bow` w `src/data/weapons.js`, liczby w `config.weapons.bow`). Co 1,
 - **Odblokowanie:** „Szybszy niż Uncanny”: zabij 150 Uncanny w jednej rundzie.
 - **Ewolucja:** z Książką Davida Gogginsa **Łuk bez wymówek**: strzały przebijają wszystkich na swojej drodze i nie tracą obrażeń.
 - Ikony: `weapon_bow`, `weapon_bow_evo`. Debug: `config.debug.startWeapon` albo `giveWeapon` = `'bow'`.
+
+### 27. Bestiariusz (krok 51)
+
+W siłowni po wykresie jest czaszka. Otwiera okno **Bestiariusz** (`src/scenes/BestiaryScene.js`, wygląd w `config.ui.bestiary`) nad zatrzymaną siłownią. Okno pokazuje każdy rodzaj wroga i każdego bossa z `src/data/enemies.js` (14), z obrazkiem, nazwą, łączną liczbą zabitych ze wszystkich rund i krótkim opisem. Bossowie mają pomarańczową ramkę, a zamiast opisu podpis swojej mocy. Rodzaj jeszcze niepokonany ma czarną sylwetkę, „???” i „Jeszcze nie pokonany.”. Na górze jest licznik „Pokonane rodzaje: x/14”. W poziomie okno ma dwie kolumny.
+
+- Zwykli wrogowie mają w danych `name` i `description`; bossowie biorą nazwę z `config.boss.list`.
+- Nowe pole zapisu `save.bestiary` (rodzaj wroga → zabici), dopisywane w GameOverScene z `run.killsByType`; starszy zapis zaczyna od zera, „Nowa gra” je kasuje.
+- Ikony za tytułem siłowni (zębatka, puchar, wykres, czaszka) są mniejsze (`ui.settings.gearSize` 46 zamiast 56), żeby w pionie zmieściły się przed licznikiem białka.
 
 ## Architektura
 

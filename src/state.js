@@ -151,7 +151,8 @@ const SAVE_VERSION = 1;
 
 function freshSave() {
   return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, orientation: 'portrait', orientationSet: false, evolutions: [], runsPlayed: 0, stats: freshStats(),
-    bets: {} }; // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
+    bets: {}, // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
+    bestiary: {} }; // enemy type id -> kills over all runs (BestiaryScene)
 }
 
 // Totals over all runs, for the passives' and plans' unlocks and the Statystyki window. Added in GameOverScene.
@@ -176,6 +177,7 @@ export function loadSave() {
   if (Number.isFinite(d.protein) && d.protein >= 0) s.protein = d.protein;
   if (isObject(d.gym)) s.gym = d.gym;
   if (isObject(d.bets)) s.bets = d.bets; // levels are clamped where they are read (betLevel)
+  if (isObject(d.bestiary)) for (const [k, v] of Object.entries(d.bestiary)) if (Number.isFinite(v) && v >= 0) s.bestiary[k] = v;
   if (Array.isArray(d.unlocks)) s.unlocks = d.unlocks;
   if (typeof d.muted === 'boolean') s.muted = d.muted;
   for (const k of ['musicVolume', 'sfxVolume']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], 0, 1);

@@ -35,6 +35,7 @@ export default class GameOverScene extends Phaser.Scene {
     st.protein += this.earned;
     st.bestMs = Math.max(st.bestMs, r.elapsedMs);
     st.bestKills = Math.max(st.bestKills, r.kills);
+    for (const [id, n] of Object.entries(r.killsByType)) save.bestiary[id] = (save.bestiary[id] ?? 0) + n;
     // One at a time, in list order, so the shield (last weapon) already sees the others unlocked by this same run.
     this.newUnlocks = [];
     for (const def of [...weapons, ...passives, ...plans]) {

@@ -29,8 +29,9 @@ export default class GymScene extends Phaser.Scene {
     const gear = config.ui.settings.gearSize;
     this.add.image(title.x + title.width + gs.padding + gear / 2, title.y + title.height / 2, 'icon_gear').setDisplaySize(gear, gear)
       .setInteractive({ useHandCursor: true }).on('pointerdown', () => openSettings(this));
-    // Wyzwania (unlock conditions) behind the cup and Statystyki behind the chart, after the gear.
-    [['icon_trophy', 'ChallengesScene'], ['icon_stats', 'StatsScene']].forEach(([icon, key], i) => {
+    // After the gear: Wyzwania (unlock conditions) behind the cup, Statystyki behind the chart, Bestiariusz behind the skull.
+    const windows = [['icon_trophy', 'ChallengesScene'], ['icon_stats', 'StatsScene'], ['icon_bestiary', 'BestiaryScene']];
+    windows.forEach(([icon, key], i) => {
       this.add.image(title.x + title.width + gs.padding * (i + 2) + gear * (i + 1.5), title.y + title.height / 2, icon).setDisplaySize(gear, gear)
         .setInteractive({ useHandCursor: true }).on('pointerdown', () => {
           this.scene.pause();
@@ -47,7 +48,7 @@ export default class GymScene extends Phaser.Scene {
       font(pr.fontSize, { fontStyle: 'bold' })).setOrigin(1, 0.5);
     // "Białko:" before the pill only where the icons after the title leave room (portrait has none).
     const label = this.add.text(prX - gs.padding, prY + pr.height / 2, 'Białko:', font(gs.nameFontSize, { color: gs.descColor })).setOrigin(1, 0.5);
-    const iconsRight = title.x + title.width + gs.padding * 3 + gear * 3;
+    const iconsRight = title.x + title.width + (windows.length + 1) * (gs.padding + gear);
     if (label.x - label.width < iconsRight + gs.padding) label.destroy();
 
     const gymMaxLevel = Math.max(...gymUpgrades.map((up) => up.maxLevel));

@@ -505,7 +505,7 @@ export const config = {
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
       valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, inventoryWidth: 240, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
       actionHeight: 60, actionFontSize: 22, wipeColor: '#ff8a80', // wipeColor: the "Nowa gra" warning
-      barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 56 },
+      barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 46 }, // gearSize: the icons after the gym's title
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
     // Arrow at the screen edge toward the nearest pickup lying off screen.
@@ -550,6 +550,11 @@ export const config = {
     inventory: { width: 680, padding: 20, gap: 12, columns: 2, statColumns: 2, rowHeight: 52, statHeight: 26, iconSize: 40,
       titleFontSize: 44, headFontSize: 22, nameFontSize: 18, textFontSize: 15, headColor: '#ffc400', dimColor: '#b0bec5',
       evoColor: '#ffc400', backWidth: 240, backHeight: 60, backFontSize: 26 },
+    // Bestiariusz (BestiaryScene, the skull after the chart in the gym): one row per enemy type and boss in `columns`
+    // columns; bosses framed in bossColor. A type never killed shows as a black shape.
+    bestiary: { width: 680, columns: 1, columnGap: 0, padding: 18, inner: 10, gap: 12, titleFontSize: 44, textFontSize: 17,
+      rowHeight: 64, rowGap: 5, iconSize: 50, nameFontSize: 19, descFontSize: 15, dimColor: '#b0bec5', bossColor: 0xff7043,
+      bossText: '#ffab91', backWidth: 240, backHeight: 56, backFontSize: 26 },
     // Statystyki (StatsScene, the chart next to the cup in the gym): label and value rows in `columns` columns, every other
     // row lighter (stripeAlpha).
     stats: { width: 640, columns: 1, columnGap: 0, padding: 22, inner: 12, gap: 14, titleFontSize: 44, rowHeight: 40, fontSize: 19,
@@ -588,6 +593,8 @@ export const config = {
         banner: { y: 150 },
         inventory: { width: 1220, padding: 16, gap: 8, columns: 4, statColumns: 3, rowHeight: 46, statHeight: 22, iconSize: 36,
           titleFontSize: 34, headFontSize: 19, backHeight: 52 },
+        bestiary: { width: 1220, columns: 2, columnGap: 14, padding: 14, gap: 8, titleFontSize: 34, textFontSize: 15,
+          rowHeight: 58, rowGap: 5, iconSize: 44, nameFontSize: 17, descFontSize: 14, backHeight: 50 },
         stats: { width: 1000, columns: 2, columnGap: 24, padding: 16, gap: 10, titleFontSize: 34, rowHeight: 36, fontSize: 17, backHeight: 52 },
         challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15,
           rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 14, backHeight: 52 },
