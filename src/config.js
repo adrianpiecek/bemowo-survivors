@@ -120,6 +120,8 @@ export const config = {
     boxing: { damagePct: 0.15, range: 200, maxLevel: 5 },
     // Śliski dres: +dodge per level, the share of hits (touches and boss powers) Bartek dodges; never above dodgeMax.
     tracksuit: { dodge: 0.05, maxLevel: 5, dodgeMax: 0.5 },
+    // Gwizdek WF-isty: +ratePct per level to how often elites come (elites.everySec is divided by the rate).
+    whistle: { ratePct: 0.2, maxLevel: 5 },
   },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {

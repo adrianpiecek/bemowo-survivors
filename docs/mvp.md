@@ -471,7 +471,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 **Nowe statystyki i karty:**
 - Odrzut jako statystyka broni, z kartami i przedmiotami, które go zwiększają.
 - Prędkość pocisków jako pasywka i statystyka broni.
-- Pasywka na częstsze elity.
 - Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
 
 **Przedmioty:**
@@ -723,6 +722,14 @@ Dwa nowe wiersze w ustawieniach (i na ekranie pauzy), takie same jak głośnośc
 - W rundzie obie zmiany działają od razu: kamera dostaje nowy zoom, a HUD uruchamia się od nowa (bez napisu powitania).
 - W poziomie panel ustawień ma mniejsze wiersze (`layouts.landscape.ui.settings`), żeby pięć wierszy zmieściło się w 720 px.
 - Sprawdzone w przeglądarce: kliknięcia +/− zmieniają wartości i zapis, przy 80% kamery żaden z 200 punktów spawnu nie leży w widoku, gra i HUD przy 120% wyglądają poprawnie, panel w poziomie mieści się. Joysticka na telefonie nie sprawdzano.
+
+### 36. Gwizdek WF-isty: częstsze elity (krok 60)
+
+Nowa statystyka gracza `eliteRate` (w `run.player`, 1 = elita co `config.elites.everySec`) i pasywka **Gwizdek WF-isty** (`whistle` w `src/data/passives.js`, liczby w `config.passives.whistle`): +20% częstości elit na poziom, max 5 poziomów, czyli na maksie elita co 20 s zamiast co 40 s. Dostępna od początku. To ryzyko za nagrodę: elita jest groźniejsza, ale zawsze zostawia skrzynkę z przedmiotem.
+
+- Liczone w `GameScene.update` przy spawnie elity: następna za `everySec / eliteRate`. Pierwsza elita rundy przychodzi jak dotąd (40 s), bo pasywka wypada dopiero później.
+- Ekwipunek pokazuje „Częstość elit”. Ikona `passive_whistle`: srebrny gwizdek na czerwonym sznurku.
+- Sprawdzone botem: bez pasywki elity w 40. i 80. s, z poziomem 5 w 40. i 60. s.
 
 ## Architektura
 

@@ -926,7 +926,7 @@ export default class GameScene extends Phaser.Scene {
       // Once eliteMs is up, the next lone walker to spawn is an elite.
       const z = this.spawnPick();
       if (z && run.eliteMs <= 0 && this.canBeElite(z.stats)) {
-        run.eliteMs = config.elites.everySec * 1000;
+        run.eliteMs = config.elites.everySec * 1000 / run.player.eliteRate;
         this.makeElite(z, this.rollEliteTraits());
       }
       const pressure = 1 + run.pressure * config.dda.spawnBonus;

@@ -628,6 +628,13 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.tracksuitStripe).fillRect(s * 0.16, s * 0.2, s * 0.05, s * 0.56).fillRect(s * 0.79, s * 0.2, s * 0.05, s * 0.56);
     g.lineStyle(2, ic.tracksuitStripe).lineBetween(c, s * 0.18, c, s * 0.88);
     done('tracksuit');
+    // Gwizdek WF-isty: a silver whistle with a mouthpiece, a hole and a red cord.
+    g.lineStyle(s * 0.06, ic.heart).beginPath().arc(s * 0.36, s * 0.34, s * 0.22, Math.PI * 0.9, Math.PI * 2.1).strokePath();
+    g.fillStyle(ic.metal).fillCircle(s * 0.42, s * 0.62, s * 0.24).fillRect(s * 0.42, s * 0.38, s * 0.46, s * 0.18);
+    g.lineStyle(2, o).strokeCircle(s * 0.42, s * 0.62, s * 0.24).strokeRect(s * 0.42, s * 0.38, s * 0.46, s * 0.18);
+    g.fillStyle(ic.metal).fillRect(s * 0.4, s * 0.4, s * 0.1, s * 0.3); // hides the outline where body and mouthpiece meet
+    g.fillStyle(ic.metalDark).fillCircle(s * 0.42, s * 0.62, s * 0.08);
+    done('whistle');
     this.drawItemIcons(g);
   }
 

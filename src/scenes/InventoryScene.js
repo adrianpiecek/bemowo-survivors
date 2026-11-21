@@ -70,6 +70,7 @@ export default class InventoryScene extends Phaser.Scene {
       ['Szansa na kryt', `${Math.round(pl.critChance * 100)}%`],
       ['Obrażenia krytyka', `x${num(pl.critMult, 2)}`],
       ['Obrażenia z bliska', pct(pl.closeDamage)],
+      ['Częstość elit', pct(pl.eliteRate - 1)],
       ['Szczęście', pct(pl.luck - 1)],
       ['XP', pct(pl.growth - 1)],
       ['Zbieranie', `${Math.round(pl.magnetRadius)} px`],
