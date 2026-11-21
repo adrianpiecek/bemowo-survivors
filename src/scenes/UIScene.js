@@ -131,7 +131,7 @@ export default class UIScene extends Phaser.Scene {
       color: '#ffe082', stroke: '#000000', strokeThickness: bn.subStrokeThickness, align: 'center',
       wordWrap: { width: width - 2 * (m + bn.padX) }, // a long line wraps instead of leaving the narrow screen
     })).setOrigin(0.5, 0);
-    this.banner = this.add.container(width / 2, bn.y, [this.bannerBg, this.bannerTitle, this.bannerSub]).setDepth(1).setVisible(false);
+    this.banner = this.add.container(width / 2, this.effectTop + bn.padY, [this.bannerBg, this.bannerTitle, this.bannerSub]).setDepth(1).setVisible(false);
 
     const w = u.welcome;
     if (this.quiet) return;

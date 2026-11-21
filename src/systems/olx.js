@@ -3,7 +3,8 @@ import { config } from '../config.js';
 // The "Ogłoszenie z OLX" pickup: an ad card with a pigeon photo, then a flock that clears the screen.
 // Rule: the big red slogan is only ever drawn on this card, right under the pigeon photo.
 
-// Pauses GameScene and shows the ad on the UIScene layer, whose clock keeps running. Calls onDone after cardMs.
+// Pauses GameScene and shows the ad on the UIScene layer, whose clock keeps running. Calls onDone after cardMs, or
+// sooner on a click or a tap.
 export function showOlxAd(scene, onDone) {
   const ui = scene.scene.get('UIScene');
   const c = config.ui.olxCard, o = config.pickups.olx;
@@ -32,12 +33,17 @@ export function showOlxAd(scene, onDone) {
 
   const card = ui.add.container(width / 2, height / 2, [bg, photo, title, place, price, slogan]).setDepth(2);
 
-  ui.time.delayedCall(o.cardMs, () => {
+  const finish = () => {
+    if (!card.active) return; // the timer and a click in the same frame
+    timer.remove();
+    ui.input.off('pointerdown', finish);
     card.destroy();
     // shortcut: a level-up opened in the same frame owns the resume; the card can then sit over the level-up cards.
     if (!scene.scene.isActive('LevelUpScene')) scene.scene.resume();
     onDone();
-  });
+  };
+  const timer = ui.time.delayedCall(o.cardMs, finish);
+  ui.input.on('pointerdown', finish);
 }
 
 // 10-15 pigeons cross the screen with a slight wave; enemies on screen die as the flock passes the middle.

@@ -469,7 +469,10 @@ export const config = {
     { id: 'epic', name: 'Epicka', mult: 2, color: 0xb04cff, weight: 4, perLevel: 1 },
     { id: 'legendary', name: 'Legendarna', mult: 3, color: 0xff9800, weight: 0.5, perLevel: 0.3 },
   ],
-  upgrade: { fallbackHeal: 20 }, // the heal card when nothing else is left to draw
+  // fallbackHeal: the heal card. overflow: the small no-limit cards (data/upgrades.js overflowUpgrades) that fill a draw
+  // once the weapon and passive cards run short; each about 40% of a passive level.
+  upgrade: { fallbackHeal: 20,
+    overflow: { damagePct: 0.04, cooldownPct: 0.03, speedPct: 0.03, maxHp: 10, areaPct: 0.04, magnetPct: 0.08 } },
   // Level-up draw control, charges per run at the start (the gym's Plan dnia adds more): Odśwież draws new cards,
   // Pomiń takes nothing and heals skipHeal HP, Wywal takes a card out of the pool for the rest of the run.
   draw: { rerolls: 2, skips: 2, banishes: 1, skipHeal: 15 },
@@ -579,8 +582,8 @@ export const config = {
       popScale: 1.08, popMs: 120, promptBottom: 60 },
     welcome: { fontSize: 72, holdMs: 1500, fadeMs: 1000 },
     // Pickup, Bartkowanie and boss banners: big text with a line under it, on a panel, faded in and out.
-    // y: under the effect rows (room for four), above Bartek in the middle of the screen.
-    banner: { y: 400, fontSize: 52, strokeThickness: 6, durationMs: 3200, fadeMs: 250, subFontSize: 26, subStrokeThickness: 4, padX: 30, padY: 14, gap: 6 },
+    // Its panel starts right under the HUD (where the effect rows start; GameScene stays visible around Bartek).
+    banner: { fontSize: 40, strokeThickness: 6, durationMs: 3200, fadeMs: 250, subFontSize: 22, subStrokeThickness: 4, padX: 30, padY: 14, gap: 6 },
     olxCard: { width: 420, height: 440, padding: 24, photoSize: 200, titleFontSize: 34, textFontSize: 20, bigFontSize: 38 },
     buttonOffsetX: 160, // two buttons side by side sit this far left and right of center
     gymPulse: { scale: 1.12, ms: 500 }, // after the first run: the end screen's menu button and the menu's gym button
@@ -643,7 +646,6 @@ export const config = {
         gameOver: { top: 14, gap: 8, fontSize: 18, rowHeight: 25, iconSize: 22, buttonsGap: 34 },
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,
           stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },
-        banner: { y: 150 },
         inventory: { width: 1220, padding: 16, gap: 8, columns: 4, statColumns: 3, rowHeight: 46, statHeight: 22, iconSize: 36,
           titleFontSize: 34, headFontSize: 19, backHeight: 52 },
         bestiary: { width: 1220, columns: 2, columnGap: 14, padding: 14, gap: 8, titleFontSize: 34, textFontSize: 15,

@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { upgrades } from '../data/upgrades.js';
+import { upgrades, overflowUpgrades } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { save } from '../state.js';
@@ -106,6 +106,9 @@ export function drawUpgrades(run, count, exclude = []) {
     const i = pool.findIndex((up) => (roll -= weight(up)) < 0);
     picked.push(pool.splice(i < 0 ? pool.length - 1 : i, 1)[0]);
   }
+  // Short of cards (everything at its max): the small no-limit cards fill in, the heal among them.
+  const extra = Phaser.Utils.Array.Shuffle(overflowUpgrades.filter((up) => !run.banished.includes(up.id) && !exclude.includes(up.id)));
+  while (picked.length < count && extra.length) picked.push(extra.pop());
   return picked;
 }
 

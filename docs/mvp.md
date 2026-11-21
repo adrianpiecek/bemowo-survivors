@@ -859,6 +859,31 @@ W pomiarze z ucieczką (sekcja 43) obie bronie były najsłabsze. Tym razem bot 
 - **Shotgun:** obrażenia śruciny 10 → 12, zasięg 0,7 → 0,85 zasięgu pistoletu (280 → 340 px). Uciekający Bartek ma wrogów zwykle dalej niż 280 px, więc Shotgun często nie miał do kogo strzelać.
 - Poprawka minionów działa też po ewolucji (Armia NekroBartka), więc ta ewolucja jest teraz w grze mocniejsza niż w tabeli z sekcji 44.
 
+### 46. Banery wyżej, ogłoszenie z OLX do pominięcia (krok 70)
+
+- **Banery** („GOTOWE DO EWOLUCJI”, „UWAGA: boss”, znajdźki, wydarzenia) stały w pionie na wysokości 400 z 1280, tuż nad Bartkiem, i zasłaniały walkę. Teraz panel banera zaczyna się zaraz pod HUD-em, tam gdzie wiersze efektów (`UIScene.effectTop`). Tytuł ma 40 px zamiast 52, podpis 22 zamiast 26. `banner.y` zniknął z configu, także z układu poziomego.
+- **Ogłoszenie z OLX** (gołębie) zamyka się kliknięciem albo dotknięciem; bez tego jak dotąd po 2 s. Gołębie lecą od razu po zamknięciu (`showOlxAd` w `src/systems/olx.js`).
+- Sprawdzone w przeglądarce w pionie i w poziomie: baner pod HUD-em, Bartek odsłonięty; kliknięcie zamyka kartę OLX po 0,5 s, gra rusza i lecą gołębie; bez kliknięcia karta znika sama.
+
+### 47. Karty bez limitu po maksie (krok 71)
+
+Gdy bronie i pasywki były na maksie, a sloty pełne, level up dawał już tylko Leczenie. Teraz brakujące karty uzupełniają **małe bonusy bez limitu** (`overflowUpgrades` w `src/data/upgrades.js`, liczby w `config.upgrade.overflow`). Każdy to około 40% poziomu odpowiadającej pasywki i ma rzadkość:
+
+| Karta | Ikona jak | Daje (zwykła) |
+|---|---|---|
+| Dodatkowa seria | Kreatyna | +4% obrażeń wszystkich broni |
+| Drugie espresso | Kawa z Żabki | -3% czasu odnowienia |
+| Rozgrzewka | Buty z bazaru | +3% szybkości chodzenia |
+| Dokładka | Gainer | +10 max HP i leczenie o tyle samo |
+| Rozciąganie | Hantle w plecaku | +4% obszaru broni |
+| Dłuższe ręce | Wór na kryształy | +8% zasięgu przyciągania |
+| Leczenie | serce | +20 HP, jak dotąd |
+
+- Pojawiają się tylko wtedy, gdy zwykła pula nie wystarcza na wszystkie karty (`drawUpgrades` w `src/systems/cards.js`), więc nie rozwadniają kart broni i pasywek.
+- Losowane bez powtórzeń. Można je wywalić (Wywal) na resztę rundy, poza Leczeniem.
+- Działa tak samo w skrzyniach, gdy zabraknie kart.
+- Sprawdzone w przeglądarce: z bronią na maksie i bez wolnych slotów level up pokazał 3 różne karty z tej listy, z rzadkością (legendarna Dokładka: +30 max HP), a wybrana Dodatkowa seria dodała 4% obrażeń.
+
 ## Architektura
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
