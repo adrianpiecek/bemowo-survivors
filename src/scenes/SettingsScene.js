@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { save } from '../state.js';
+import { save, resetProgress } from '../state.js';
 import { setVolume, playSfx, pauseSfx, resumeSfx, toggleMute } from '../systems/audio.js';
 import { font, panel, drawBar, button } from '../systems/ui.js';
 import { setOrientation } from '../systems/layout.js';
@@ -16,13 +16,15 @@ export function openSettings(scene) {
 // Settings over a paused scene: music and sound effect volume, screen orientation (kept in the save). In a run it is the
 // pause screen, and the orientation only says where to change it: the run's world is built for one screen shape.
 // "Wróć", Esc or Enter close it and resume the scene under it (in a run also P, the pause key). "Wycisz" mutes everything
-// (as M does); in a run "Wyjdź do menu" ends the run as a loss: the end screen counts the protein so far.
+// (as M does); in a run "Wyjdź do menu" ends the run as a loss: the end screen counts the protein so far. Outside a run
+// "Nowa gra" asks "Na pewno?" first, then wipes the progress (state.resetProgress) and goes back to the title.
 export default class SettingsScene extends Phaser.Scene {
   constructor() { super('SettingsScene'); }
 
   init(data) {
     this.from = data.from;
     this.closing = false;
+    this.wipeArmed = false; // "Nowa gra" clicked once: the next click wipes the progress
   }
 
   create() {
@@ -84,17 +86,28 @@ export default class SettingsScene extends Phaser.Scene {
     const backY = y0 + panelH - st.padding - st.hintFontSize * 2 - st.backHeight / 2;
     const actY = backY - st.backHeight / 2 - st.padding - st.actionHeight / 2, actW = (st.width - st.padding * 3) / 2;
     const muteLabel = () => (save.muted ? 'Włącz dźwięk' : 'Wycisz');
-    const mute = button(this, inRun ? x0 + st.padding + actW / 2 : cx, actY, muteLabel(), () => {
+    const mute = button(this, x0 + st.padding + actW / 2, actY, muteLabel(), () => {
       toggleMute(this.game);
       mute.setLabel(muteLabel());
     }, { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
+    const rightX = x0 + st.width - st.padding - actW / 2;
     if (inRun) {
-      button(this, x0 + st.width - st.padding - actW / 2, actY, 'Wyjdź do menu', () => this.quit(),
+      button(this, rightX, actY, 'Wyjdź do menu', () => this.quit(),
         { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
       this.input.keyboard.once('keydown-P', () => this.close());
+    } else {
+      const fresh = button(this, rightX, actY, 'Nowa gra', () => {
+        if (!this.wipeArmed) {
+          this.wipeArmed = true;
+          fresh.setLabel('Na pewno?');
+          this.hint.setText('Nowa gra kasuje białko, siłownię i odblokowania.').setColor(st.wipeColor);
+          return;
+        }
+        this.newGame();
+      }, { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
     }
     button(this, cx, backY, inRun ? 'Wznów' : 'Wróć', () => this.close(), { width: st.backWidth, height: st.backHeight, fontSize: st.backFontSize });
-    this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, inRun ? '[Esc / P]   M: wycisz wszystko' : '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
+    this.hint = this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, inRun ? '[Esc / P]   M: wycisz wszystko' : '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
       .setOrigin(0.5, 0);
     this.input.keyboard.once('keydown-ESC', () => this.close());
     this.input.keyboard.once('keydown-ENTER', () => this.close());
@@ -106,6 +119,17 @@ export default class SettingsScene extends Phaser.Scene {
     this.scene.stop();
     this.scene.resume(this.from);
     resumeSfx();
+  }
+
+  newGame() {
+    if (this.closing) return;
+    this.closing = true;
+    resetProgress();
+    resumeSfx();
+    this.scene.stop();
+    const from = this.scene.get(this.from);
+    from.registry.set('titleIntro', true); // the title with its intro, as on a first launch
+    from.scene.start('TitleScene');
   }
 
   quit() {

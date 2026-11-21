@@ -189,6 +189,15 @@ export function loadSave() {
 }
 
 // Fails silently: the game keeps running, progress just is not kept.
+// "Nowa gra" in the settings: progress (protein, gym, unlocks, stats, bets) back to a fresh save, the player's own
+// settings (sound, screen) kept. In place, since every module holds this same `save` object.
+export function resetProgress() {
+  const keep = { muted: save.muted, musicVolume: save.musicVolume, sfxVolume: save.sfxVolume, orientation: save.orientation, orientationSet: save.orientationSet };
+  for (const key of Object.keys(save)) delete save[key];
+  Object.assign(save, freshSave(), keep);
+  writeSave(save);
+}
+
 export function writeSave(s) {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({ ...s, version: SAVE_VERSION }));

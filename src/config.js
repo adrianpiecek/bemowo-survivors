@@ -459,7 +459,7 @@ export const config = {
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
       valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
-      actionHeight: 60, actionFontSize: 22,
+      actionHeight: 60, actionFontSize: 22, wipeColor: '#ff8a80', // wipeColor: the "Nowa gra" warning
       barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 56 },
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
