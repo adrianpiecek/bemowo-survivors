@@ -465,7 +465,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Jaki jest sens ewolucji, jeśli przychodzi na ostatnie kilkadziesiąt sekund? Częściowo zrobione w kroku 39 (sekcja 16): karty broni z wagą 2, mocniejsze Smog i Pasieka. Zostaje to, że ewolucja czeka na skrzynię bossa.
 - Bronie krótkiego zasięgu (Topór, Ul, Smog) zawsze mają dużo gorsze liczby niż bronie dalekiego zasięgu. Pasywka albo przedmiot na obrażenia z bliska pomoże tylko częściowo.
 - Może mniej bazowego HP, żeby karta Max HP miała sens.
-- Rzeczy do zbierania mogłyby być trochę większe (skrzynki i znajdźki powiększone w sekcji 14; zostają kryształy i monety).
 
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
 - Miecz z anime: cięcie w wycinku koła; liczba pocisków to liczba cięć pod rząd; poziomy wydłużają obszar cięcia.
@@ -634,6 +633,10 @@ W siłowni po wykresie jest czaszka. Otwiera okno **Bestiariusz** (`src/scenes/B
 - Zwykli wrogowie mają w danych `name` i `description`; bossowie biorą nazwę z `config.boss.list`.
 - Nowe pole zapisu `save.bestiary` (rodzaj wroga → zabici), dopisywane w GameOverScene z `run.killsByType`; starszy zapis zaczyna od zera, „Nowa gra” je kasuje.
 - Ikony za tytułem siłowni (zębatka, puchar, wykres, czaszka) są mniejsze (`ui.settings.gearSize` 46 zamiast 56), żeby w pionie zmieściły się przed licznikiem białka.
+
+### 28. Większe kryształy i monety (krok 52)
+
+Z listy problemów: rzeczy do zbierania były za małe na telefonie. Kryształy XP mają 26 px (było 20, `config.xp.gemSize`), monety białka i monety B 24 px (było 18, `config.coins.size`; mała moneta 0,8x, złota 1,3x tego). Kształty, kolory i zbieranie bez zmian.
 
 ## Architektura
 

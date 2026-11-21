@@ -255,7 +255,7 @@ export const config = {
   // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
   // Drawn in BootScene, gemSize px: a polygon with `sides` corners (stretch: taller than wide), or `cut`: a cut gem
   // (flat top, pointed bottom); facets in `dark`, an inner face in `light`, and a white sparkle.
-  xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, perLevelSq: 0.6, gemSize: 20,
+  xp: { magnetRadius: 80, gemSpeed: 400, baseToLevel: 5, perLevel: 5, perLevelSq: 0.6, gemSize: 26, // was 20: easier to see on a phone
     gems: {
       blue: { value: 1, sides: 4, stretch: 1.3, color: 0x1e88e5, dark: 0x0d47a1, light: 0x90caf9 },
       purple: { value: 3, sides: 6, stretch: 1.1, color: 0x8e24aa, dark: 0x4a148c, light: 0xe1bee7 },
@@ -271,7 +271,8 @@ export const config = {
   // weight: how often each kind comes up when a coin drops. Drawn in BootScene, size px: a rim, a face, a dumbbell.
   // Protein coins: all gold, in three sizes (scale x size px); `gold`, the big one, counts for the clover unlock.
   coins: {
-    dropChance: 0.02, size: 18, color: 0xffca28, dark: 0xa16800, light: 0xfff8e1,
+    dropChance: 0.02, size: 24, color: 0xffca28, // size was 18: easier to see on a phone
+    dark: 0xa16800, light: 0xfff8e1,
     kinds: {
       small: { protein: 1, weight: 0.75, scale: 0.8 },
       medium: { protein: 3, weight: 0.2, scale: 1 },
