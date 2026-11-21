@@ -629,12 +629,11 @@ function updateMinion(scene, w, s, i, n, delta) {
     s.setPosition(s.x + dx * k, s.y + dy * k).setFlipX(dx > 0);
     s.phase += Math.PI * 2 * nc.bobHz * delta / 1000;
     s.setAngle(Math.sin(s.phase) * nc.bobDeg);
-  } else {
-    s.setAngle(0);
-    if (best && s.hitMs <= 0) {
-      s.hitMs = nc.hitCooldownMs;
-      scene.hurtEnemy(best, scene.weaponDamage(w.damage), best.x, best.y);
-    }
+  } else s.setAngle(0);
+  // Also on the frame it gets there: an enemy chasing Bartek moves on every frame, so it is never still in reach after.
+  if (best && d - step <= reach && s.hitMs <= 0) {
+    s.hitMs = nc.hitCooldownMs;
+    scene.hurtEnemy(best, scene.weaponDamage(w.damage), best.x, best.y);
   }
 }
 

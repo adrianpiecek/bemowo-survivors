@@ -843,6 +843,22 @@ Po kroku 66 ewolucje przychodzą wcześniej, a część z nich zwiększała obra
 - Opisy kart ewolucji liczą się z configu: „1,2x więcej śrutu”, „2,5x szybciej”, „na kolejnego wroga”, „0,8x obrażeń”.
 - Wcześniejsze opisy Burzy nad Bemowem i Ostrza Senpaia w sekcjach o nowych broniach podają stare liczby; aktualne są w tej tabeli.
 
+### 45. Shotgun i NekroBartek (krok 69)
+
+W pomiarze z ucieczką (sekcja 43) obie bronie były najsłabsze. Tym razem bot robił po 4 przebiegi na wariant, 5. minuta, broń na maksie. DPS przy ucieczce od wrogów bliżej niż 220 px / 120 px:
+
+| Broń | Przed | Po |
+|---|---|---|
+| Łuk (dla porównania) | 94 / 59 | |
+| Laser (dla porównania) | 79 / 109 | |
+| Pistolet, poz. 4 (dla porównania) | 39 / 34 | |
+| **NekroBartek** | 8 / 15 | 70 / 87 |
+| **Shotgun** | 49 / 43 | 74 / 65 |
+
+- **NekroBartek miał błąd, a nie złe liczby.** Minion podchodził dokładnie na zasięg ciosu i w tej samej klatce wróg goniący Bartka odsuwał się o kilka pikseli. W następnej klatce minion znowu tylko szedł, więc ruchomego wroga prawie nigdy nie uderzał. Bił tylko stojących, dlatego test z przypiętymi wrogami tego nie pokazał. Teraz uderza też w klatce, w której dojdzie (`updateMinion` w `src/data/weapons.js`). Liczby bez zmian.
+- **Shotgun:** obrażenia śruciny 10 → 12, zasięg 0,7 → 0,85 zasięgu pistoletu (280 → 340 px). Uciekający Bartek ma wrogów zwykle dalej niż 280 px, więc Shotgun często nie miał do kogo strzelać.
+- Poprawka minionów działa też po ewolucji (Armia NekroBartka), więc ta ewolucja jest teraz w grze mocniejsza niż w tabeli z sekcji 44.
+
 ## Architektura
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.

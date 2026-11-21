@@ -20,7 +20,7 @@ export const config = {
       gun: { distance: 22, offsetY: 8 } },
     // Shotgun: every cooldownMs `pellets` pellets fan out over spreadDeg toward the nearest enemy within rangeMult x the
     // pistol range (Okulary from the gym count); a pellet flies `range` far at most, pelletScale the size of a bullet.
-    shotgun: { damage: 10, pellets: 5, cooldownMs: 950, rangeMult: 0.7, spreadDeg: 40, jitterRad: 0.04, speed: 600, pelletScale: 0.8,
+    shotgun: { damage: 12, pellets: 5, cooldownMs: 950, rangeMult: 0.85, spreadDeg: 40, jitterRad: 0.04, speed: 600, pelletScale: 0.8,
       levels: [{ pellets: 1 }, { damage: 4 }, { pellets: 1 }, { damage: 5 }, { pellets: 2 }, { damage: 6 }],
       // Dwururka dziadka: pelletsMult x pellets (rounded), each goes through `pierce` enemies.
       evolution: { pelletsMult: 1.2, pierce: 1 },
