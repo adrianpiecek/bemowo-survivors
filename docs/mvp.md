@@ -71,7 +71,7 @@ Pasywki (`src/data/passives.js`, liczby w `config.passives`): karty z rzadkości
 
 ### Znajdźki czasowe (wersja 3)
 
-Oprócz rzadkich znajdziek z wrogów (OLX, Photoshop) są znajdźki typowe dla gatunku: Magnes z lodówki (wszystkie kryształy lecą do Bartka), Zimny prysznic (zwykli wrogowie stoją i nie zadają obrażeń, boss i klapy nie), Przedtreningówka (x2 szybkostrzelność), Bańka (brak obrażeń) i Pierogi w domu („Mamy KFC w domu”, leczenie). Wypadają z wrogów i co ok. 35 s jedna leży sama na mapie, poza ekranem; strzałka na krawędzi ekranu wskazuje najbliższą. Aktywne efekty widać w HUD (ikonka i pasek czasu). Dane w `src/data/pickups.js`, liczby w `config.pickups`.
+Oprócz rzadkich znajdziek z wrogów (OLX, Photoshop) są znajdźki typowe dla gatunku: Magnes z lodówki (wszystkie kryształy lecą do Bartka), Zimny prysznic (zwykli wrogowie stoją i nie zadają obrażeń, boss i klapy nie), Przedtreningówka (x2 szybkostrzelność), Bańka AI (brak obrażeń) i Pierogi w domu („Mamy KFC w domu”, leczenie). Wypadają z wrogów i co ok. 35 s jedna leży sama na mapie, poza ekranem; strzałka na krawędzi ekranu wskazuje najbliższą. Aktywne efekty widać w HUD (ikonka i pasek czasu). Dane w `src/data/pickups.js`, liczby w `config.pickups`.
 
 ### Runda
 
@@ -110,7 +110,7 @@ Każdy mem jest podpięty pod istniejący system, żeby nie mnożyć kodu. Do MV
 | Unc | Opisy ulepszeń siłowni ("Okulary do czytania: +20% zasięgu", "Rozgrzewka 15 minut") i dymki "Za moich czasów..." | v2 |
 | Czołg | Ultimate ładowany zabójstwami, 10 s rozjeżdżania hordy | v2 |
 | Metal bagażnikowy | Latające klapy bagażnika (3x obrażenia), blizna po trafieniu klapą (boss Golf usunięty w v3) | v2 |
-| Likwidacja rasy | Znajdźka "Ogłoszenie z OLX": rzadko wypada, duży napis LIKWIDACJA RASY przy ogłoszeniu ze zdjęciem gołębia, stado gołębi zabija wszystko na ekranie. Hasło nigdy bez gołębia | v2 |
+| Likwidacja rasy | Znajdźka "Ogłoszenie z OLX": rzadko wypada, duży napis LIKWIDACJA RASY przy ogłoszeniu ze zdjęciem gołębia, stado gołębi przelatuje przez ekran i zabija wrogów, nad którymi leci, a na koniec resztę widocznych. Hasło nigdy bez gołębia | v2 |
 | Mały B | Znajdźka "Photoshop": duży napis MAŁY B jak przy LIKWIDACJA, Bartek kurczy się na 15 s (mniejszy hitbox, szybszy, słabsze strzały). Opis: "Nie każdy w Gigantach jest gigantem." | v2 |
 | Pszczoły (B = Bee, Valheim) | Ulepszenie "Ul": pszczoły krążą wokół Bartka (ten sam kod orbity co Kratos). Opis: "Pszczoły są szczęśliwe." Gdy Bartek jest małym B, pszczół jest 2x więcej | v2 |
 | Bartkowanie | Losowy absurdalny efekt, który czasem dzieje się sam po level upie, i definicje na ekranie ładowania | v2 |
@@ -300,7 +300,7 @@ Liczniki „łącznie” trzyma `save.stats`, a odblokowania idą do `save.unloc
 - Elity: liczby w `config.elites`. Co 40 s następny wróg, który pojawia się sam (bez bossów, paczek goblinów i klap), staje się elitą: x5 HP, 1.25x większy, poświata w kolorze cechy (WebGL) i nazwa nad głową. Po śmierci zostawia skrzynię z 1 kartą (od kroku 35b nigdy z ewolucją). Cechy: Szybki +60% prędkości, Pancerny x4 HP (razem x20), Dzielący się: 3 kopie w skali 0.7 z połową HP, Wampir: co sekundę leczy wrogów w promieniu 160 px o 15% ich max HP (bez bossów), Złodziej: idzie do najbliższego kryształu w promieniu 450 px, zabiera te w promieniu 40 px, po śmierci zostawia jeden kryształ wart ich sumę +50%.
 - Wydarzenia: liczby w `config.events`. Runda bierze 3 wydarzenia, najpierw te, których nie było w poprzedniej rundzie. Każde startuje w losowej sekundzie między 0:50 a 9:00, co najmniej 60 s po poprzednim i 30 s od każdego slotu bossa. Wydarzenie z czasem trwania ma pasek pod HUD-em.
 - Liczby wydarzeń: Burza uderza co 400 ms za 30 obrażeń (przez mnożnik obrażeń broni). Deszcz kryształów to fioletowy kryształ co 60 ms do 380 px od Bartka. Festyn kładzie 3 różne znajdźki 250-450 px od Bartka. Chorda nadchodzi (`config.events.horde`): przez 20 s spawn x3 (mnożony razem z Zakładami z Unc), a każdy punkt na pierścieniu spawnu (też fale i Kontrola biletów) leży w łuku 70° po jednej losowej stronie (`run.hordeAngle`). Na koniec baner „CHORDA ODPARTA!” i skrzynia z 1 kartą (bez ewolucji) 120 px od Bartka.
-- Promocja w Żabce: sklep stoi 500-700 px od Bartka przez 45 s, strzałka HUD-u wskazuje go przed innymi znajdźkami. Wejście otwiera `ShopScene`: 3 karty z rzadkością, cena w białku z monet tej rundy (`run.coinProtein`): bez rzadkości 15, zwykła 8, rzadka 15, epicka 25, legendarna 40. Można kupić ile się da, każdą kartę raz. Wydane białko nie wraca na koniec rundy. Jedna wizyta na promocję.
+- Promocja w Żabce: sklep stoi 500-700 px od Bartka przez 45 s, strzałka HUD-u wskazuje go przed innymi znajdźkami. Wejście otwiera `ShopScene`: 3 karty z rzadkością, cena w białku z monet tej rundy (`run.coinProtein`): bez rzadkości 15, zwykła 8, rzadka 15, epicka 25, legendarna 40. Można kupić ile się da, każdą kartę raz. Wydane białko nie wraca na koniec rundy. Po zakupie sklep znika; wyjście bez zakupu zostawia go na mapie, a otwiera się znów, gdy Bartek odejdzie (`events.zabka.leaveDist`) i wróci. Sklep pulsuje i co chwilę wypuszcza zielony pierścień światła (`events.zabka.pulse`, efekt `shopGlow`).
 - Bossowie: slot daje minutę, HP (1000, 1600, 2400, 3600), skrzynię i białko. Pule: 2:30 Wielki Zombie, Wielki Uncanny albo Wielki Goblin; 4:30 Wielki Sportakus, Wielki Joker albo Wielki Goblin; 6:30 Wielki Joker, Wielki Sportakus albo Wielki Zombie; 9:00 Wielki Homelander. Ten sam boss nie trafia się dwa razy w rundzie, a skład różni się od poprzedniej rundy.
 - Debug: `config.debug.eliteKey` (L: elita obok Bartka, co naciśnięcie kolejna cecha), `config.debug.eventKey` (V, potem 1-8: wydarzenie w kolejności z `events.js`).
 - Wydajność: Awaria prądu to jeden obrazek z miękką dziurą, narysowany raz w BootScene. Przy 250 wrogach FPS z nią i bez niej był taki sam (82-88).
@@ -461,15 +461,11 @@ Dodane w kroku 38:
 
 Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejnych wersji. Każdy pomysł przed realizacją dostaje osobny krok z treścią zadania.
 
-**Problemy z obecnej gry (do sprawdzenia przy balansie, krok 39):**
-- Jaki jest sens ewolucji, jeśli przychodzi na ostatnie kilkadziesiąt sekund? Ewolucja powinna wpadać wcześniej albo dawać wyraźnie więcej (Smog i Pasieka po ewolucji są prawie tak samo mocne jak przed).
+**Problemy z obecnej gry:**
+- Jaki jest sens ewolucji, jeśli przychodzi na ostatnie kilkadziesiąt sekund? Częściowo zrobione w kroku 39 (sekcja 16): karty broni z wagą 2, mocniejsze Smog i Pasieka. Zostaje to, że ewolucja czeka na skrzynię bossa.
 - Bronie krótkiego zasięgu (Topór, Ul, Smog) zawsze mają dużo gorsze liczby niż bronie dalekiego zasięgu. Pasywka albo przedmiot na obrażenia z bliska pomoże tylko częściowo.
 - Może mniej bazowego HP, żeby karta Max HP miała sens.
 - Rzeczy do zbierania mogłyby być trochę większe (skrzynki i znajdźki powiększone w sekcji 14; zostają kryształy i monety).
-- Żabka nie powinna znikać, gdy gracza na nic nie stać, i powinna pulsować światłem, żeby było widać, że można z nią wejść w interakcję.
-- Bartkowanie po level upie: gracz musi wiedzieć, że to, co się stało, to Bartkowanie (wyraźniejszy baner albo podpis).
-- Gołębie: niech widać, że to one zabijają, zamiast „przeleciały i wszyscy zniknęli”.
-- Zmiana nazwy znajdźki „Bańka” na „Bańka AI”.
 
 **Nowe bronie (wymagają odblokowania, więc też okna wyzwań):**
 - Łuk: strzały przebijają wrogów kosztem obrażeń.
@@ -534,6 +530,14 @@ Pomiary botem (kiting, zbieranie kryształów, czołg, gdy gotowy; pojedyncze pr
 | Maks. poziom Shotguna / Tarczy (start, celowane) | — | 5:39 (ewolucja przy skrzyni bossa 6:30) |
 
 Zostaje: ewolucja wymaga skrzyni bossa po zebraniu broni na maks i pasywki, więc bez zabicia bossa 6:30 przychodzi dopiero o 9:00. Bot nie umie grać Ulem ani Toporem (nie wpuszcza wrogów blisko), więc tych dwóch nie da się nim zmierzyć; do sprawdzenia ręcznie. Plany i Zakłady z Unc zmierzone przed tym krokiem (żaden plan nie jest obowiązkowy, Dzień nóg najmocniejszy; Zakłady na 100%: bot ginie 3:48 i 6:07), nie zmieniane.
+
+### 17. Drobne poprawki z listy pomysłów (krok 40)
+
+- **Żabka** nie znika po wizycie bez zakupu i pulsuje światłem (opis w sekcji Wydarzenia, Promocja w Żabce).
+- **Bartkowanie** po level upie: baner ma tytuł „BARTKOWANIE!”, a pod nim nazwę efektu i co dało (np. „Odżywka: +5 białka”).
+- **Bańka AI** zamiast Bańki (nazwa i baner znajdźki).
+- **Gołębie z OLX:** każdy gołąb leci swoim pasem ekranu (`pickups.olx.laneJitter`) i zabija wrogów do `hitRadius` px pod sobą, z piórami (`pigeonHit`). Boss traci swoją część HP raz na stado. Kto po przelocie jest jeszcze na ekranie, też ginie, więc siła znajdźki się nie zmieniła.
+- **Dźwięk na iPhonie:** Safari ścisza dźwięk gry, gdy przełącznik z boku telefonu jest na wyciszeniu; `navigator.audioSession.type = 'playback'` (Safari 16.4+) gra mimo to. Dotknięcie ekranu wznawia dźwięk zatrzymany przez iOS (karta w tle, połączenie). Nie sprawdzone na iPhonie.
 
 ## Architektura
 

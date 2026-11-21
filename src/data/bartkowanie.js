@@ -63,9 +63,9 @@ export const bartkowanie = [
   },
 ];
 
-// Runs one effect and shows on the banner what happened.
+// Runs one effect and shows on the banner what happened, under "BARTKOWANIE!" so the player knows what that was.
 export function doBartkowanie(scene, effect) {
   scene.run.bartkowanieCount++;
-  const subtext = effect.apply(scene) ?? '';
-  scene.scene.get('UIScene').showBanner(effect.name, subtext);
+  const subtext = effect.apply(scene);
+  scene.scene.get('UIScene').showBanner('BARTKOWANIE!', subtext ? `${effect.name}: ${subtext}` : effect.name);
 }

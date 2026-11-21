@@ -600,13 +600,13 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Every enemy inside the camera view dies; the ones off screen live. A boss only loses a share of its max HP.
-  killVisibleEnemies() {
-    const view = this.cameras.main.worldView;
-    for (const z of this.enemies.getChildren()) {
-      if (!z.active || !view.contains(z.x, z.y)) continue;
-      if (z.stats.isBoss) z.hp -= z.stats.hp * config.boss.olxDamagePct;
-      if (!z.stats.isBoss || z.hp <= 0) this.killEnemy(z);
-    }
+  // One pigeon on one enemy (systems/olx.js): a boss loses a share of its HP once per flock (z.pigeonFlock), others die.
+  pigeonHit(z, flock) {
+    if (z.pigeonFlock === flock) return;
+    z.pigeonFlock = flock;
+    playVfx(this, 'pigeonHit', z.x, z.y);
+    if (z.stats.isBoss) z.hp -= z.stats.hp * config.boss.olxDamagePct;
+    if (!z.stats.isBoss || z.hp <= 0) this.killEnemy(z);
   }
 
   // At most one pickup per kill; a pickup on cooldown is skipped.
@@ -637,12 +637,15 @@ export default class GameScene extends Phaser.Scene {
     p.count = 1; // upgrades inside, only a chest uses it
     p.evolution = true; // an evolution card allowed inside (a chest; events set false)
     p.items = false; // items in place of cards (an elite's chest)
+    p.waitLeave = false; // the Żabka shop after a visit without buying
+    p.glowMs = -Infinity;
+    p.setScale(1); // a pooled sprite may have been a pulsing shop
     this.run.pickupDropMs[def.id] = this.run.elapsedMs;
     return p;
   }
 
   collectPickup(player, p) {
-    if (!p.active) return;
+    if (!p.active || p.waitLeave) return;
     p.disableBody(true, true);
     playSfx(this, 'pickup');
     playVfx(this, 'starBurst', this.player.x, this.player.y);
@@ -1027,8 +1030,14 @@ export default class GameScene extends Phaser.Scene {
     for (const p of this.pickups.getChildren()) {
       if (!p.active) continue;
       p.ageMs += delta;
-      if (p.ageMs >= p.lifetimeMs) p.disableBody(true, true);
-      else if (!p.def.steady) p.setAlpha(Math.floor(p.ageMs / pk.blinkMs) % 2 ? pk.blinkAlpha : 1);
+      if (p.ageMs >= p.lifetimeMs) { p.disableBody(true, true); continue; }
+      if (!p.def.steady) p.setAlpha(Math.floor(p.ageMs / pk.blinkMs) % 2 ? pk.blinkAlpha : 1);
+      if (p.waitLeave && Phaser.Math.Distance.Between(p.x, p.y, this.player.x, this.player.y) > config.events.zabka.leaveDist) p.waitLeave = false;
+      const ps = p.def.pulse;
+      if (ps) {
+        p.setScale(1 + (ps.scale - 1) * (0.5 + 0.5 * Math.sin((p.ageMs / ps.ms) * Math.PI * 2)));
+        if (p.ageMs - p.glowMs >= ps.everyMs) { p.glowMs = p.ageMs; playVfx(this, ps.vfx, p.x, p.y); }
+      }
     }
 
     for (const { effect, cfg, image } of this.auras) {

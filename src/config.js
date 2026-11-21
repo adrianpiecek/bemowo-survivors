@@ -159,7 +159,11 @@ export const config = {
     ticketControl: { elites: 3 },
     // A shop minDist-maxDist from Bartek for durationSec; walking in opens `cards` cards for protein from this run's coins.
     // price by the card's rarity (none: a card without one, a new weapon).
-    zabka: { durationSec: 45, minDist: 500, maxDist: 700, cards: 3, prices: { none: 15, common: 8, rare: 15, epic: 25, legendary: 40 } },
+    zabka: { durationSec: 45, minDist: 500, maxDist: 700, cards: 3, prices: { none: 15, common: 8, rare: 15, epic: 25, legendary: 40 },
+      // Left without buying: the shop stays and opens again once Bartek walks leaveDist px away and comes back.
+      leaveDist: 120,
+      // The shop pulses up to `scale` every ms and gives off the `vfx` light every everyMs, so it reads as something to walk into.
+      pulse: { scale: 1.12, ms: 900, vfx: 'shopGlow', everyMs: 900 } },
     storm: { durationSec: 15, everyMs: 400, damage: 30 }, // a bolt into a random enemy on screen; damage goes through weaponDamage
     festyn: { count: 3, minDist: 250, maxDist: 450 }, // map pickups around Bartek
     gemRain: { durationSec: 10, everyMs: 60, radius: 380, kind: 'purple' },
@@ -298,6 +302,9 @@ export const config = {
       dropChance: 0.003, cooldownSec: 90,
       photo: './assets/golab.png', // when the file is missing the card shows the first pigeon frame
       cardMs: 2000, flockMin: 10, flockMax: 15, flyMs: 1800, flockSpreadMs: 400, waveAmp: 18, waveCycles: 3,
+      // Each pigeon flies its own lane (the screen height split into lanes, laneJitter of a lane off its middle) and takes out
+      // every enemy within hitRadius screen px of it; enemies still on screen when the flock is gone fall too.
+      hitRadius: 80, laneJitter: 0.3,
     },
     photoshop: { dropChance: 0.004, cooldownSec: 60, durationSec: 15, scale: 0.5, speedPct: 0.3, damagePct: -0.3 },
     magnet: { dropChance: 0.004, cooldownSec: 45 }, // every gem on the map flies to Bartek
@@ -602,6 +609,10 @@ export const config = {
     vacuumPull: { layers: [ // magnet pickup: two rings pulling in
       { image: { texture: 'fx_ring', scale: [6, 0.3], alpha: [0, 0.9], ms: 550, tint: 0xe57373, ease: 'Cubic.easeIn' } },
       { image: { texture: 'fx_ring', scale: [4, 0.2], alpha: [0, 0.9], ms: 450, tint: 0xcfd8dc, ease: 'Cubic.easeIn' } }] },
+    shopGlow: { layers: [ // the Żabka shop: a green light ring going out
+      { image: { texture: 'fx_ring', scale: [0.8, 3.2], alpha: [0.8, 0], ms: 800, tint: 0x76ff03 } }] },
+    pigeonHit: { layers: [ // a pigeon takes out an enemy: grey feathers
+      { particles: { texture: 'fx_leaf', count: 6, speed: [60, 160], lifeMs: 600, scale: [1, 0.5], tint: [0xeceff1, 0x90a4ae], gravityY: 200, spin: 360 } }] },
     frostNova: { layers: [ // freeze pickup
       { image: { texture: 'fx_ring', scale: [0.3, 9], alpha: [1, 0], ms: 650, tint: 0x81d4fa } },
       { particles: { texture: 'fx_flake', count: 16, speed: [150, 400], lifeMs: 750, scale: [1.2, 0.4], tint: [0xe1f5fe, 0x81d4fa], spin: 180 } }] },

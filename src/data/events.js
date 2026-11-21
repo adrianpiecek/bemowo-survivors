@@ -12,12 +12,15 @@ import { playVfx } from '../systems/vfx.js';
 // Numbers in config.events.
 const c = config.events;
 
-// The Żabka shop: lies on the map like a pickup (the HUD arrow points at it first), does not blink, opens ShopScene.
+// The Żabka shop: lies on the map like a pickup (the HUD arrow points at it first), pulses instead of blinking, opens
+// ShopScene. It stays until something is bought there (ShopScene ends the promotion) or the promotion is over; walked out
+// of without buying, it opens again only once Bartek has walked away (GameScene clears waitLeave).
 export const zabkaShop = {
-  id: 'zabka', name: 'Żabka', icon: 'zabka_shop', steady: true, arrowFirst: true,
-  apply(scene) {
+  id: 'zabka', name: 'Żabka', icon: 'zabka_shop', steady: true, arrowFirst: true, pulse: c.zabka.pulse,
+  apply(scene, p) {
+    p.enableBody(false, p.x, p.y, true, true);
+    p.waitLeave = true;
     scene.openScreen('ShopScene');
-    scene.endEvent('zabka'); // one visit per promotion
   },
 };
 

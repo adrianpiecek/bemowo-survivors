@@ -65,6 +65,7 @@ export default class ShopScene extends Phaser.Scene {
     }
     this.run.coinProtein -= it.price;
     it.bought = true;
+    this.scene.get('GameScene').endEvent('zabka'); // something bought: the shop goes when the screen closes
     applyUpgrade(this.run, this.scene.get('GameScene'), it.up, it.rarity);
     playSfx(this, 'pickup');
     this.refresh();

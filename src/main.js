@@ -25,6 +25,15 @@ const game = new Phaser.Game({
   scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, ShopScene, GameOverScene, GymScene, BetsScene, PlanScene, SettingsScene], // SettingsScene last: drawn over the rest
 });
 
+// iPhone: Safari mutes web audio while the ring/silent switch is on silent; 'playback' plays it like a video does
+// (Safari 16.4+). Elsewhere navigator.audioSession does not exist.
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* older Safari: as before */ }
+// iPhone suspends the audio when the tab goes to the background or a call comes in; the next touch wakes it up.
+addEventListener('pointerdown', () => {
+  const ctx = game.sound.context;
+  if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
+});
+
 // M mutes and unmutes in every scene; the choice is kept in the save.
 addEventListener('keydown', (e) => {
   if (e.code === 'KeyM' && !e.repeat) toggleMute(game);

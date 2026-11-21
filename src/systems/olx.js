@@ -45,10 +45,11 @@ export function pigeonStrike(scene) {
   const ui = scene.scene.get('UIScene');
   const o = config.pickups.olx, tex = config.textures.pigeon;
   const { width, height } = ui.scale;
-  const count = Phaser.Math.Between(o.flockMin, o.flockMax);
+  const count = Phaser.Math.Between(o.flockMin, o.flockMax), lane = (height - tex.height * 2) / count;
+  const cam = scene.cameras.main, flock = scene.time.now; // marks the boss hit by this flock, so it loses HP once
 
   for (let i = 0; i < count; i++) {
-    const baseY = Phaser.Math.Between(tex.height, height - tex.height);
+    const baseY = tex.height + lane * (i + 0.5 + Phaser.Math.FloatBetween(-o.laneJitter, o.laneJitter));
     const phase = Phaser.Math.FloatBetween(0, Math.PI * 2);
     const bird = ui.add.sprite(-tex.width, baseY, 'pigeon1').setScale(tex.scale).setFlipX(tex.flipX).setDepth(2).play('pigeonFly');
     ui.tweens.addCounter({
@@ -62,10 +63,19 @@ export function pigeonStrike(scene) {
           Phaser.Math.Linear(-tex.width, width + tex.width, p),
           baseY + Math.sin(phase + p * o.waveCycles * Math.PI * 2) * o.waveAmp,
         );
+        // Enemies under the bird: compared on screen, the world view scaled to the UI's size.
+        const view = cam.worldView, sx = width / view.width, sy = height / view.height;
+        for (const z of scene.enemies.getChildren()) {
+          if (z.active && Phaser.Math.Distance.Between((z.x - view.x) * sx, (z.y - view.y) * sy, bird.x, bird.y) <= o.hitRadius) scene.pigeonHit(z, flock);
+        }
       },
       onComplete: () => bird.destroy(),
     });
   }
 
-  scene.time.delayedCall((o.flockSpreadMs + o.flyMs) / 2, () => scene.killVisibleEnemies());
+  // The flock gone: whoever is still on screen falls too (bosses already hit keep their HP).
+  scene.time.delayedCall(o.flockSpreadMs + o.flyMs, () => {
+    const view = cam.worldView;
+    for (const z of scene.enemies.getChildren()) if (z.active && view.contains(z.x, z.y)) scene.pigeonHit(z, flock);
+  });
 }

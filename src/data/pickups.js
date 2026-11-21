@@ -89,8 +89,8 @@ export const pickups = [
   },
   {
     id: 'bubble',
-    name: 'Bańka',
-    bannerText: 'BAŃKA',
+    name: 'Bańka AI',
+    bannerText: 'BAŃKA AI',
     bannerSubtext: `Przestrzeń osobista, proszę.\nBez obrażeń przez ${bb.durationSec} s`,
     dropChance: bb.dropChance,
     cooldownSec: bb.cooldownSec,
