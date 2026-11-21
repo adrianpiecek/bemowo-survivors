@@ -533,6 +533,11 @@ export const config = {
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
     // Bartek with his quote under the rows only shows when it fits above the start button.
+    // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
+    // done ones with a doneColor frame; a locked one's icon at lockedAlpha.
+    challenges: { width: 680, columns: 1, columnGap: 0, padding: 20, inner: 10, gap: 14, titleFontSize: 44, textFontSize: 17,
+      rowHeight: 72, rowGap: 6, iconSize: 44, nameFontSize: 20, descFontSize: 16, hintColor: '#b0bec5', lockedColor: '#cfd8dc',
+      lockedAlpha: 0.35, doneColor: 0x66bb6a, doneText: '#a5d6a7', backWidth: 240, backHeight: 60, backFontSize: 26 },
     gymScreen: { titleY: 40, titleFontSize: 56, top: 128, columns: 1, columnGap: 0, goRight: false, rowWidth: 680, rowHeight: 112, rowGap: 8, padding: 12, iconSize: 56,
       nameFontSize: 24, descFontSize: 16, descGap: 6, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipColor: 0xffc400, pipEmpty: 0x37474f,
       costGap: 24, costFontSize: 22, costIconSize: 24, shortFontSize: 16, shortColor: '#ff8a80', maxColor: '#ffc400',
@@ -560,6 +565,8 @@ export const config = {
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,
           stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },
         banner: { y: 150 },
+        challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15,
+          rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 14, backHeight: 52 },
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30, top: 96, rowHeight: 112, rowGap: 8, bartekHeight: 90 },
       },

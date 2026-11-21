@@ -53,6 +53,7 @@ src/scenes/SettingsScene.js pauza i głośność
 src/scenes/ChestScene.js (od kroku 26, skrzynia po bossie)
 src/scenes/ShopScene.js  (od kroku 34, sklep z wydarzenia Promocja w Żabce)
 src/scenes/BetsScene.js  (od kroku 35, okno Zakładów z Unc w siłowni)
+src/scenes/ChallengesScene.js (od kroku 46, okno wyzwań w siłowni)
 src/scenes/PlanScene.js  (od kroku 33, wybór planu przed rundą)
 src/scenes/TitleScene.js (od kroku 19)
 assets/audio/            (od kroku 19)

@@ -452,6 +452,12 @@ export default class BootScene extends Phaser.Scene {
     g.fillCircle(c, c, s * 0.34).fillStyle(ic.metalDark).fillCircle(c, c, s * 0.13);
     g.lineStyle(2, ic.metalDark).strokeCircle(c, c, s * 0.34);
     g.generateTexture('icon_gear', s, s).clear();
+    // Wyzwania: a gold cup with two handles on a stand.
+    g.lineStyle(s * 0.07, ic.accent).strokeCircle(s * 0.25, s * 0.36, s * 0.11).strokeCircle(s * 0.75, s * 0.36, s * 0.11);
+    g.fillStyle(ic.accent).fillRoundedRect(s * 0.27, s * 0.16, s * 0.46, s * 0.4, { tl: 0, tr: 0, bl: s * 0.2, br: s * 0.2 });
+    g.fillRect(s * 0.45, s * 0.54, s * 0.1, s * 0.18).fillRoundedRect(s * 0.3, s * 0.72, s * 0.4, s * 0.1, s * 0.03);
+    g.lineStyle(2, ic.outline).strokeRoundedRect(s * 0.27, s * 0.16, s * 0.46, s * 0.4, { tl: 0, tr: 0, bl: s * 0.2, br: s * 0.2 });
+    g.generateTexture('icon_trophy', s, s).clear();
 
     this.drawPassiveIcons(g);
   }

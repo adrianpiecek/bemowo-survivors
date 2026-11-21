@@ -29,6 +29,12 @@ export default class GymScene extends Phaser.Scene {
     const gear = config.ui.settings.gearSize;
     this.add.image(title.x + title.width + gs.padding + gear / 2, title.y + title.height / 2, 'icon_gear').setDisplaySize(gear, gear)
       .setInteractive({ useHandCursor: true }).on('pointerdown', () => openSettings(this));
+    // Wyzwania (unlock conditions) behind the cup next to the gear.
+    this.add.image(title.x + title.width + gs.padding * 2 + gear * 1.5, title.y + title.height / 2, 'icon_trophy').setDisplaySize(gear, gear)
+      .setInteractive({ useHandCursor: true }).on('pointerdown', () => {
+        this.scene.pause();
+        this.scene.launch('ChallengesScene', { page: this.page });
+      });
     this.input.keyboard.on('keydown-ESC', () => openSettings(this));
 
     // Protein in a pill, top right.

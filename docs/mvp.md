@@ -467,7 +467,7 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Może mniej bazowego HP, żeby karta Max HP miała sens.
 - Rzeczy do zbierania mogłyby być trochę większe (skrzynki i znajdźki powiększone w sekcji 14; zostają kryształy i monety).
 
-**Nowe bronie (wymagają odblokowania, więc też okna wyzwań):**
+**Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
 - Łuk: strzały przebijają wrogów kosztem obrażeń.
 - Miecz z anime: cięcie w wycinku koła; liczba pocisków to liczba cięć pod rząd; poziomy wydłużają obszar cięcia.
 - Kostur NekroBartka: przywołuje miniony, mniejsze wersje Bartka.
@@ -494,7 +494,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Ekwipunek obok pauzy: posiadane przedmioty, ich statystyki i łączne statystyki Bartka ze wszystkich efektów.
 - Statystyki gracza (łączne z wszystkich rund).
 - Bestiariusz pokonanych wrogów.
-- Okno wyzwań (warunki odblokowania broni i planów).
 - Lepsze menu główne zamiast siłowni, w której jest wszystko.
 - Ustawienia: wielkość GUI i odległość kamery.
 
@@ -590,6 +589,12 @@ Nowa broń (`staff` w `src/data/weapons.js`, liczby w `config.weapons.staff`). C
 - **Ewolucja:** z Kawą z Żabki **Burza nad Bemowem**: każdy piorun przeskakuje na 3 kolejnych wrogów (najbliższy jeszcze nie trafiony, do 220 px).
 - Ikony: `weapon_staff` (kostur z kulą i błyskawicą), `weapon_storm` (chmura z błyskawicą).
 - Debug: `config.debug.startWeapon` albo `giveWeapon` = `'staff'`.
+
+### 22. Okno wyzwań (krok 46)
+
+W siłowni obok zębatki ustawień jest złoty puchar. Otwiera okno **Wyzwania** (`src/scenes/ChallengesScene.js`, wygląd w `config.ui.challenges`) nad zatrzymaną siłownią. Okno pokazuje każdą broń, pasywkę i plan z warunkiem odblokowania, czyli z polem `unlock` w plikach danych, więc nowa rzecz z warunkiem pojawi się tu sama. Każdy wiersz ma ikonę (plany jej nie mają), rodzaj i nazwę, a pod spodem treść warunku. Zrobione wiersze (w `save.unlocks`) mają zieloną ramkę i dopisek „Zrobione”, a niezrobione mają przygaszoną ikonę. Na górze jest licznik, np. „Zrobione: 3/11”. W poziomie okno ma dwie kolumny. Wróć, Esc albo Enter wracają do siłowni na tej samej stronie.
+
+Bez postępu warunku (np. 12/20 pierogów): okno pokazuje tylko, czy warunek jest spełniony.
 
 ## Architektura
 
