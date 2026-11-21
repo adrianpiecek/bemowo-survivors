@@ -89,6 +89,14 @@ export const config = {
       levels: [{ damage: 2 }, { minions: 1 }, { lifeMs: 3000 }, { damage: 3 }, { minions: 1 }, { damage: 4 }],
       // Armia NekroBartka: minionsMult x as many, and they never go away.
       evolution: { minionsMult: 2 } },
+    // Miecz z anime: every cooldownMs, when an enemy is within range, `slashes` cuts one after another (gapMs apart), each
+    // aimed at the nearest enemy: it hurts every enemy in a slice of the circle `reach` px around Bartek, arcDeg wide
+    // (an enemy's body counts). A cut shows for slashMs. Unlock: kill the boss `unlockBoss`.
+    sword: { damage: 16, slashes: 1, cooldownMs: 1400, gapMs: 150, range: 260, reach: 120, arcDeg: 110, slashMs: 170,
+      color: 0xe1f5fe, edgeColor: 0x80d8ff, alpha: 0.3, edgeWidth: 5, unlockBoss: 'bigSportakus',
+      levels: [{ damage: 4 }, { reach: 25 }, { slashes: 1 }, { arcDeg: 40 }, { damage: 6 }, { reach: 30 }],
+      // Ostrze Senpaia: every cut goes all the way round, damageMult x damage.
+      evolution: { damageMult: 1.5 } },
   },
   // Passives (data/passives.js): items that raise one stat each level, up to startSlots at once (the gym's Plecak adds more). The numbers are one level
   // at a common card; a rarer card multiplies them (whole numbers round up). unlock*: totals over all runs (save.stats).
@@ -801,7 +809,7 @@ export const config = {
     // Drawn weapon icons for the HUD, size x size px.
     weaponIcon: { size: 40, color: 0x222222, borderColor: 0xffffff, gunColor: 0xc0c0c0, gripColor: 0x6d4c41,
       gasColors: [0x9ccc65, 0xba68c8, 0x7cb342], laserColor: 0xff1744, eyeColor: 0xffffff,
-      staffColor: 0x8d6e63, orbColor: 0x4fc3f7, boltColor: 0xfff176, stormColor: 0x546e7a, bowColor: 0xa1887f, stringColor: 0xeeeeee, necroColor: 0x7e57c2, skullColor: 0xeceff1,
+      staffColor: 0x8d6e63, orbColor: 0x4fc3f7, boltColor: 0xfff176, stormColor: 0x546e7a, bowColor: 0xa1887f, stringColor: 0xeeeeee, necroColor: 0x7e57c2, skullColor: 0xeceff1, bladeColor: 0xe0e0e0, hiltColor: 0xc62828,
       // Evolved weapons: a gold frame.
       evoBorder: 0xffc400, uziColor: 0x37474f, smogColors: [0x9e9e9e, 0x757575, 0xbdbdbd], shieldColors: [0xd32f2f, 0xffd54f, 0xfafafa] },
     // Laughing gas cloud, size x size px, shown scaled to its radius: soft green and purple puffs.

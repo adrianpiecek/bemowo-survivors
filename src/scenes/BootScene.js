@@ -270,6 +270,15 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
     drawNecro(0, 0, ws);
     g.generateTexture('weapon_necro', ws, ws).clear();
+    // Miecz z anime: a long thin blade corner to corner, a red wrapped hilt and a small guard.
+    const drawSword = () => {
+      g.lineStyle(ws * 0.08, wi.bladeColor).lineBetween(ws * 0.38, ws * 0.62, ws * 0.9, ws * 0.1);
+      g.lineStyle(ws * 0.1, wi.hiltColor).lineBetween(ws * 0.12, ws * 0.88, ws * 0.34, ws * 0.66);
+      g.lineStyle(ws * 0.06, wi.gunColor).lineBetween(ws * 0.28, ws * 0.58, ws * 0.42, ws * 0.72);
+    };
+    g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(2, wi.borderColor).strokeRect(1, 1, ws - 2, ws - 2);
+    drawSword();
+    g.generateTexture('weapon_sword', ws, ws).clear();
 
     // Evolved weapons: the same framed square with a gold frame.
     const evoFrame = () => g.fillStyle(wi.color).fillRect(0, 0, ws, ws).lineStyle(3, wi.evoBorder).strokeRect(1.5, 1.5, ws - 3, ws - 3);
@@ -328,6 +337,11 @@ export default class BootScene extends Phaser.Scene {
     drawNecro(ws * 0.1, ws * 0.05, ws * 0.9);
     g.fillStyle(wi.skullColor).fillCircle(ws * 0.22, ws * 0.62, ws * 0.1).fillCircle(ws * 0.78, ws * 0.7, ws * 0.1);
     g.generateTexture('weapon_necro_army', ws, ws).clear();
+    // Ostrze Senpaia: the sword in a gold frame inside a full circle cut.
+    evoFrame();
+    g.lineStyle(ws * 0.05, wi.orbColor).strokeCircle(ws / 2, ws / 2, ws * 0.36);
+    drawSword();
+    g.generateTexture('weapon_sword_evo', ws, ws).clear();
     // Laughing gas cloud: puffs scattered around the middle, see-through so they stack into a soft cloud.
     const gz = t.gasCloud, gcs = gz.size, gcc = gcs / 2;
     // The same puffs in other colors make the evolved Smog nad Bemowem cloud.

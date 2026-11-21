@@ -21,7 +21,7 @@ import { createOrbit, updateOrbit } from '../systems/orbit.js';
 // so the passives, the gym and timed pickups work on every weapon.
 const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons.gas, lz = config.weapons.laser, bz = config.weapons.bees;
 const sg = config.weapons.shotgun, ax = config.weapons.axe, st = config.weapons.staff, bw = config.weapons.bow;
-const nc = config.weapons.necro;
+const nc = config.weapons.necro, sw = config.weapons.sword;
 const count = (n, mult) => Math.ceil(n * mult);
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
 const plural = (n, one, few, many) => (n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
@@ -516,7 +516,85 @@ export const weapons = [
       w.cooldownMs = scene.weaponCooldown(nc.cooldownMs);
     },
   },
+  {
+    id: 'sword',
+    name: 'Miecz z anime',
+    icon: 'weapon_sword',
+    levels: sw.levels,
+    maxLevel: sw.levels.length + 1,
+    unlock: {
+      text: '„Pojedynek”: pokonaj Wielkiego Sportakusa',
+      check: (run) => run.bossesKilled.includes(sw.unlockBoss),
+    },
+    evolution: { passive: 'limp', id: 'senpaiBlade', name: 'Ostrze Senpaia', icon: 'weapon_sword_evo',
+      description: `Każde cięcie to pełny obrót wokół Bartka, ${String(sw.evolution.damageMult).replace('.', ',')}x obrażeń.` },
+    description(level, m) {
+      if (level === 1) return 'Tnie łukiem przed Bartkiem wszystkich w zasięgu ostrza.';
+      const b = sw.levels[level - 2], n = count(b.slashes ?? 0, m);
+      return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'cięcie', 'cięcia', 'cięć')} pod rząd`,
+        b.reach && `+${Math.round(b.reach * m)} px zasięgu ostrza`, b.arcDeg && `+${Math.round(b.arcDeg * m)}° szerokości cięcia`]
+        .filter(Boolean).join(', ');
+    },
+    create(scene, w) {
+      Object.assign(w, { damage: sw.damage, slashes: sw.slashes, reach: sw.reach, arcDeg: sw.arcDeg, cooldownMs: 0, queue: 0, gapMs: 0, cuts: [] });
+      w.g = scene.add.graphics().setDepth(1.55);
+    },
+    levelUp(scene, w, m) {
+      const b = sw.levels[w.level - 2];
+      w.damage += (b.damage ?? 0) * m;
+      w.slashes += count(b.slashes ?? 0, m);
+      w.reach += (b.reach ?? 0) * m;
+      w.arcDeg += (b.arcDeg ?? 0) * m;
+    },
+    update(scene, w, delta) {
+      drawCuts(scene, w, delta);
+      w.cooldownMs -= delta;
+      w.gapMs -= delta;
+      if (w.queue === 0 && w.cooldownMs <= 0 && nearestEnemy(scene, scene.player.x, scene.player.y, sw.range, new Set())) {
+        w.queue = scene.weaponAmount(w.slashes); // a series starts
+        w.gapMs = 0;
+        w.cooldownMs = scene.weaponCooldown(sw.cooldownMs);
+      }
+      if (w.queue === 0 || w.gapMs > 0) return;
+      w.queue--;
+      w.gapMs = sw.gapMs;
+      slash(scene, w);
+    },
+  },
 ];
+
+// One cut of the anime sword at the nearest enemy (the last cut's direction when none is left): every enemy within reach
+// and inside the slice gets hurt.
+function slash(scene, w) {
+  const pl = scene.player, t = nearestEnemy(scene, pl.x, pl.y, sw.range, new Set());
+  const aim = t ? Phaser.Math.Angle.Between(pl.x, pl.y, t.x, t.y) : (w.cuts.at(-1)?.aim ?? 0);
+  const reach = scene.weaponArea(w.reach), half = w.evolved ? Math.PI : Phaser.Math.DegToRad(w.arcDeg) / 2;
+  const damage = scene.weaponDamage(w.damage * (w.evolved ? sw.evolution.damageMult : 1));
+  let hit = false;
+  for (const z of scene.enemies.getChildren()) {
+    if (!z.active) continue;
+    const r = z.body?.halfWidth ?? 0, d = Phaser.Math.Distance.Between(pl.x, pl.y, z.x, z.y);
+    if (d > reach + r) continue;
+    const off = Math.abs(Phaser.Math.Angle.Wrap(Phaser.Math.Angle.Between(pl.x, pl.y, z.x, z.y) - aim));
+    if (d > r && off > half + Math.asin(Math.min(1, r / d))) continue; // its edge pokes into the slice or it is on Bartek
+    scene.hurtEnemy(z, damage, z.x, z.y);
+    hit = true;
+  }
+  if (hit) playSfx(scene, 'shotHit');
+  w.cuts.push({ aim, reach, half, ms: sw.slashMs });
+}
+
+// The cuts still showing, drawn around Bartek every frame: a pale see-through slice with a bright edge, fading out.
+function drawCuts(scene, w, delta) {
+  w.g.clear();
+  const pl = scene.player;
+  w.cuts = w.cuts.filter((c) => (c.ms -= delta) > 0);
+  for (const c of w.cuts) {
+    const p = c.ms / sw.slashMs, a0 = c.aim - c.half, a1 = c.aim + c.half;
+    w.g.fillStyle(sw.color, sw.alpha * p).slice(pl.x, pl.y, c.reach, a0, a1, false).fillPath();
+    w.g.lineStyle(sw.edgeWidth, sw.edgeColor, p).beginPath().arc(pl.x, pl.y, c.reach, a0, a1, false).strokePath();
+  }
+}
 
 // One minion: runs at the nearest enemy within leash px of Bartek and hits it while touching it; with no enemy near it
 // trots back to its own spot around Bartek (i of n). Sways while it runs. Not evolved: it fades out when its life is up.

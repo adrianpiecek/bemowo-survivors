@@ -467,7 +467,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Może mniej bazowego HP, żeby karta Max HP miała sens.
 
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
-- Miecz z anime: cięcie w wycinku koła; liczba pocisków to liczba cięć pod rząd; poziomy wydłużają obszar cięcia.
 
 **Nowe statystyki i karty:**
 - Odrzut jako statystyka broni, z kartami i przedmiotami, które go zwiększają.
@@ -645,6 +644,17 @@ Nowa broń (`necro` w `src/data/weapons.js`, liczby w `config.weapons.necro`). C
 - **Odblokowanie:** „Powrót zza grobu”: zgiń po 8. minucie rundy.
 - **Ewolucja:** z Gainerem **Armia NekroBartka**: 2x więcej minionów i już nie znikają.
 - Ikony: `weapon_necro` (kostur z czaszką), `weapon_necro_army`. Debug: `config.debug.startWeapon` albo `giveWeapon` = `'necro'`.
+
+### 30. Miecz z anime (krok 54)
+
+Nowa broń (`sword` w `src/data/weapons.js`, liczby w `config.weapons.sword`). Co 1,4 s, gdy jakiś wróg jest do 260 px od Bartka, miecz tnie: wycinek koła wokół Bartka o promieniu 120 px i szerokości 110°, wymierzony w najbliższego wroga. Każdy wróg w wycinku dostaje 16 obrażeń; liczy się też krawędź wroga. Liczba pocisków (Bilet ZTM i poziomy) to liczba cięć pod rząd, co 0,15 s, każde w najbliższego wroga. Cięcie to jasny, przezroczysty wycinek z niebieską krawędzią, który znika przez 0,17 s.
+
+- **Poziomy:** +4 obrażeń, +25 px zasięgu, +1 cięcie, +40° szerokości, +6 obrażeń, +30 px zasięgu. Hantle (obszar) wydłużają ostrze.
+- **Odblokowanie:** „Pojedynek”: pokonaj Wielkiego Sportakusa.
+- **Ewolucja:** z Płytą Limp Bizkit **Ostrze Senpaia**: każde cięcie to pełny obrót wokół Bartka, 1,5x obrażeń.
+- Ikony: `weapon_sword` (katana z czerwoną rękojeścią), `weapon_sword_evo`. Debug: `config.debug.startWeapon` albo `giveWeapon` = `'sword'`.
+
+Wszystkie bronie z listy pomysłów są zrobione; ich balansu (Kostur Czarogeja, Łuk, NekroBartek, Miecz) nie mierzono botem.
 
 ## Architektura
 
