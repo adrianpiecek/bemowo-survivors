@@ -491,7 +491,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Po przejściu mapy: możliwość zwiększenia zarabianego białka razem z poziomem trudności (jak poziomy trudności po wygranej).
 
 **Ekrany i menu:**
-- Ekwipunek obok pauzy: posiadane przedmioty, ich statystyki i łączne statystyki Bartka ze wszystkich efektów.
 - Statystyki gracza (łączne z wszystkich rund).
 - Bestiariusz pokonanych wrogów.
 - Lepsze menu główne zamiast siłowni, w której jest wszystko.
@@ -595,6 +594,17 @@ Nowa broń (`staff` w `src/data/weapons.js`, liczby w `config.weapons.staff`). C
 W siłowni obok zębatki ustawień jest złoty puchar. Otwiera okno **Wyzwania** (`src/scenes/ChallengesScene.js`, wygląd w `config.ui.challenges`) nad zatrzymaną siłownią. Okno pokazuje każdą broń, pasywkę i plan z warunkiem odblokowania, czyli z polem `unlock` w plikach danych, więc nowa rzecz z warunkiem pojawi się tu sama. Każdy wiersz ma ikonę (plany jej nie mają), rodzaj i nazwę, a pod spodem treść warunku. Zrobione wiersze (w `save.unlocks`) mają zieloną ramkę i dopisek „Zrobione”, a niezrobione mają przygaszoną ikonę. Na górze jest licznik, np. „Zrobione: 3/11”. W poziomie okno ma dwie kolumny. Wróć, Esc albo Enter wracają do siłowni na tej samej stronie.
 
 Bez postępu warunku (np. 12/20 pierogów): okno pokazuje tylko, czy warunek jest spełniony.
+
+### 23. Ekwipunek (krok 47)
+
+Na ekranie pauzy, w wierszu „Bartek”, jest przycisk **Ekwipunek** (albo klawisz I). Otwiera okno `src/scenes/InventoryScene.js` (wygląd w `config.ui.inventory`), a runda dalej stoi. Okno pokazuje:
+
+- **Bronie** (zajęte/wszystkie sloty): ikona, nazwa, poziom; ewoluowana broń ma nazwę i ikonę ewolucji oraz dopisek EWOLUCJA.
+- **Pasywki** (zajęte/wszystkie sloty): ikona, nazwa, poziom.
+- **Przedmioty**: ikona, nazwa, ile sztuk i co daje jedna; „brak”, gdy nie ma żadnego.
+- **Statystyki** z wszystkich źródeł naraz (config, siłownia, karty, przedmioty): HP, regeneracja, pancerz, szybkość, obrażenia, czas odnowienia, obszar, czas działania, dodatkowe pociski, szansa i mnożnik krytyka, szczęście, XP, zasięg zbierania, zasięg pistoletu.
+
+Wróć, Esc, Enter albo I wracają do pauzy. W pionie są 2 kolumny, w poziomie 4 kolumny ekwipunku i 3 kolumny statystyk. Podpowiedź o zmianie ekranu (pion/poziom w siłowni) jest teraz krótsza, obok przycisku.
 
 ## Architektura
 

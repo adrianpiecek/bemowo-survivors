@@ -67,9 +67,13 @@ export default class SettingsScene extends Phaser.Scene {
     // Orientation row: "Pion" / "Poziom", the current one lit. Outside a run a switch restarts the scene under the settings.
     const top = y0 + st.padding * 2 + st.titleFontSize * 1.2 + rows.length * st.rowHeight;
     const oy = top + st.labelFontSize * 1.2 + st.stepButton / 2;
-    this.add.text(x0 + st.padding, top, 'Ekran', font(st.labelFontSize, { fontStyle: 'bold' }));
+    // In a run the row holds Ekwipunek instead (I opens it too): the orientation only says where to change it.
+    this.add.text(x0 + st.padding, top, inRun ? 'Bartek' : 'Ekran', font(st.labelFontSize, { fontStyle: 'bold' }));
     if (inRun) {
-      this.add.text(x0 + st.padding, oy, 'Pion lub poziom zmienisz w siłowni.', font(st.hintFontSize, { color: st.hintColor })).setOrigin(0, 0.5);
+      button(this, x0 + st.padding + st.inventoryWidth / 2, oy, 'Ekwipunek', () => this.openInventory(),
+        { width: st.inventoryWidth, height: st.stepButton, variant: 'secondary' });
+      this.add.text(x0 + st.width - st.padding, oy, 'Ekran zmienisz w siłowni.', font(st.hintFontSize, { color: st.hintColor })).setOrigin(1, 0.5);
+      this.input.keyboard.once('keydown-I', () => this.openInventory());
     } else {
       [['Pion', 'portrait'], ['Poziom', 'landscape']].forEach(([label, o], i) => {
         const bx = x0 + st.padding + st.orientWidth / 2 + i * (st.orientWidth + st.orientGap);
@@ -107,7 +111,7 @@ export default class SettingsScene extends Phaser.Scene {
       }, { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
     }
     button(this, cx, backY, inRun ? 'Wznów' : 'Wróć', () => this.close(), { width: st.backWidth, height: st.backHeight, fontSize: st.backFontSize });
-    this.hint = this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, inRun ? '[Esc / P]   M: wycisz wszystko' : '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
+    this.hint = this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, inRun ? '[Esc / P]   I: ekwipunek   M: wycisz' : '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
       .setOrigin(0.5, 0);
     this.input.keyboard.once('keydown-ESC', () => this.close());
     this.input.keyboard.once('keydown-ENTER', () => this.close());
@@ -119,6 +123,13 @@ export default class SettingsScene extends Phaser.Scene {
     this.scene.stop();
     this.scene.resume(this.from);
     resumeSfx();
+  }
+
+  openInventory() {
+    if (this.closing) return;
+    this.closing = true;
+    this.scene.stop();
+    this.scene.launch('InventoryScene', { from: this.from }); // the run stays paused under it
   }
 
   newGame() {

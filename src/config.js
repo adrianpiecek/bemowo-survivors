@@ -491,7 +491,7 @@ export const config = {
     planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
-      valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
+      valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, inventoryWidth: 240, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
       actionHeight: 60, actionFontSize: 22, wipeColor: '#ff8a80', // wipeColor: the "Nowa gra" warning
       barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 }, gearSize: 56 },
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
@@ -533,6 +533,11 @@ export const config = {
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
     // Bartek with his quote under the rows only shows when it fits above the start button.
+    // Ekwipunek (InventoryScene, from the pause screen): weapons, passives and items in `columns` columns, then the stats
+    // in statColumns columns.
+    inventory: { width: 680, padding: 20, gap: 12, columns: 2, statColumns: 2, rowHeight: 52, statHeight: 26, iconSize: 40,
+      titleFontSize: 44, headFontSize: 22, nameFontSize: 18, textFontSize: 15, headColor: '#ffc400', dimColor: '#b0bec5',
+      evoColor: '#ffc400', backWidth: 240, backHeight: 60, backFontSize: 26 },
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
     // done ones with a doneColor frame; a locked one's icon at lockedAlpha.
     challenges: { width: 680, columns: 1, columnGap: 0, padding: 20, inner: 10, gap: 14, titleFontSize: 44, textFontSize: 17,
@@ -565,6 +570,8 @@ export const config = {
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,
           stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },
         banner: { y: 150 },
+        inventory: { width: 1220, padding: 16, gap: 8, columns: 4, statColumns: 3, rowHeight: 46, statHeight: 22, iconSize: 36,
+          titleFontSize: 34, headFontSize: 19, backHeight: 52 },
         challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15,
           rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 14, backHeight: 52 },
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
