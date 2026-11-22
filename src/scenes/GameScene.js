@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { newRun, xpToNextLevel, save, writeSave } from '../state.js';
 import { pickups } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
-import { updateItems } from '../data/items.js';
+import { updateItems, cloneChoices } from '../data/items.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
@@ -473,6 +473,18 @@ export default class GameScene extends Phaser.Scene {
     this.map.useSkull(near);
     this.skullAt = null;
     this.summonSkullBoss(near.x, near.y);
+  }
+
+  // Klon Bartek trees (config.cloneTrees): walking up to one opens CloneScene, once per approach.
+  updateCloneTrees() {
+    const r2 = config.cloneTrees.touchRadius ** 2, { x, y } = this.player;
+    let near = null;
+    for (const t of this.map.cloneTrees()) if ((t.x - x) ** 2 + (t.y - y) ** 2 <= r2) near = t;
+    if (near === this.cloneTreeAt) return;
+    this.cloneTreeAt = near;
+    if (!near) return;
+    if (cloneChoices(this.run).length) this.openScreen('CloneScene', { tree: near });
+    else this.scene.get('UIScene').showBanner('KLON BARTEK', 'Potrzebujesz dwóch różnych przedmiotów tej samej rzadkości');
   }
 
   // A boss from the last slot reached (its hp, chest and protein), outside the run's boss plan: the banner now, the boss
@@ -1123,6 +1135,7 @@ export default class GameScene extends Phaser.Scene {
     this.map.update(delta);
     this.updateWorldChests();
     this.updateSkulls(delta);
+    this.updateCloneTrees();
     updateItems(this.run);
 
     // The scar follows Bartek's head and his size; the tank hides it.

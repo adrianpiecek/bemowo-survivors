@@ -171,6 +171,16 @@ export function createMapTextures(scene) {
   g.fillStyle(sk.socket).fillTriangle(s / 2, s * 0.62, s * 0.45, s * 0.74, s * 0.55, s * 0.74);
   for (let i = 0; i < 4; i++) g.fillRect(s * (0.34 + i * 0.1), s * 0.82, s * 0.03, s * 0.14);
   g.generateTexture('boss_skull', s, sh).clear();
+
+  // Klon Bartek tree: a brown trunk, a glowing cyan crown with a pink halo and white sparkles, unlike any park tree.
+  const ct = config.cloneTrees, tw = ct.width, th = ct.height;
+  g.fillStyle(ct.glow, 0.35).fillCircle(tw / 2, th * 0.38, tw * 0.48);
+  g.fillStyle(ct.trunk).fillRect(tw * 0.42, th * 0.55, tw * 0.16, th * 0.45);
+  g.fillStyle(ct.crownDark).fillCircle(tw * 0.32, th * 0.42, tw * 0.22).fillCircle(tw * 0.68, th * 0.42, tw * 0.22).fillCircle(tw / 2, th * 0.26, tw * 0.26);
+  g.fillStyle(ct.crown).fillCircle(tw * 0.34, th * 0.4, tw * 0.17).fillCircle(tw * 0.66, th * 0.4, tw * 0.17).fillCircle(tw / 2, th * 0.24, tw * 0.2);
+  g.fillStyle(ct.sparkle);
+  for (const [sx, sy] of [[0.3, 0.3], [0.62, 0.2], [0.72, 0.46], [0.44, 0.44], [0.5, 0.12]]) g.fillCircle(tw * sx, th * sy, tw * 0.03);
+  g.generateTexture('clone_tree', tw, th).clear();
   g.destroy();
 }
 
@@ -179,7 +189,7 @@ export function createMap(scene) {
   const m = config.map, B = m.block, R = m.road, S = m.sidewalk;
   const grounds = scene.add.group({ classType: Phaser.GameObjects.Image, maxSize: m.pool.blocks });
   const decor = scene.add.group({ classType: Phaser.GameObjects.Image, maxSize: m.pool.decor });
-  const blocks = new Map(); // "bx,by" -> { ground, items, lights, chest, skull }
+  const blocks = new Map(); // "bx,by" -> { ground, items, lights, chest, skull, cloneTree }
   const wc = config.worldChests, freeLabels = []; // price labels over chests, reused
   const labelStyle = { fontFamily: config.ui.font, fontSize: `${wc.labelFontSize}px`, fontStyle: 'bold', stroke: '#000000', strokeThickness: 4 };
   const light = m.light, cycle = light.ms.reduce((a, b) => a + b, 0);
@@ -262,6 +272,14 @@ export function createMap(scene) {
       const img = put('boss_skull', x, y);
       if (img) block.skull = { key, img, x: x0 + x, y: y0 + y - img.height / 2 };
     }
+    // Or a Klon Bartek tree (GameScene.updateCloneTrees).
+    const treeChance = config.debug.cloneTreeEverywhere ? 1 : config.cloneTrees.chance;
+    if (!chestHere && !block.skull && cr() < treeChance && !scene.run.usedCloneTrees.has(key)) {
+      const along = between(cr, R + S + 60, B - S - 60), side = Math.floor(cr() * 4);
+      const [x, y] = [[along, R + S - 4], [along, B - 6], [R + S * 0.5, along], [B - S * 0.5, along]][side];
+      const img = put('clone_tree', x, y);
+      if (img) block.cloneTree = { key, img, x: x0 + x, y: y0 + y - img.height / 2 };
+    }
     // A parking lot fills some of its spaces.
     if (kind.id === 'parking') {
       const ps = m.parkingSpots, in0 = R + S, inW = B - R - 2 * S;
@@ -328,6 +346,13 @@ export function createMap(scene) {
     *chests() { for (const block of blocks.values()) if (block.chest) yield block.chest; },
     // The unused boss skulls on the blocks around Bartek.
     *skulls() { for (const block of blocks.values()) if (block.skull) yield block.skull; },
+    // The unused Klon Bartek trees on the blocks around Bartek.
+    *cloneTrees() { for (const block of blocks.values()) if (block.cloneTree) yield block.cloneTree; },
+    useCloneTree(tree) {
+      scene.run.usedCloneTrees.add(tree.key);
+      free(tree.img);
+      blocks.get(tree.key).cloneTree = null;
+    },
     useSkull(skull) {
       scene.run.usedSkulls.add(skull.key);
       free(skull.img);

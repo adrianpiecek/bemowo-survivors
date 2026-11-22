@@ -74,6 +74,7 @@ export function newRun() {
     chestsOpened: 0, // chests on the map bought this run: each raises the price of the next
     openedChests: new Set(), // keys of the blocks whose chest is opened (systems/map.js)
     usedSkulls: new Set(), // keys of the blocks whose boss skull was used (systems/map.js)
+    usedCloneTrees: new Set(), // keys of the blocks whose Klon Bartek tree cloned an item (systems/map.js)
     chestSeed: Math.floor(Math.random() * 1e9), // where this run's chests on the map stand
     items: {}, // item id -> how many (data/items.js)
     regenHp: 0, // regeneration not yet added: HP goes up in whole points

@@ -10,6 +10,7 @@ import ChestScene from './scenes/ChestScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
 import GymScene from './scenes/GymScene.js';
 import MenuScene from './scenes/MenuScene.js';
+import CloneScene from './scenes/CloneScene.js';
 import SettingsScene from './scenes/SettingsScene.js';
 import PlanScene from './scenes/PlanScene.js';
 import ShopScene from './scenes/ShopScene.js';
@@ -27,7 +28,7 @@ const game = new Phaser.Game({
   backgroundColor: config.game.background,
   scale: { parent: 'game', mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { debug: false } },
-  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, ShopScene, GameOverScene, MenuScene, GymScene, BetsScene, ChallengesScene, StatsScene, BestiaryScene, PlanScene, InventoryScene, SettingsScene], // SettingsScene last: drawn over the rest
+  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, CloneScene, ShopScene, GameOverScene, MenuScene, GymScene, BetsScene, ChallengesScene, StatsScene, BestiaryScene, PlanScene, InventoryScene, SettingsScene], // SettingsScene last: drawn over the rest
 });
 
 // iPhone: Safari mutes web audio while the ring/silent switch is on silent; 'playback' plays it like a video does

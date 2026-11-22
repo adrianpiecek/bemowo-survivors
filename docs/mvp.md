@@ -470,7 +470,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 - Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
 
 **Przedmioty:**
-- Drzewo „Klon Bartek” na mapie (musi się wyróżniać od tła): klonuje wybrany przedmiot, poświęcając losowy inny przedmiot tej samej rzadkości.
 
 **Bossowie, elity, wydarzenia, plany:**
 - Więcej planów treningowych, w tym plany z kilkoma bossami naraz i z większą liczbą elit.
@@ -916,6 +915,41 @@ Cztery nowe nie dają stałej liczby, tylko rosną z tym, co się dzieje w rundz
 - Debug: `config.debug.forceRarity` wymusza rzadkość także przedmiotów.
 - Ikony rysowane w `BootScene`: różowa świnka, paragon, kartka z kreskami, złoty medal na wstążce.
 - Sprawdzone w przeglądarce: Skarbonka (12 monet B), dwa Zeszyty (250 zabić), Medal (1 boss) i Paragon (3 skrzynie) dały razem +16% obrażeń, +6% szybkości i -5% czasu odnowienia. Kolejna klatka niczego nie dolicza drugi raz, a 300 zabić dokłada +2%. Skrzynia z wymuszoną legendą pokazała Medal w pomarańczowej ramce.
+
+### 50. Drzewo Klon Bartek (krok 74)
+
+Na mapie rośnie czasem świecące drzewo: turkusowa korona z różową poświatą i białymi iskrami, inne niż drzewa w parku (`clone_tree` w `createMapTextures`, liczby w `config.cloneTrees`).
+
+- **Gdzie:** na chodniku 6% bloków, które nie mają ani zamkniętej skrzyni, ani czachy bossa. Losowane z ziarna rundy, jak skrzynie.
+- **Działanie:** Bartek podchodzi na 60 px i otwiera się okno **KLON BARTEK** (`src/scenes/CloneScene.js`, gra stoi). Pokazuje do 3 przedmiotów, które da się sklonować: takich, przy których Bartek ma jakiś inny przedmiot tej samej rzadkości. Wybór daje jeszcze jedną kopię wybranego i zabiera jedną kopię losowego innego przedmiotu tej rzadkości. Baner mówi, co przybyło i co drzewo zabrało, a drzewo znika do końca rundy (`run.usedCloneTrees`).
+- **Nie teraz** (albo Esc) zamyka okno, a drzewo zostaje. Okno otworzy się znowu dopiero po odejściu i ponownym podejściu.
+- Bez pary przedmiotów jednej rzadkości baner mówi: „Potrzebujesz dwóch różnych przedmiotów tej samej rzadkości”.
+- **Zabieranie przedmiotów:** każdy przedmiot ma teraz `apply(player, k)`, gdzie k = -1 cofa jedną kopię. `takeItem` w `src/data/items.js` zabiera kopię, a rosnące przedmioty oddają swoje kroki w `updateItems`.
+- Debug: `config.debug.cloneTreeEverywhere`, drzewo na każdym bloku bez skrzyni i czachy.
+- Sprawdzone w przeglądarce:
+  - bez przedmiotów: baner z wyjaśnieniem;
+  - z Batonem, Skarpetami i Skarbonką okno pokazało tylko Baton i Skarpety (Skarbonka nie ma pary rzadkiej);
+  - klon Batonu dał 2 Batony (obrażenia 1,04 → 1,08), zabrał Skarpety (szybkość 206 → 200), a drzewo zniknęło;
+  - Esc zostawił drzewo;
+  - zabrany Paragon oddał swoje +6% szybkości.
+
+### 51. Rzadkie przedmioty rzadziej i z sufitem (krok 75)
+
+Rzadkie przedmioty wypadały za często i rosły bez końca.
+
+- **Rzadkość przedmiotu** ma własne wagi `config.items.rarityWeights` (zwykły 100, rzadki 10, epicki 3, legendarny 0,6). Nie rosną z poziomem, tylko szczęście je mnoży. Przy szczęściu 1 przez całą rundę: ok. 88% zwykły, 9% rzadki, 2,5% epicki, 0,6% legendarny. Karty dalej mają swoje wagi z `config.rarity`.
+- **Wolniejszy wzrost i sufit na kopię** (`maxSteps`, w opisie „maks.”):
+
+| Przedmiot | Było | Teraz |
+|---|---|---|
+| Skarbonka | +1% obrażeń za 5 monet B | +1% za 10 monet B, maks. 12% |
+| Paragon z Żabki | +2% szybkości za skrzynię | +1% za skrzynię, maks. 10% |
+| Zeszyt z kreskami | +1% obrażeń za 100 zabić | +1% za 200 zabić, maks. 15% |
+| Medal z zawodów | +10% obrażeń i -5% odnowienia za bossa | +5% i -3% za bossa, maks. 4 bossów |
+
+- Sufit liczy się dla każdej kopii osobno: dwie Skarbonki dają razem maks. 24%.
+- Sprawdzone w przeglądarce: 20 000 losowań dało 88% / 8,8% / 2,5% / 0,6%. Skarbonka przy 1000 monet B dała +12%, dwa Medale przy 6 bossach dały +40% obrażeń i 0,97^8 czasu odnowienia.
+- Czachy bossów: szansa się nie zmieniła od kroku 65 (10% bloków bez skrzyni, czyli ok. 6,5% wszystkich). Na 400 sprawdzonych miejscach mapy było 132 czachy i 76 drzew Klon Bartek, zgodnie z tą szansą; drzewa nie zabierają miejsca czachom.
 
 ## Architektura
 

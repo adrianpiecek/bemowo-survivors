@@ -317,17 +317,25 @@ export const config = {
   // last boss slot already reached (the first before that), with that slot's hp, chest and protein. A used skull is gone.
   skulls: { chance: 0.1, size: 84, touchRadius: 70, holdMs: 2000, riseMs: 1500, ringRadius: 62, ringWidth: 7, ringBackAlpha: 0.25,
     ringDepth: 3, bone: 0xeceff1, boneShade: 0xb0bec5, socket: 0x212121, eyeGlow: 0xff1744 },
+  // Klon Bartek trees (systems/map.js, GameScene.updateCloneTrees, CloneScene): a glowing tree (`width` x `height`) on
+  // `chance` of the blocks with neither a locked chest nor a boss skull. Walking within touchRadius of it opens CloneScene
+  // (up to `cards` items to clone) if Bartek has two different items of one rarity; else a banner says what it needs.
+  // A tree used for a clone is gone for the run.
+  cloneTrees: { chance: 0.06, width: 96, height: 128, touchRadius: 60, cards: 3, titleY: 150, titleFontSize: 56, textFontSize: 22,
+    titleColor: '#18ffff', buttonBottom: 70, trunk: 0x6d4c41, crown: 0x00e5ff, crownDark: 0x00838f, glow: 0xff4081, sparkle: 0xffffff },
   worldChests: { chance: 0.35, basePrice: 5, growth: 1.3, touchRadius: 40, labelY: 52, labelFontSize: 20, labelIconSize: 20,
     labelGap: 4, labelDepth: 5, affordColor: '#ffffff', poorColor: '#ff5252' },
   // Items (data/items.js): small run-long gains from chests, no slots, no stack limit. An item chest rolls a rarity
-  // (config.rarity, luck counts) and gives an item of it. The rarer ones grow with the run, per copy:
+  // (rarityWeights by config.rarity id, luck multiplies the rarer ones; no growth with the level) and gives an item of it.
+  // The rarer ones grow with the run, per copy, up to maxSteps steps each:
   // piggy +damagePct for every everyBCoins B coins picked up, receipt +speedPct for every chest opened (any kind),
   // tally +damagePct for every everyKills kills, medal +damagePct and -cooldownPct for every boss killed.
   items: {
+    rarityWeights: { common: 100, rare: 10, epic: 3, legendary: 0.6 },
     steroids: { regenPerMin: 6 }, bar: { damagePct: 0.04 }, energy: { cooldownPct: 0.03 }, socks: { speedPct: 0.03 },
     gloves: { critChance: 0.02 }, scratch: { luckPct: 0.05 }, plaster: { maxHp: 6 }, fridgeMagnet: { magnetPct: 0.08 },
-    piggy: { damagePct: 0.01, everyBCoins: 5 }, receipt: { speedPct: 0.02 }, tally: { damagePct: 0.01, everyKills: 100 },
-    medal: { damagePct: 0.1, cooldownPct: 0.05 },
+    piggy: { damagePct: 0.01, everyBCoins: 10, maxSteps: 12 }, receipt: { speedPct: 0.01, maxSteps: 10 },
+    tally: { damagePct: 0.01, everyKills: 200, maxSteps: 15 }, medal: { damagePct: 0.05, cooldownPct: 0.03, maxSteps: 4 },
   },
   run: { durationSec: 600 },
   // Bartek's death: the run stops, everything but Bartek goes black over fadeMs while the camera zooms in by `zoom` over
@@ -341,6 +349,7 @@ export const config = {
     freeProtein: false, // true makes gym purchases free
     pickupKey: false, // true: the P key drops a random pickup next to Bartek
     skullEverywhere: false, // true: every block without a locked chest has a boss skull
+    cloneTreeEverywhere: false, // true: every block without a locked chest or a skull has a Klon Bartek tree
     tankKey: false, // true: the T key fills the tank bar at once
     klapaKey: false, // true: the K key launches a klapa at Bartek
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
