@@ -155,7 +155,7 @@ export const weapons = [
       check: (run) => (run.killsByType.joker ?? 0) >= gz.unlockJokers,
     },
     evolution: { passive: 'gymPass', id: 'smog', name: 'Smog nad Bemowem', icon: 'weapon_smog',
-      description: `Chmury nie znikają, płyną za najbliższym wrogiem i bolą ${gz.evolution.damageMult}x mocniej.`,
+      description: `Chmury nie znikają, płyną za najbliższym wrogiem i bolą ${String(gz.evolution.damageMult).replace('.', ',')}x mocniej.`,
       // The short-lived clouds go; update() keeps the lasting smog clouds from now on.
       evolve(scene, w) { for (const c of w.pool.getChildren()) c.setActive(false).setVisible(false); } },
     description(level, m) {
@@ -328,7 +328,7 @@ export const weapons = [
     maxLevel: ax.levels.length + 1,
     unlock: null,
     evolution: { passive: 'shoes', id: 'axeMill', name: 'Młyn krasnoluda', icon: 'weapon_axe_mill',
-      description: `${ax.evolution.axesMult}x więcej toporów, kręcą się szybciej i dalej od Bartka.` },
+      description: `${String(ax.evolution.axesMult).replace('.', ',')}x więcej toporów, kręcą się szybciej i dalej od Bartka.` },
     description(level, m) {
       if (level === 1) return 'Topór krąży wokół Bartka. Kiedy kogoś trafi, odbija się i leci w drugą stronę.';
       const b = ax.levels[level - 2], n = count(b.axes ?? 0, m);
@@ -357,7 +357,7 @@ export const weapons = [
       const ev = w.evolved ? ax.evolution : { axesMult: 1, speedMult: 1, radiusMult: 1 }, pl = scene.player;
       w.flipMs -= delta;
       updateOrbit(w.orbit, pl.x, pl.y, {
-        count: scene.weaponAmount(w.axes) * ev.axesMult, radius: scene.weaponArea(w.radius) * ev.radiusMult,
+        count: Math.round(scene.weaponAmount(w.axes) * ev.axesMult), radius: scene.weaponArea(w.radius) * ev.radiusMult,
         degPerSec: ax.degPerSec * ev.speedMult * w.dir, waveAmp: 0, waveHz: 0,
       }, delta);
       // Each axe spins the way the orbit goes.
@@ -487,7 +487,7 @@ export const weapons = [
       check: (run, won) => !won && run.elapsedMs >= nc.unlockMinute * 60000,
     },
     evolution: { passive: 'gainer', id: 'necroArmy', name: 'Armia NekroBartka', icon: 'weapon_necro_army',
-      description: `${nc.evolution.minionsMult}x więcej minionów. Już nie znikają.` },
+      description: `${String(nc.evolution.minionsMult).replace('.', ',')}x więcej minionów. Już nie znikają.` },
     description(level, m) {
       if (level === 1) return `Przywołuje ${nc.minions} małych Bartków, które biegną bić wrogów.`;
       const b = nc.levels[level - 2], n = count(b.minions ?? 0, m);
@@ -508,7 +508,7 @@ export const weapons = [
       const up = w.pool.getChildren().filter((s) => s.active);
       up.forEach((s, i) => updateMinion(scene, w, s, i, up.length, delta));
       w.cooldownMs -= delta;
-      const max = scene.weaponAmount(w.minions) * (w.evolved ? nc.evolution.minionsMult : 1);
+      const max = Math.round(scene.weaponAmount(w.minions) * (w.evolved ? nc.evolution.minionsMult : 1));
       if (w.cooldownMs > 0 || up.length >= max) return;
       const pl = scene.player, a = Phaser.Math.FloatBetween(0, Math.PI * 2);
       const s = w.pool.get(pl.x + Math.cos(a) * nc.followDist, pl.y + Math.sin(a) * nc.followDist);

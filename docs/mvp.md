@@ -951,6 +951,26 @@ Rzadkie przedmioty wypadały za często i rosły bez końca.
 - Sprawdzone w przeglądarce: 20 000 losowań dało 88% / 8,8% / 2,5% / 0,6%. Skarbonka przy 1000 monet B dała +12%, dwa Medale przy 6 bossach dały +40% obrażeń i 0,97^8 czasu odnowienia.
 - Czachy bossów: szansa się nie zmieniła od kroku 65 (10% bloków bez skrzyni, czyli ok. 6,5% wszystkich). Na 400 sprawdzonych miejscach mapy było 132 czachy i 76 drzew Klon Bartek, zgodnie z tą szansą; drzewa nie zabierają miejsca czachom.
 
+### 52. Ewolucje jeszcze słabsze (krok 76)
+
+Po kroku 68 ewolucje dalej były za mocne. Liczby w `config.weapons.*.evolution`:
+
+| Ewolucja | Było | Teraz |
+|---|---|---|
+| Uzi z bazaru | strzał co 220 ms | co 260 ms |
+| Tarcza Bemowa | 0,4x czasu odnowienia (2,5x szybciej) | 0,55x (1,8x szybciej) |
+| Smog nad Bemowem | 2x obrażeń | 1,5x |
+| Wzrok Homelandera | 18% obrażeń lasera co 200 ms | 14% |
+| Pasieka babci | żądła 1,5x mocniejsze | 1,2x |
+| Młyn krasnoluda | 2x toporów, 1,2x szybciej | 1,5x toporów (zaokrąglone), 1,1x szybciej |
+| Armia NekroBartka | 2x minionów | 1,5x minionów (zaokrąglone) |
+| Ostrze Senpaia | 0,8x obrażeń | 0,65x |
+
+- Bez zmian: Dwururka dziadka, Burza nad Bemowem i Łuk bez wymówek, bo te ewolucje i tak dawały najmniej.
+- Liczba toporów i minionów po ewolucji jest zaokrąglana (`Math.round` w `data/weapons.js`), a opisy pokazują „1,5x”.
+- Sprawdzone w przeglądarce: Młyn przy 3 toporach dał 5, Armia przy 4 minionach dała 6, a opisy ewolucji pokazują nowe liczby. W konsoli są tylko znane błędy 404.
+- Nie zmierzone: o ile spadły obrażenia na sekundę każdej ewolucji.
+
 ## Architektura
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
