@@ -3,11 +3,12 @@ import { save } from '../state.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
+import { maps } from '../data/maps.js';
 import { font, panel, drawPanel, button } from '../systems/ui.js';
 
 // Wyzwania over the paused gym: every weapon, passive and plan with an unlock condition (data files' `unlock.text`),
 // done ones (in save.unlocks) with a green frame. Wróć, Esc or Enter restart the gym under it on the page it was on.
-const kinds = [['Broń', weapons], ['Pasywka', passives], ['Plan', plans]];
+const kinds = [['Broń', weapons], ['Pasywka', passives], ['Plan', plans], ['Mapa', maps]];
 
 export default class ChallengesScene extends Phaser.Scene {
   constructor() { super('ChallengesScene'); }
@@ -33,7 +34,7 @@ export default class ChallengesScene extends Phaser.Scene {
     const title = add(this.add.text(cx, y, 'Wyzwania', font(c.titleFontSize, { fontStyle: 'bold', color: '#ffc400' })).setOrigin(0.5, 0));
     y += title.height + c.gap / 2;
     const doneCount = list.filter((it) => it.done).length;
-    const intro = add(this.add.text(cx, y, `Spełnij warunek, a broń, pasywka albo plan zacznie wypadać w rundach. Zrobione: ${doneCount}/${list.length}`,
+    const intro = add(this.add.text(cx, y, `Spełnij warunek, a odblokujesz broń, pasywkę, plan albo mapę. Zrobione: ${doneCount}/${list.length}`,
       font(c.textFontSize, { color: c.hintColor, align: 'center', wordWrap: { width: c.width - c.padding * 2 } })).setOrigin(0.5, 0));
     y += intro.height + c.gap;
 

@@ -124,6 +124,7 @@ export function newRun() {
     bartkowanieChance: config.bartkowanie.levelUpChance, // after each level up; plan Bartkowanie raises it
     bartkowanieCount: 0, // Bartkowania this run, for the plan's unlock
     enemyHpMult: 1, // plan Lenistwo: walking enemies' HP
+    map: 'jelonki', // data/maps.js id; GameScene takes the one picked in MapScene
     bossPairs: false, // plan Trening w parze: every boss comes with a partner
     eliteTwoTraits: false, // plan Obóz elit: every elite has two traits
     elitesKilled: 0, // for the plan Obóz elit unlock

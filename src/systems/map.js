@@ -1,5 +1,6 @@
 import { config } from '../config.js';
 import { playVfx } from './vfx.js';
+import { maps } from '../data/maps.js';
 
 // Bemowo around Bartek: an endless grid of square street blocks, config.map.block px each. Block (bx, by) covers
 // world [bx * block, (bx + 1) * block) and carries the road along its top and left edge (the crossing in its top left
@@ -19,6 +20,16 @@ function blockRandom(bx, by) {
 }
 
 const between = (r, a, b) => a + r() * (b - a);
+
+// Fort Bema's moat in block coordinates, [x, y, w, h] each: four sides of a ring, each cut in two by its bridge.
+function moatParts() {
+  const m = config.map, f = m.fortBema.fort, x0 = m.road + f.inset, x1 = m.block - f.inset, mid = (x0 + x1) / 2, M = f.moat, W = f.bridge / 2;
+  const along = (a, b) => [[a, mid - W - a], [mid + W, b - mid - W]]; // [start, length] of the two pieces
+  return [
+    ...along(x0, x1).flatMap(([p, len]) => [[p, x0, len, M], [p, x1 - M, len, M]]),
+    ...along(x0 + M, x1 - M).flatMap(([p, len]) => [[x0, p, M, len], [x1 - M, p, M, len]]),
+  ];
+}
 const weighted = (r, list) => {
   let roll = r() * list.reduce((s, it) => s + it.weight, 0);
   return list.find((it) => (roll -= it.weight) < 0) ?? list[list.length - 1];
@@ -62,7 +73,70 @@ export function createMapTextures(scene) {
     g.fillStyle(c.tree).fillCircle(x, y, r);
     g.fillStyle(c.treeLight).fillCircle(x - r * 0.3, y - r * 0.3, r * 0.45);
   };
+  // Fort Bema: grass everywhere, a gravel alley in place of the roads (top and left edge).
+  const fb = m.fortBema, fc = fb.colors;
+  const alleys = (rnd) => {
+    g.fillStyle(c.grass).fillRect(0, 0, B, B);
+    for (let i = 0; i < m.grassBlotches * 2; i++) g.fillStyle(c.grassDark, 0.6).fillCircle(rnd.between(0, B), rnd.between(0, B), rnd.between(10, 34));
+    g.fillStyle(fc.gravel).fillRect(0, 0, B, R).fillRect(0, 0, R, B);
+    g.lineStyle(4, fc.gravelEdge).lineBetween(R, R, B, R).lineBetween(R, R, R, B).lineBetween(0, 0, B, 0).lineBetween(0, 0, 0, B);
+  };
+  const flowers = (rnd, n) => {
+    for (let i = 0; i < n; i++) {
+      g.fillStyle(fc.flowers[rnd.between(0, fc.flowers.length - 1)]).fillCircle(rnd.between(R + 10, B - 10), rnd.between(R + 10, B - 10), rnd.between(...fb.flowerSize));
+    }
+  };
   const draw = {
+    // Park: trees, a path across.
+    park(rnd) {
+      g.lineStyle(m.pathWidth, fc.gravel).lineBetween(R, R + lot * 0.75, B, R + lot * 0.25);
+      for (let i = 0; i < fb.parkTrees; i++) tree(R + rnd.between(40, lot - 40), R + rnd.between(40, lot - 40), rnd.between(22, 40));
+    },
+    // Łąka: flowers and a few trees.
+    meadow(rnd) {
+      flowers(rnd, fb.flowers);
+      for (let i = 0; i < fb.meadowTrees; i++) tree(R + rnd.between(40, lot - 40), R + rnd.between(40, lot - 40), rnd.between(24, 36));
+    },
+    // Fort: a moat ring with a wooden bridge on each side around a brick-walled courtyard, a tower in each corner.
+    fort() {
+      const f = fb.fort, x0 = R + f.inset, x1 = B - f.inset, M = f.moat, mid = (x0 + x1) / 2, W = f.bridge / 2;
+      g.fillStyle(fc.waterLight).fillRect(x0, x0, x1 - x0, x1 - x0);
+      g.fillStyle(c.grass).fillRect(x0 + M, x0 + M, x1 - x0 - 2 * M, x1 - x0 - 2 * M);
+      for (const [x, y, w, h] of moatParts()) g.fillStyle(fc.water).fillRect(x + 3, y + 3, w - 6, h - 6);
+      const i0 = x0 + M, i1 = x1 - M, T = f.wall;
+      g.fillStyle(fc.courtyard).fillRect(i0 + T, i0 + T, i1 - i0 - 2 * T, i1 - i0 - 2 * T);
+      // The walls: brick rows with mortar lines, a gate at each bridge.
+      const [bw, bh] = f.brick;
+      const wall = (x, y, w, h) => {
+        g.fillStyle(fc.brick).fillRect(x, y, w, h);
+        g.lineStyle(1, fc.brickDark);
+        for (let yy = y; yy < y + h; yy += bh) {
+          g.lineBetween(x, yy, x + w, yy);
+          for (let xx = x + ((yy - y) / bh % 2) * bw / 2; xx < x + w; xx += bw) g.lineBetween(xx, yy, xx, Math.min(yy + bh, y + h));
+        }
+        g.lineStyle(2, fc.brickDark).strokeRect(x, y, w, h);
+      };
+      wall(i0, i0, mid - W - i0, T); wall(mid + W, i0, i1 - mid - W, T);
+      wall(i0, i1 - T, mid - W - i0, T); wall(mid + W, i1 - T, i1 - mid - W, T);
+      wall(i0, i0, T, mid - W - i0); wall(i0, mid + W, T, i1 - mid - W);
+      wall(i1 - T, i0, T, mid - W - i0); wall(i1 - T, mid + W, T, i1 - mid - W);
+      for (const [tx, ty] of [[i0, i0], [i1, i0], [i0, i1], [i1, i1]]) {
+        g.fillStyle(fc.brickDark).fillCircle(tx, ty, f.tower + 3);
+        g.fillStyle(fc.brick).fillCircle(tx, ty, f.tower);
+      }
+      // Bridges: planks across the moat.
+      const planks = (x, y, w, h, across) => {
+        g.fillStyle(fc.plank).fillRect(x, y, w, h);
+        g.lineStyle(2, fc.plankDark);
+        for (let p = 0; p < (across ? w : h); p += 12) {
+          if (across) g.lineBetween(x + p, y, x + p, y + h);
+          else g.lineBetween(x, y + p, x + w, y + p);
+        }
+        g.strokeRect(x, y, w, h);
+      };
+      planks(mid - W, x0 - 4, 2 * W, M + 8, false); planks(mid - W, x1 - M - 4, 2 * W, M + 8, false);
+      planks(x0 - 4, mid - W, M + 8, 2 * W, true); planks(x1 - M - 4, mid - W, M + 8, 2 * W, true);
+    },
     // Trawnik: grass, a worn path across, trees.
     lawn(rnd) {
       grass(rnd);
@@ -113,10 +187,14 @@ export function createMapTextures(scene) {
       for (const [x, y] of [[0.12, 0.12], [0.88, 0.12], [0.12, 0.88], [0.88, 0.88]]) tree(in0 + inW * x, in0 + inW * y, rnd.between(24, 34));
     },
   };
-  for (const kind of m.kinds) {
-    streets();
-    draw[kind.id](new Phaser.Math.RandomDataGenerator([kind.id]));
-    g.generateTexture(`block_${kind.id}`, B, B).clear();
+  for (const map of maps) {
+    for (const kind of map.kinds) {
+      const rnd = new Phaser.Math.RandomDataGenerator([kind.id]);
+      if (map.streets) streets();
+      else alleys(rnd);
+      draw[kind.id](rnd);
+      g.generateTexture(`block_${kind.id}`, B, B).clear();
+    }
   }
 
   // Standing decorations (side view, their bottom on the sidewalk).
@@ -189,7 +267,21 @@ export function createMap(scene) {
   const m = config.map, B = m.block, R = m.road, S = m.sidewalk;
   const grounds = scene.add.group({ classType: Phaser.GameObjects.Image, maxSize: m.pool.blocks });
   const decor = scene.add.group({ classType: Phaser.GameObjects.Image, maxSize: m.pool.decor });
-  const blocks = new Map(); // "bx,by" -> { ground, items, lights, chest, skull, cloneTree }
+  const blocks = new Map(); // "bx,by" -> { ground, items, lights, walls, chest, skull, cloneTree }
+  const map = maps.find((d) => d.id === scene.run.map) ?? maps[0];
+  // Water on Fort Bema: invisible static zones, reused as blocks come and go; GameScene makes Bartek and walkers collide.
+  const walls = scene.physics.add.staticGroup(), freeWalls = [];
+  const addWall = (block, x, y, w, h) => {
+    let z = freeWalls.pop();
+    if (!z) {
+      z = scene.add.zone(0, 0, w, h);
+      walls.add(z);
+    }
+    z.setPosition(x + w / 2, y + h / 2).setSize(w, h);
+    z.body.enable = true;
+    z.body.updateFromGameObject();
+    block.walls.push(z);
+  };
   const wc = config.worldChests, freeLabels = []; // price labels over chests, reused
   const labelStyle = { fontFamily: config.ui.font, fontSize: `${wc.labelFontSize}px`, fontStyle: 'bold', stroke: '#000000', strokeThickness: 4 };
   const light = m.light, cycle = light.ms.reduce((a, b) => a + b, 0);
@@ -198,11 +290,11 @@ export function createMap(scene) {
   const free = (img) => img.setActive(false).setVisible(false);
 
   function addBlock(bx, by) {
-    const r = blockRandom(bx, by), kind = weighted(r, m.kinds), x0 = bx * B, y0 = by * B;
+    const r = blockRandom(bx, by), kind = weighted(r, map.kinds), x0 = bx * B, y0 = by * B;
     const ground = grounds.get(x0, y0, `block_${kind.id}`);
     if (!ground) return;
     ground.setTexture(`block_${kind.id}`).setOrigin(0).setDepth(m.groundDepth).setActive(true).setVisible(true);
-    const block = { ground, items: [], lights: [] };
+    const block = { ground, items: [], lights: [], walls: [] };
     const put = (key, x, y, { origin = [0.5, 1], angle = 0, tint = 0xffffff } = {}) => {
       const it = decor.get(x0 + x, y0 + y, key);
       if (!it) return null;
@@ -212,7 +304,7 @@ export function createMap(scene) {
       return it;
     };
     // A traffic light on the corner by the crossing, its phase from the seed.
-    const tl = put('light_r', R + S * 0.5, R + S - 2);
+    const tl = map.streets && put('light_r', R + S * 0.5, R + S - 2);
     if (tl) {
       tl.phase = r() * cycle;
       block.lights.push(tl);
@@ -231,7 +323,7 @@ export function createMap(scene) {
     }
     // Parked on the top road (along the curb) and on the left one (turned): cars, or now and then a ZTM bus.
     const curbGap = m.parkGap, carW = m.decorSize.car.w;
-    for (const vertical of [false, true]) {
+    for (const vertical of map.streets ? [false, true] : []) {
       if (r() < m.busChance) {
         const p = between(r, R + 150, B - 150), off = R - m.decorSize.bus.h / 2 - curbGap;
         put('decor_bus', vertical ? off : p, vertical ? p : off, { origin: [0.5, 0.5], angle: vertical ? 90 : 0 });
@@ -280,6 +372,7 @@ export function createMap(scene) {
       const img = put('clone_tree', x, y);
       if (img) block.cloneTree = { key, img, x: x0 + x, y: y0 + y - img.height / 2 };
     }
+    if (kind.id === 'fort') for (const [x, y, w, h] of moatParts()) addWall(block, x0 + x, y0 + y, w, h);
     // A parking lot fills some of its spaces.
     if (kind.id === 'parking') {
       const ps = m.parkingSpots, in0 = R + S, inW = B - R - 2 * S;
@@ -306,6 +399,10 @@ export function createMap(scene) {
     const block = blocks.get(key);
     free(block.ground);
     block.items.forEach(free);
+    for (const z of block.walls) {
+      z.body.enable = false;
+      freeWalls.push(z);
+    }
     if (block.chest) freeChest(block);
     blocks.delete(key);
   }
@@ -342,6 +439,7 @@ export function createMap(scene) {
       }
     },
     blockCount: () => blocks.size,
+    walls, // Fort Bema's water (static bodies)
     // The closed chests on the blocks around Bartek.
     *chests() { for (const block of blocks.values()) if (block.chest) yield block.chest; },
     // The unused boss skulls on the blocks around Bartek.

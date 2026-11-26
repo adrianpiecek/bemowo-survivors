@@ -41,6 +41,7 @@ src/data/events.js       wydarzenia rundy jako dane (od kroku 34)
 src/data/bets.js         Zakłady z Unc jako dane (od kroku 35)
 src/data/plans.js        plany treningowe jako dane (od kroku 33)
 src/data/bossPowers.js   moce bossów jako dane (od kroku 43)
+src/data/maps.js         mapy jako dane (od kroku 79)
 src/systems/             wspólne mechaniki: efekty czasowe, orbita, efekty wizualne rysowane w kodzie (vfx.js) itp.
 src/systems/ui.js        wspólny wygląd UI: font, panele, paski, przyciski
 src/scenes/BootScene.js
@@ -59,6 +60,7 @@ src/scenes/ChallengesScene.js (od kroku 46, okno wyzwań w siłowni)
 src/scenes/InventoryScene.js (od kroku 47, ekwipunek z ekranu pauzy)
 src/scenes/StatsScene.js (od kroku 49, statystyki gracza w siłowni)
 src/scenes/BestiaryScene.js (od kroku 51, bestiariusz w siłowni)
+src/scenes/MapScene.js   (od kroku 79, wybór mapy przed planem)
 src/scenes/PlanScene.js  (od kroku 33, wybór planu przed rundą)
 src/scenes/TitleScene.js (od kroku 19)
 assets/audio/            (od kroku 19)

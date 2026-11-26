@@ -997,6 +997,29 @@ Bartek zaczyna z 2 slotami broni (było 3, `config.weapons.startSlots`). Kolejne
 - Kto miał już kupioną Kaburę, zachowuje poziom, ale ma o jeden slot mniej, dopóki nie dokupi trzeciego poziomu.
 - Sprawdzone w przeglądarce: bez Kabury runda ma 2 sloty broni, HUD rysuje 2 pola w rzędzie broni, opis Kabury mówi „na start 2”.
 
+### 55. Lista map i Fort Bema (krok 79)
+
+Po kliknięciu „Na Bemowo!” (albo „Zagraj ponownie”) pokazuje się **lista map** (`src/scenes/MapScene.js`), a dopiero po wyborze mapy plan treningowy. Pierwsza runda w życiu nadal startuje od razu na Jelonkach.
+
+- Mapy to dane w `src/data/maps.js`: `{ id, name, description, kinds, streets, unlock }`. Wybrana mapa idzie przez rejestr gry (`registry 'map'`) do `run.map`.
+- **Jelonki:** dotychczasowe osiedle, otwarte od początku.
+- **Fort Bema:** odblokowuje się po wygranej rundzie na Jelonkach (zapis w `save.unlocks`, ekran końca rundy pisze „Nowa mapa: Fort Bema!”, wyzwanie jest w oknie wyzwań). Zablokowana karta jest przygaszona i mówi, co ją otwiera.
+- Wygląd Fortu Bema (`config.map.fortBema`, rysowany w `createMapTextures`): ta sama siatka bloków, ale zamiast ulic żwirowe alejki, bez świateł, aut i autobusów. Trzy rodzaje bloków:
+  - park: drzewa i ścieżka na skos;
+  - łąka: kwiaty i kilka drzew;
+  - fort: fosa z wodą dookoła dziedzińca, ceglane mury z bramami, okrągłe baszty w rogach i drewniany most na każdym boku.
+- **Fosa jest przeszkodą:** 8 niewidzialnych stref fizyki na każdy blok z fortem (`walls` w `systems/map.js`, używane ponownie, gdy bloki znikają i wracają). Zatrzymuje Bartka i idących wrogów; przejść można tylko mostem. Pociski lecą nad wodą.
+- Skrzynie, czachy i drzewa Klon Bartek leżą na Forcie Bema tak samo jak na Jelonkach.
+- Debug: `config.debug.unlockMaps` otwiera wszystkie mapy na liście.
+- Sprawdzone w przeglądarce:
+  - lista: Jelonki z [1], Fort Bema przygaszony z napisem „Zablokowana. Wygraj rundę na Jelonkach”, kliknięcie w zablokowaną nic nie robi;
+  - warunek: wygrana na Jelonkach odblokowuje, przegrana nie, wygrana na Forcie nie;
+  - po odblokowaniu wybór Fortu Bema prowadzi do planu, a runda ma `run.map = 'fortBema'`;
+  - Bartek idący w fosę staje na brzegu, a mostem przechodzi;
+  - przy 157 wrogach co najwyżej 4 naraz stały w wodzie (wepchnięci przez tłum albo zrodzeni w niej);
+  - Jelonki wyglądają jak przedtem; w konsoli tylko znane błędy 404.
+- Nie sprawdzone: układ poziomy listy map.
+
 ## Architektura
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.

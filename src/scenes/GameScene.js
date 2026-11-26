@@ -26,6 +26,7 @@ export default class GameScene extends Phaser.Scene {
   // data.plan: the training plan id picked in PlanScene (none on the very first run).
   create(data = {}) {
     this.run = newRun();
+    this.run.map = this.registry.get('map') ?? this.run.map; // MapScene's pick
     // The plan goes after the gym (in newRun) and before any card of the run.
     const plan = plans.find((p) => p.id === data.plan);
     if (plan) {
@@ -61,6 +62,9 @@ export default class GameScene extends Phaser.Scene {
     // Only walkers push each other; a flying klapa keeps its line.
     this.physics.add.collider(this.enemies, this.enemies, null, (a, b) => this.isWalker(a) && this.isWalker(b));
     this.physics.add.overlap(this.player, this.enemies, this.onEnemyTouch, null, this);
+    // Water on the map (Fort Bema's moat) stops Bartek and the walkers.
+    this.physics.add.collider(this.player, this.map.walls);
+    this.physics.add.collider(this.enemies, this.map.walls, null, (z) => this.isWalker(z));
 
     this.bullets = this.physics.add.group({
       defaultKey: 'bullet',

@@ -254,6 +254,17 @@ export const config = {
       wall: 0xe0d6c8, window: 0x455a64, windowLit: 0xffe082, door: 0x5d4037, parking: 0x52555a, parkLine: 0xeeeeee, sand: 0xe8cf94,
       wood: 0x8d6e63, slide: 0xe53935, metal: 0xb0bec5, metalDark: 0x37474f, bin: 0x2e7d32, binDark: 0x1b5e20, signBlue: 0x1565c0,
       lightBox: 0x212121, glass: 0x263238, busYellow: 0xffc107, busRed: 0xd32f2f },
+    // Fort Bema (data/maps.js): the same block grid, with gravel alleys in place of the roads and sidewalks. park: trees
+    // and a path; meadow: flowers; fort: a moat ring `inset` px inside the lot, `moat` wide, with a `bridge` px wide bridge
+    // in the middle of each side, around an island with a brick wall (`wall` thick, a gate at each bridge, towers in the
+    // corners). The water stops Bartek and walking enemies (systems/map.js walls).
+    fortBema: {
+      kinds: [{ id: 'park', weight: 3 }, { id: 'meadow', weight: 2 }, { id: 'fort', weight: 1 }],
+      parkTrees: 10, meadowTrees: 3, flowers: 70, flowerSize: [3, 6],
+      fort: { inset: 90, moat: 60, bridge: 84, wall: 16, tower: 28, brick: [24, 10] },
+      colors: { gravel: 0xc9b38a, gravelEdge: 0xa88f66, water: 0x2f7fb5, waterLight: 0x6fb3e0, brick: 0xa0442c, brickDark: 0x6d2a1a,
+        plank: 0x8d6e63, plankDark: 0x5d4037, courtyard: 0xb9a37c, flowers: [0xffeb3b, 0xffffff, 0xe91e63, 0xab47bc, 0xff7043] },
+    },
   },
   // Characters: a shadow under each (shadowW x its width, shadowFlat as tall, shadowY x its height below its middle),
   // a sway of bobDeg at bobHz while walking, a white flash for hitFlashMs when hit and still alive.
@@ -360,6 +371,7 @@ export const config = {
     giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
     givePassives: null, // a list of passive ids (e.g. ['ticket', 'dumbbells']): unlocked in the save and given at level 1 every run
     drawCharges: null, // a number: every run starts with this many Odśwież, Pomiń and Wywal (gym included)
+    unlockMaps: false, // true: every map is open in the map list (MapScene)
     forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
     evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
@@ -563,6 +575,8 @@ export const config = {
     // name, a bar against the best one, the damage and DPS in valueWidth px), the buttons under it, then what the run unlocked.
     gameOver: { top: 110, gap: 18, panelWidth: 600, padding: 18, fontSize: 22, rowHeight: 32, headerColor: '#ffc400', labelColor: '#b0bec5',
       iconSize: 28, nameWidth: 230, valueWidth: 170, barHeight: 14, barColor: 0xffc400, buttonsGap: 50 },
+    // Map list (MapScene): the plan screen's cards; a locked map's card at lockedAlpha with its unlock text in lockedColor.
+    mapScreen: { titleY: 120, titleFontSize: 56, textFontSize: 22, textColor: '#e0e0e0', lockedColor: '#9e9e9e', lockedAlpha: 0.45, buttonBottom: 70 },
     planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
@@ -664,6 +678,7 @@ export const config = {
         bossBar: { y: 76 },
         chest: { titleY: 110 },
         planScreen: { titleY: 60, lineFontSize: 17 },
+        mapScreen: { titleY: 60, textFontSize: 17, buttonBottom: 50 },
         gameOver: { top: 14, gap: 8, fontSize: 18, rowHeight: 25, iconSize: 22, buttonsGap: 34 },
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,
           stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },

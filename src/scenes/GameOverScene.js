@@ -4,6 +4,7 @@ import { stopMusic } from '../systems/audio.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
+import { maps } from '../data/maps.js';
 import { startRun } from './PlanScene.js';
 import { unlockedByBets } from '../data/bets.js';
 import { button, font, drawPanel, drawBar } from '../systems/ui.js';
@@ -38,7 +39,7 @@ export default class GameOverScene extends Phaser.Scene {
     for (const [id, n] of Object.entries(r.killsByType)) save.bestiary[id] = (save.bestiary[id] ?? 0) + n;
     // One at a time, in list order, so the shield (last weapon) already sees the others unlocked by this same run.
     this.newUnlocks = [];
-    for (const def of [...weapons, ...passives, ...plans]) {
+    for (const def of [...weapons, ...passives, ...plans, ...maps]) {
       if (!def.unlock || save.unlocks.includes(def.id)) continue;
       if (!def.unlock.check(this.run, this.won) && !unlockedByBets(def, this.run, this.won)) continue;
       save.unlocks.push(def.id);
@@ -128,11 +129,13 @@ export default class GameOverScene extends Phaser.Scene {
       }
     }
     // Weapons and passives unlocked by this run (from now on they can drop as cards) and evolutions seen for the first time.
-    const lines = [], newPlans = this.newUnlocks.filter((d) => plans.includes(d)), newCards = this.newUnlocks.filter((d) => !plans.includes(d));
+    const lines = [], newPlans = this.newUnlocks.filter((d) => plans.includes(d)), newMaps = this.newUnlocks.filter((d) => maps.includes(d));
+    const newCards = this.newUnlocks.filter((d) => !plans.includes(d) && !maps.includes(d));
     if (newCards.length) {
       lines.push(`Odblokowane: ${newCards.map((d) => d.name).join(', ')}! ${newCards.length > 1 ? 'Mogą teraz wypaść jako karty.' : 'Może teraz wypaść jako karta.'}`);
     }
     if (newPlans.length) lines.push(`Nowy plan treningowy: ${newPlans.map((d) => d.name).join(', ')}!`);
+    if (newMaps.length) lines.push(`Nowa mapa: ${newMaps.map((d) => d.name).join(', ')}! Wybierzesz ją przed rundą.`);
     if (this.newEvolutions.length) lines.push(`Nowa ewolucja: ${this.newEvolutions.map((e) => e.name).join(', ')}!`);
     if (lines.length) {
       this.add.text(cx, y + go.buttonsGap, lines.join('\n'), {

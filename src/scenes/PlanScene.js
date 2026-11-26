@@ -8,9 +8,14 @@ import { betSum } from '../data/bets.js';
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 const isUnlocked = (p) => !p.unlock || save.unlocks.includes(p.id);
 
-// Every way into a run but the very first (the title goes straight in then) comes through here: the plan screen,
-// or straight into the run with config.debug.forcePlan.
+// Every way into a run but the very first (the title goes straight in then) comes through here: the map list
+// (MapScene), which then calls startPlan.
 export function startRun(scene) {
+  scene.scene.start(save.runsPlayed > 0 ? 'MapScene' : 'GameScene');
+}
+
+// After the map: the plan screen, or straight into the run with config.debug.forcePlan.
+export function startPlan(scene) {
   const forced = plans.find((p) => p.id === config.debug.forcePlan);
   if (forced && save.runsPlayed > 0) {
     if (!isUnlocked(forced)) {
