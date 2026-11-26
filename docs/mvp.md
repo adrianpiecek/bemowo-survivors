@@ -466,7 +466,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
 
 **Nowe statystyki i karty:**
-- Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
 
 **Przedmioty:**
 
@@ -1040,7 +1039,16 @@ Nowa statystyka `run.player.knockback` (prędkość odepchnięcia w px/s, na sta
 - Sprawdzone w przeglądarce: bez odrzutu zombie zbliżył się o 17 px przez 0,2 s, z odrzutem 320 odleciał o 52 px (320 x 0,16 s); drugie trafienie w ciągu 0,45 s go nie odepchnęło; ikony się rysują; w konsoli tylko znane błędy 404.
 - Nie sprawdzone: odczucie w grze i balans (czy 80 na poziom to dużo).
 
-## Architektura
+### 58. Podręcznik do informatyki (krok 82)
+
+Nowy rzadki przedmiot w `src/data/items.js`, inny niż pasywka Zeszyt w kratkę: rośnie z poziomem Bartka, jak Skarbonka czy Zeszyt z kreskami (`scale`, liczby w `config.items.textbook`).
+
+- +2% XP i +1% obrażeń za każde 5 poziomów Bartka, licząc od początku rundy, każda kopia osobno.
+- Sufit: 8 kroków na kopię (poziom 40), czyli maks. +16% XP i +8% obrażeń.
+- Ikona rysowana w `BootScene`: niebieska książka z żółtym </> na okładce.
+- Klon Bartek może go sklonować albo zabrać (para z innym rzadkim przedmiotem).
+- Sprawdzone w przeglądarce: na poziomie 4 nic, na 5: +2% XP i +1% obrażeń, na 12: +4% / +2%, na 40 i 60: +16% / +8% (sufit); druga kopia podwaja (+32% / +16%), a zabrana oddaje swoją część; ikona się rysuje; w konsoli tylko znane błędy 404.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

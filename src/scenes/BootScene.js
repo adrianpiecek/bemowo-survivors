@@ -736,5 +736,13 @@ export default class BootScene extends Phaser.Scene {
     g.lineStyle(s * 0.12, o).strokeEllipse(c, c, s * 0.7, s * 0.46);
     g.lineStyle(s * 0.07, ic.rubber).strokeEllipse(c, c, s * 0.7, s * 0.46);
     done('rubber');
+    // Podręcznik do informatyki: a blue book with white page edges and a yellow </> on the cover.
+    g.fillStyle(ic.page).fillRect(s * 0.24, s * 0.12, s * 0.6, s * 0.78);
+    g.fillStyle(ic.textbook).fillRect(s * 0.18, s * 0.08, s * 0.6, s * 0.78).lineStyle(2, o).strokeRect(s * 0.18, s * 0.08, s * 0.6, s * 0.78);
+    g.lineStyle(3, ic.textbookCode);
+    g.lineBetween(s * 0.38, s * 0.36, s * 0.28, s * 0.47).lineBetween(s * 0.28, s * 0.47, s * 0.38, s * 0.58);
+    g.lineBetween(s * 0.58, s * 0.36, s * 0.68, s * 0.47).lineBetween(s * 0.68, s * 0.47, s * 0.58, s * 0.58);
+    g.lineBetween(s * 0.52, s * 0.32, s * 0.44, s * 0.62);
+    done('textbook');
   }
 }

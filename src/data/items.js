@@ -65,6 +65,16 @@ export const items = [
     scale: { source: (run) => run.chestsTotal, every: 1, max: c.receipt.maxSteps, apply(pl, n) { addShare(pl, 'speed', c.receipt.speedPct * n); } },
   },
   {
+    id: 'textbook', name: 'Podręcznik do informatyki', icon: 'item_textbook', rarity: 'rare',
+    description: `+${pct(c.textbook.xpPct)} XP i +${pct(c.textbook.damagePct)} obrażeń za każde ${c.textbook.everyLevels} poziomów Bartka`
+      + ` (maks. ${pct(c.textbook.xpPct * c.textbook.maxSteps)} XP i ${pct(c.textbook.damagePct * c.textbook.maxSteps)} obrażeń)`,
+    apply() {},
+    scale: {
+      source: (run) => run.level, every: c.textbook.everyLevels, max: c.textbook.maxSteps,
+      apply(pl, n) { addShare(pl, 'growth', c.textbook.xpPct * n); addShare(pl, 'damageMult', c.textbook.damagePct * n); },
+    },
+  },
+  {
     id: 'tally', name: 'Zeszyt z kreskami', icon: 'item_tally', rarity: 'epic',
     description: `+${pct(c.tally.damagePct)} obrażeń za każde ${c.tally.everyKills} zabitych wrogów${cap(c.tally.damagePct, c.tally.maxSteps)}`,
     apply() {},
