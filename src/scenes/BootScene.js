@@ -528,6 +528,10 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.metalDark).fillCircle(s * 0.38, s * 0.42, s * 0.09).fillCircle(s * 0.62, s * 0.42, s * 0.09);
     g.fillRect(s * 0.4, s * 0.7, s * 0.04, s * 0.13).fillRect(s * 0.48, s * 0.7, s * 0.04, s * 0.13).fillRect(s * 0.56, s * 0.7, s * 0.04, s * 0.13);
     g.generateTexture('icon_bestiary', s, s).clear();
+    // Konto: a person, a round head over rounded shoulders.
+    g.fillStyle(ic.account).fillCircle(c, s * 0.34, s * 0.17).fillRoundedRect(s * 0.2, s * 0.56, s * 0.6, s * 0.3, { tl: s * 0.26, tr: s * 0.26, bl: s * 0.04, br: s * 0.04 });
+    g.lineStyle(2, ic.outline).strokeCircle(c, s * 0.34, s * 0.17);
+    g.generateTexture('icon_account', s, s).clear();
 
     this.drawPassiveIcons(g);
   }

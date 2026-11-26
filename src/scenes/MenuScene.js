@@ -5,6 +5,7 @@ import { font, panel, drawPanel, button } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
 import { startRun } from './PlanScene.js';
 import { betsOpen, betSum } from '../data/bets.js';
+import { online, onOnlineChange } from '../systems/online.js';
 
 // The main menu between runs (after the title and after every run): the protein, one button per place, and Bartek with a
 // quote. The gym itself (GymScene) only sells upgrades now. Wyzwania, Statystyki, Bestiariusz and Zakłady z Unc open over
@@ -46,7 +47,8 @@ export default class MenuScene extends Phaser.Scene {
       big(`Zakłady z Unc  ${sum ? `+${sum}% białka` : '(bez zakładów)'}`, overlay('BetsScene'), mn.height, mn.betsFontSize, 'secondary');
     }
     const small = [['Wyzwania', 'icon_trophy', overlay('ChallengesScene')], ['Statystyki', 'icon_stats', overlay('StatsScene')],
-      ['Bestiariusz', 'icon_bestiary', overlay('BestiaryScene')], ['Ustawienia', 'icon_gear', () => openSettings(this)]];
+      ['Bestiariusz', 'icon_bestiary', overlay('BestiaryScene')], ['Ustawienia', 'icon_gear', () => openSettings(this)],
+      [online.nick ?? 'Konto', 'icon_account', overlay('AccountScene')]];
     const sw = (mn.width - mn.gap) / 2;
     small.forEach(([label, icon, onClick], i) => {
       const x = cx + (i % 2 ? 1 : -1) * (sw + mn.gap) / 2, by = y + Math.floor(i / 2) * (mn.smallHeight + mn.gap) + mn.smallHeight / 2;
@@ -65,6 +67,12 @@ export default class MenuScene extends Phaser.Scene {
 
     this.input.keyboard.once('keydown-ENTER', () => startRun(this));
     this.input.keyboard.on('keydown-ESC', () => openSettings(this));
+    // A login or a save taken from the cloud while the menu shows: draw it again (nick on the button, protein).
+    const seen = `${online.nick}|${online.revision}`;
+    const off = onOnlineChange(() => {
+      if (`${online.nick}|${online.revision}` !== seen && this.scene.isActive()) this.scene.restart();
+    });
+    this.events.once('shutdown', off);
   }
 
   // Bartek with a speech bubble (a random quote) and a Bartkowanie definition under it, from (x0, top).

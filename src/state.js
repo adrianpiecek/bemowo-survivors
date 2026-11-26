@@ -194,11 +194,16 @@ function freshStats() {
 // Unreadable save (corrupt JSON, private mode, blocked storage) gives a fresh one, never an error.
 // A readable one keeps every valid field; missing or broken fields get their defaults.
 export function loadSave() {
-  const s = freshSave();
   let d;
   try {
     d = JSON.parse(localStorage.getItem(SAVE_KEY));
-  } catch { return s; }
+  } catch { return freshSave(); }
+  return parseSave(d);
+}
+
+// A save object from localStorage or the cloud (systems/online.js), checked field by field.
+export function parseSave(d) {
+  const s = freshSave();
   const isObject = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
   // Another schema version is not guessed at: start fresh (bump SAVE_VERSION and migrate here when it changes).
   if (!isObject(d) || (d.version !== undefined && d.version !== SAVE_VERSION)) return s;
@@ -225,18 +230,36 @@ export function loadSave() {
 // Fails silently: the game keeps running, progress just is not kept.
 // "Nowa gra" in the settings: progress (protein, gym, unlocks, stats, bets) back to a fresh save, the player's own
 // settings (sound, screen) kept. In place, since every module holds this same `save` object.
-export function resetProgress() {
-  const keep = { muted: save.muted, musicVolume: save.musicVolume, sfxVolume: save.sfxVolume, uiScale: save.uiScale, cameraZoom: save.cameraZoom,
-    orientation: save.orientation, orientationSet: save.orientationSet };
+export function resetProgress() { replaceProgress(freshSave()); }
+
+// This device's own settings (sound, screen): not progress, so "Nowa gra" and a save from the cloud keep them.
+const DEVICE_KEYS = ['muted', 'musicVolume', 'sfxVolume', 'uiScale', 'cameraZoom', 'orientation', 'orientationSet'];
+
+// The progress part of a save, as the cloud keeps it.
+export function progressOf(s) {
+  const p = { ...s };
+  for (const k of [...DEVICE_KEYS, 'version']) delete p[k];
+  return p;
+}
+
+// The progress swapped for `data` (checked like a loaded save), this device's settings kept, in place.
+export function replaceProgress(data) {
+  const keep = Object.fromEntries(DEVICE_KEYS.map((k) => [k, save[k]]));
+  const next = parseSave({ ...data, version: SAVE_VERSION });
   for (const key of Object.keys(save)) delete save[key];
-  Object.assign(save, freshSave(), keep);
+  Object.assign(save, next, keep);
   writeSave(save);
 }
+
+// Called after every writeSave (systems/online.js sends the progress to the cloud).
+const saveListeners = [];
+export const onSaveWrite = (fn) => saveListeners.push(fn);
 
 export function writeSave(s) {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({ ...s, version: SAVE_VERSION }));
   } catch { /* storage full or blocked */ }
+  for (const fn of saveListeners) fn(s);
 }
 
 // Bought level of a gym upgrade, clamped so a hand-edited save cannot break the stats.

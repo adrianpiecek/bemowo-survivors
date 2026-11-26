@@ -20,6 +20,8 @@ import ChallengesScene from './scenes/ChallengesScene.js';
 import InventoryScene from './scenes/InventoryScene.js';
 import StatsScene from './scenes/StatsScene.js';
 import BestiaryScene from './scenes/BestiaryScene.js';
+import AccountScene from './scenes/AccountScene.js';
+import { initOnline } from './systems/online.js';
 
 applyLayout(); // portrait or landscape from the save, before the game size is read
 const game = new Phaser.Game({
@@ -29,7 +31,8 @@ const game = new Phaser.Game({
   backgroundColor: config.game.background,
   scale: { parent: 'game', mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { debug: false } },
-  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, CloneScene, ShopScene, GameOverScene, MenuScene, GymScene, BetsScene, ChallengesScene, StatsScene, BestiaryScene, MapScene, PlanScene, InventoryScene, SettingsScene], // SettingsScene last: drawn over the rest
+  dom: { createContainer: true }, // the nick field in Konto
+  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, CloneScene, ShopScene, GameOverScene, MenuScene, GymScene, BetsScene, ChallengesScene, StatsScene, BestiaryScene, AccountScene, MapScene, PlanScene, InventoryScene, SettingsScene], // SettingsScene last: drawn over the rest
 });
 
 // iPhone: Safari mutes web audio while the ring/silent switch is on silent; 'playback' plays it like a video does
@@ -43,7 +46,7 @@ addEventListener('pointerdown', () => {
 
 // M mutes and unmutes in every scene; the choice is kept in the save.
 addEventListener('keydown', (e) => {
-  if (e.code === 'KeyM' && !e.repeat) toggleMute(game);
+  if (e.code === 'KeyM' && !e.repeat && !(e.target instanceof HTMLInputElement)) toggleMute(game); // not while typing a nick
 });
 
 // Portrait or landscape as chosen in the settings; Scale.FIT puts black bars where the window has another shape, no rotation is forced.
@@ -53,3 +56,6 @@ addEventListener('pointerdown', function goFullscreen(e) {
   removeEventListener('pointerdown', goFullscreen);
   document.documentElement.requestFullscreen?.().catch(() => {}); // refused: keep playing as is
 });
+
+// Konto (Firebase) loads in the background once the game runs; without it the game plays on as before.
+setTimeout(initOnline, config.online.startDelayMs);

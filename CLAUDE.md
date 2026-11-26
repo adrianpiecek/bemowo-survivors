@@ -7,6 +7,7 @@ Memowa gra w stylu Vampire Survivors o Bartku z Bemowa. Pełna specyfikacja MVP 
 - Phaser 3 (najnowsza wersja 3.x) jako plik `lib/phaser.min.js`, ładowany zwykłym `<script>`. Fizyka Arcade.
 - Czysty JavaScript, moduły ES (`<script type="module">`).
 - Bez npm, bez bundlera, bez TypeScriptu, bez frameworków.
+- Wyjątek: SDK Firebase (konto, zapis w chmurze) ładowane dynamicznym `import()` z CDN Google w przypiętej wersji (`config.online.sdk`), tylko w `src/systems/online.js`. Gra musi działać bez niego.
 - Hosting docelowy: GitHub Pages. Wszystkie ścieżki do plików muszą być względne (`./assets/...`, nigdy `/assets/...`).
 
 ## Uruchamianie
@@ -44,6 +45,8 @@ src/data/bossPowers.js   moce bossów jako dane (od kroku 43)
 src/data/maps.js         mapy jako dane (od kroku 79)
 src/systems/             wspólne mechaniki: efekty czasowe, orbita, efekty wizualne rysowane w kodzie (vfx.js) itp.
 src/systems/ui.js        wspólny wygląd UI: font, panele, paski, przyciski
+src/systems/online.js    (od kroku 85) Firebase: logowanie Google, nick, zapis w chmurze
+src/firebaseConfig.js    (od kroku 85) publiczna konfiguracja projektu Firebase
 src/scenes/BootScene.js
 src/scenes/GameScene.js
 src/scenes/UIScene.js
@@ -60,11 +63,14 @@ src/scenes/ChallengesScene.js (od kroku 46, okno wyzwań w siłowni)
 src/scenes/InventoryScene.js (od kroku 47, ekwipunek z ekranu pauzy)
 src/scenes/StatsScene.js (od kroku 49, statystyki gracza w siłowni)
 src/scenes/BestiaryScene.js (od kroku 51, bestiariusz w siłowni)
+src/scenes/AccountScene.js (od kroku 85, okno Konto z menu)
 src/scenes/MapScene.js   (od kroku 79, wybór mapy przed planem)
 src/scenes/PlanScene.js  (od kroku 33, wybór planu przed rundą)
 src/scenes/TitleScene.js (od kroku 19)
 assets/audio/            (od kroku 19)
 docs/mvp.md
+firestore.rules          (od kroku 85) reguły bazy, wklejane w konsoli Firebase
+privacy.html             (od kroku 85) polityka prywatności
 ```
 
 Nowy plik tylko wtedy, gdy zadanie tego wymaga. Jedna scena na plik.

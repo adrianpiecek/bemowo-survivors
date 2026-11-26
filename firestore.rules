@@ -1,0 +1,51 @@
+rules_version = '2';
+
+// Bemowo Survivors: Firestore security rules. Paste into Firebase console > Firestore Database > Rules > Publish.
+// The game (src/systems/online.js) keeps:
+//   users/{uid}   { nick, createdAt, updatedAt }  the player's profile, readable only by them
+//   nicks/{lower} { uid, nick }                   one document per nick (lower case), so a nick is unique
+//   saves/{uid}   { data, updatedAt }             the player's progress, only theirs
+// Everything else is closed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    // Same as nickError() in online.js: 3-16 letters (Polish too), digits or _.
+    function validNick(n) { return n is string && n.matches('^[A-Za-z0-9_ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{3,16}$'); }
+    function nickPath(n) { return /databases/$(database)/documents/nicks/$(n.lower()); }
+
+    match /users/{uid} {
+      allow read, delete: if isOwner(uid);
+      // The nick must be reserved for this player in the same write (the transaction in setNick).
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['nick', 'createdAt', 'updatedAt'])
+        && validNick(request.resource.data.nick)
+        && getAfter(nickPath(request.resource.data.nick)).data.uid == request.auth.uid;
+    }
+
+    match /nicks/{key} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'nick'])
+        && request.resource.data.uid == request.auth.uid
+        && validNick(request.resource.data.nick)
+        && key == request.resource.data.nick.lower();
+      // Only its owner: another letter case of the same nick, or freeing it.
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'nick'])
+        && request.resource.data.uid == request.auth.uid
+        && validNick(request.resource.data.nick)
+        && key == request.resource.data.nick.lower();
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /saves/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['data', 'updatedAt'])
+        && request.resource.data.data is map
+        && request.resource.data.updatedAt == request.time;
+    }
+  }
+}

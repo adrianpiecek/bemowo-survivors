@@ -475,7 +475,7 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 
 **Pytania techniczne:**
 - Brak dźwięku na iPhonie: do sprawdzenia. Najczęstsza przyczyna to przełącznik wyciszenia w iPhonie (wycisza Web Audio) albo dźwięk odblokowany dopiero po dotknięciu ekranu.
-- Zbieranie statystyk gry od graczy i Firebase (wyniki graczy, tabela wyników dla zalogowanych mailem): możliwe na GitHub Pages przez Firebase z poziomu przeglądarki, ale to backend, logowanie i dane osobowe graczy (RODO), więc osobna decyzja.
+- Tabela wyników dla zalogowanych (jedna wspólna, wynik z kroku 83) i anonimowe statystyki rund do balansu: następny krok po koncie z kroku 85.
 
 ### 16. Balans końcowy (krok 39)
 
@@ -1097,6 +1097,38 @@ Krok 83 miał sufit wyniku. Runda trwała najwyżej 3 × (10 + 10) minut, a wrog
   - wejście w portal-wyjście: wygrana „Przetrwałeś!”;
   - w konsoli są tylko znane błędy 404.
 - **Nie sprawdzone:** jak długo realny build wytrzymuje dogrywkę bez końca (to kwestia balansu `hpGrowth` i `damageGrowth`).
+
+### 61. Konto: logowanie, nick i zapis w chmurze (krok 85)
+
+Nowy przycisk **Konto** w menu otwiera okno `AccountScene` nad menu. Za konto odpowiada Firebase (`src/systems/online.js`). SDK w przypiętej wersji 12.6.0 ładuje się z CDN Google 1,5 s po starcie gry. Gra na nie nie czeka, a bez sieci lub przy zablokowanym CDN działa jak dotąd, a okno pokazuje „Brak połączenia” i przycisk ponowienia.
+
+- **Logowanie przez Google** (popup; przy zablokowanym popupie przekierowanie). Gra nie trzyma haseł i nie wysyła e-maili. Sesja przetrwa zamknięcie przeglądarki.
+- **Nick:** 3–16 znaków (litery, także polskie, cyfry, `_`). Jest unikalny bez względu na wielkość liter, bo rezerwuje go dokument `nicks/{nick małymi}` w jednej transakcji z profilem `users/{uid}`, a stary nick się zwalnia. Pole tekstowe to element HTML (Phaser DOM), więc telefon pokazuje klawiaturę. Na czas pisania gra nie przechwytuje klawiszy, a M nie wycisza.
+- **Zapis w chmurze:** `saves/{uid}` przechowuje cały postęp (białko, siłownia, odblokowania, statystyki, zakłady, trudności, bestiariusz). Ustawienia urządzenia (dźwięk, skala, kamera, orientacja) zostają lokalne. Po każdym zapisie postęp leci do chmury 3 s później (jedna wysyłka na serię zapisów).
+- **Rozstrzyganie po zalogowaniu** (urządzenie pamięta swoją ostatnią synchronizację w `bemowo-survivors-sync`):
+  - zmieniła się tylko chmura: brany jest zapis z chmury;
+  - zmieniło się tylko urządzenie: wysyłany jest zapis z urządzenia;
+  - zmieniło się jedno i drugie: gracz wybiera w oknie („Z chmury: 12 rund, 340 białka” / „Z tego urządzenia: …”);
+  - na nowym urządzeniu bez rozegranych rund od razu brany jest zapis z chmury.
+- **Wylogowanie** zostawia postęp na urządzeniu. **Usuń konto:** Google prosi o ponowne potwierdzenie, potem znikają zapis w chmurze, nick, profil i samo konto. Postęp na urządzeniu zostaje.
+- **Bezpieczeństwo:**
+  - `src/firebaseConfig.js` jest w repo. Te wartości z założenia są publiczne, bo trafiają do przeglądarki każdego gracza.
+  - Dane chronią reguły `firestore.rules`: każdy widzi i zmienia tylko swój profil i zapis; nick musi pasować do wzoru i być zarezerwowany na siebie; znacznik czasu zapisu ustawia serwer; wszystko inne jest zamknięte.
+  - Do tego dochodzi ograniczenie klucza API do domen gry i opcjonalnie App Check (`appCheckSiteKey`).
+  - Analytics nie jest używany.
+- **Polityka prywatności:** `privacy.html` (link w oknie konta). Opisuje jakie dane, po co, gdzie, jak długo, prawa z RODO i kontakt przez zgłoszenie w repozytorium.
+- **Debug:** `config.debug.offline` (Firebase się nie ładuje) i `config.debug.forceSyncConflict` (logowanie z zapisem w chmurze zawsze pyta, który zachować).
+- **Sprawdzone w przeglądarce:**
+  - SDK się ładuje (stan „ready”);
+  - okno bez logowania, z formularzem nicku, zalogowane i z konfliktem wygląda dobrze;
+  - walidacja nicku („ab”, „zły nick”);
+  - zapis nicku bez prawdziwego logowania odrzucony przez Firestore z komunikatem;
+  - w polu da się wpisać W, A, S, D i M, a M nie wycisza;
+  - po zamknięciu okna przechwytywanie klawiszy wraca;
+  - zamiana postępu zostawia ustawienia urządzenia;
+  - przycisk Konto z ikoną w menu;
+  - `privacy.html` odpowiada.
+- **Nie sprawdzone (wymaga twojego konta Google i wklejonych reguł):** prawdziwe logowanie, zapis nicku, synchronizacja między urządzeniami i usuwanie konta.
 
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.

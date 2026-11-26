@@ -357,6 +357,9 @@ export const config = {
     textbook: { xpPct: 0.02, damagePct: 0.01, everyLevels: 5, maxSteps: 8 },
   },
   run: { durationSec: 600 }, // one stage (config.stages)
+  // Konto (systems/online.js): the Firebase SDK from `sdk` (one pinned version), loaded startDelayMs after the game starts;
+  // the progress goes to the cloud uploadDelayMs after the last save write. A nick: nickMin-nickMax letters, digits or _.
+  online: { sdk: 'https://www.gstatic.com/firebasejs/12.6.0', startDelayMs: 1500, uploadDelayMs: 3000, nickMin: 3, nickMax: 16 },
   // Etapy: a map is `count` stages of run.durationSec each, all the boss slots in every one. Once the last slot's boss (and
   // every other boss) is dead, a portal stands portal.dist px from Bartek for portal.sec. Walking in starts the next stage
   // at once: the walkers on the map go, walker HP +hpPct and spawns +spawnPct per stage, bosses bossHpMult x per stage.
@@ -393,6 +396,8 @@ export const config = {
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
     balanceOverlay: false, // true: numbers for balancing in the top right (enemies, spawn/s, kills/s, DPS)
     timeSkipKey: false, // true: the J key moves the run clock 60 s forward
+    offline: false, // true: Firebase is never loaded (Konto shows the no-connection state)
+    forceSyncConflict: false, // true: a login with a save in the cloud always asks which save to keep
     portalKey: false, // true: the O key opens the stage's portal by Bartek (walk in: next stage; leave it: overtime)
     bossKey: false, // true: B, then a digit 1-4, calls that boss (in order of appearance) after its banner
     enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
@@ -569,7 +574,7 @@ export const config = {
       secondary: { color: 0xeceff1, hover: 0xffffff, border: 0x607d8b, text: '#1b1b1b' },
       disabled: { color: 0x3a3a3a, hover: 0x3a3a3a, border: 0x222222, text: '#8a8a8a' } },
     // Drawn icons (heart, skull, clock, gym upgrades), size x size px; shown at the size each place asks for.
-    icons: { size: 48, textbook: 0x1565c0, textbookCode: 0xffd54f, slipper: 0xec407a, slipperSole: 0x6d4c41, rubber: 0xd7a86e, heart: 0xe53935, heartLight: 0xff8a80, skull: 0xeceff1, skullDark: 0x263238, clock: 0xfafafa, clockDark: 0x263238,
+    icons: { size: 48, account: 0x90caf9, textbook: 0x1565c0, textbookCode: 0xffd54f, slipper: 0xec407a, slipperSole: 0x6d4c41, rubber: 0xd7a86e, heart: 0xe53935, heartLight: 0xff8a80, skull: 0xeceff1, skullDark: 0x263238, clock: 0xfafafa, clockDark: 0x263238,
       metal: 0xb0bec5, metalDark: 0x37474f, accent: 0xffc400, outline: 0x1b1b1b,
       // Passive icons (passive_<id>).
       tub: 0xeceff1, coffee: 0x8d6e63, cup: 0xfff8e1, shoe: 0x1e88e5, gainer: 0x6d4c41, backpack: 0x388e3c, ticket: 0xffd54f,
@@ -677,6 +682,10 @@ export const config = {
       bossText: '#ffab91', backWidth: 240, backHeight: 56, backFontSize: 26 },
     // Statystyki (StatsScene, the chart next to the cup in the gym): label and value rows in `columns` columns, every other
     // row lighter (stripeAlpha).
+    // Konto (AccountScene): a panel `width` wide, its rows `gap` apart; the nick field inputWidth x inputHeight.
+    account: { width: 620, padding: 24, gap: 14, titleFontSize: 42, textFontSize: 19, smallFontSize: 15, textColor: '#e0e0e0',
+      dimColor: '#b0bec5', errorColor: '#ff8a80', okColor: '#a5d6a7', buttonHeight: 56, buttonFontSize: 22, inputWidth: 380,
+      inputHeight: 52, inputFontSize: 24 },
     stats: { width: 640, columns: 1, columnGap: 0, padding: 22, inner: 12, gap: 14, titleFontSize: 44, rowHeight: 40, fontSize: 19,
       stripeAlpha: 0.06, labelColor: '#b0bec5', hintFontSize: 15, backWidth: 240, backHeight: 60, backFontSize: 26 },
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
