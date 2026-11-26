@@ -29,8 +29,10 @@
 
   <h2>Jakie dane zbieramy i po co</h2>
   <ul>
-    <li><strong>Konto Google</strong>: identyfikator konta, adres e-mail, nazwa wyświetlana. Służą tylko do logowania
-      (Firebase Authentication). Adresu e-mail nie pokazujemy innym graczom i nie wysyłamy na niego wiadomości.</li>
+    <li><strong>Dane logowania</strong> (Firebase Authentication): adres e-mail i hasło albo, przy logowaniu przez Google,
+      identyfikator konta Google, adres e-mail i nazwa wyświetlana. Hasło przechowuje Google w postaci zaszyfrowanej
+      (skrót), autor gry go nie widzi. Adresu e-mail nie pokazujemy innym graczom. Wysyłamy na niego tylko link do zmiany
+      hasła, gdy sam o niego poprosisz.</li>
     <li><strong>Nick</strong>, który wybierasz w grze. Mogą go widzieć inni gracze.</li>
     <li><strong>Postęp gry</strong>: białko, ulepszenia siłowni, odblokowania, statystyki rund i podobne dane z gry.
       Służą do przenoszenia postępu między urządzeniami.</li>

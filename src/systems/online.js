@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { firebaseConfig } from '../firebaseConfig.js';
 import { save, onSaveWrite, progressOf, replaceProgress } from '../state.js';
 
-// Konto (Firebase): Google sign-in, a unique nick and the progress in the cloud. The SDK comes from Google's CDN
+// Konto (Firebase): sign-in by e-mail and password or Google, a unique nick and the progress in the cloud. The SDK comes from Google's CDN
 // (config.online.sdk) after the game starts, so the game never waits for it and plays on without it (offline, blocked,
 // CDN down): every call here fails softly and says so in `online`.
 // Firestore (rules in firestore.rules):
@@ -65,7 +65,6 @@ export async function initOnline() {
     online.state = 'ready';
     changed();
     A.onAuthStateChanged(auth, userChanged);
-    A.getRedirectResult(auth).catch(() => {}); // back from the redirect sign-in (popup blocked): onAuthStateChanged takes it
   } catch {
     Object.assign(online, { state: 'error', error: 'Brak połączenia z serwerem gry. Gra działa dalej bez konta.' });
     changed();
@@ -169,22 +168,40 @@ onSaveWrite(() => {
   uploadTimer = setTimeout(() => upload().catch(() => { online.sync = 'error'; changed(); }), o.uploadDelayMs);
 });
 
-// '' on success (or the player closed the Google window), else what went wrong.
-export async function signIn() {
+// Google's window (a popup) never opens in a web app started from the iPhone home screen, so it is not offered there.
+// The redirect sign-in is not used at all: with the game on github.io and Firebase's sign-in page on firebaseapp.com,
+// today's browsers block what it needs (third-party storage), and a phone may reload the game tab meanwhile.
+export const googleWorks = navigator.standalone !== true;
+
+// Firebase's error codes as the player reads them.
+function authError(e) {
+  return {
+    'auth/invalid-credential': 'Zły e-mail lub hasło.', 'auth/wrong-password': 'Zły e-mail lub hasło.',
+    'auth/user-not-found': 'Zły e-mail lub hasło.', 'auth/invalid-email': 'To nie jest poprawny adres e-mail.',
+    'auth/missing-password': 'Wpisz hasło.', 'auth/weak-password': 'Hasło musi mieć co najmniej 6 znaków.',
+    'auth/email-already-in-use': 'Konto z tym e-mailem już jest. Zaloguj się.',
+    'auth/too-many-requests': 'Za dużo prób. Spróbuj za chwilę.', 'auth/network-request-failed': 'Brak połączenia z serwerem.',
+    'auth/popup-blocked': 'Przeglądarka zablokowała okno Google. Zaloguj się e-mailem.',
+  }[e?.code] ?? 'Nie udało się. Spróbuj ponownie.';
+}
+
+// Each returns '' on success, else what went wrong.
+async function tryAuth(fn) {
   if (online.state !== 'ready') return 'Brak połączenia z serwerem.';
-  const provider = new A.GoogleAuthProvider();
-  try {
-    await A.signInWithPopup(auth, provider);
-  } catch (e) {
-    if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return '';
-    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
-      await A.signInWithRedirect(auth, provider); // leaves the page and comes back signed in
-      return '';
-    }
-    return 'Nie udało się zalogować. Spróbuj ponownie.';
+  try { await fn(); } catch (e) {
+    if (e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request') return '';
+    return authError(e);
   }
   return '';
 }
+export const signInGoogle = () => tryAuth(() => A.signInWithPopup(auth, new A.GoogleAuthProvider()));
+export const signInEmail = (email, password) => tryAuth(() => A.signInWithEmailAndPassword(auth, email, password));
+export const registerEmail = (email, password) => tryAuth(() => A.createUserWithEmailAndPassword(auth, email, password));
+// Firebase sends the reset link (its e-mail template, language set in the console).
+export const resetPassword = (email) => tryAuth(() => A.sendPasswordResetEmail(auth, email));
+
+// Signed in by e-mail and password (deleting the account then asks for the password, not Google).
+export const usesPassword = () => !!online.user?.providerData.some((p) => p.providerId === 'password');
 
 // The progress stays on this device.
 export async function signOut() {
@@ -215,15 +232,16 @@ export async function setNick(nick) {
   return '';
 }
 
-// The account, its nick and its cloud save, gone for good; the progress on this device stays. Google asks to sign in
-// again first (deleting an account needs a fresh sign-in). '' or the error.
-export async function deleteAccount() {
+// The account, its nick and its cloud save, gone for good; the progress on this device stays. Deleting an account needs
+// a fresh sign-in: the password (e-mail accounts) or Google's window. '' or the error.
+export async function deleteAccount(password) {
   const user = online.user;
   if (!user) return '';
   try {
-    await A.reauthenticateWithPopup(user, new A.GoogleAuthProvider());
+    if (usesPassword()) await A.reauthenticateWithCredential(user, A.EmailAuthProvider.credential(user.email, password));
+    else await A.reauthenticateWithPopup(user, new A.GoogleAuthProvider());
   } catch (e) {
-    return e.code === 'auth/popup-closed-by-user' ? 'Anulowano.' : 'Nie udało się potwierdzić konta.';
+    return e.code === 'auth/popup-closed-by-user' ? 'Anulowano.' : authError(e);
   }
   try {
     const batch = F.writeBatch(db);

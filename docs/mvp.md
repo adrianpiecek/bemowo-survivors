@@ -1130,6 +1130,31 @@ Nowy przycisk **Konto** w menu otwiera okno `AccountScene` nad menu. Za konto od
   - `privacy.html` odpowiada.
 - **Nie sprawdzone (wymaga twojego konta Google i wklejonych reguł):** prawdziwe logowanie, zapis nicku, synchronizacja między urządzeniami i usuwanie konta.
 
+### 62. Logowanie e-mailem i numer wersji (krok 86)
+
+Testy na telefonach po kroku 85 pokazały, że logowanie przez Google nie działa:
+
+- **iPhone, gra z ekranu początkowego:** okno Google w ogóle się nie otwiera. Akcja czekała bez końca i blokowała wszystkie przyciski, nawet „Wróć”.
+- **Chrome na Androidzie:** po wyborze konta telefon przeładował kartę gry i wynik logowania przepadł.
+- **Zapasowe przekierowanie:** przy grze na github.io i stronie logowania na firebaseapp.com przeglądarki blokują to, czego ono potrzebuje (pamięć innej domeny).
+
+Zmiany:
+
+- **Logowanie e-mailem i hasłem** (Firebase Email/Password) działa w samej stronie, bez okien i przekierowań, więc działa wszędzie. Okno Konto: „Zaloguj e-mailem” otwiera formularz (pola e-mail i hasło), a w nim „Zaloguj”, „Załóż konto”, „Nie pamiętam hasła” (Firebase wysyła link) i „Wstecz”. Błędy Firebase są po polsku (zły e-mail lub hasło, za krótkie hasło, konto już istnieje, za dużo prób, brak połączenia). Pole e-maila jest typu `email`, a pole hasła `password`, więc menedżery haseł działają.
+- **Google:** w grze uruchomionej z ekranu iPhone'a (`navigator.standalone`) zamiast przycisku jest wyjaśnienie, że trzeba użyć e-maila albo Safari. Gdzie indziej logowanie przez Google zostaje, jako okno (popup). Przekierowania już nie ma; zablokowane okno daje komunikat „Zaloguj się e-mailem”.
+- **„Wróć”, „Wstecz” i „Anuluj” działają zawsze,** także gdy inna akcja wciąż czeka na odpowiedź. Druga akcja w tym czasie jest ignorowana.
+- **Usuń konto:** konto z hasłem potwierdza się hasłem, konto Google oknem Google.
+- **Wersja:** `config.version` to numer kroku. Menu pokazuje w prawym dolnym rogu `v0.86`, więc widać, która wersja jest wgrana (GitHub Pages i telefon trzymają starą w pamięci podręcznej). Każdy krok podbija ten numer (zasada w `CLAUDE.md`).
+- `privacy.html` opisuje teraz logowanie e-mailem (hasło trzyma Google jako skrót, a e-mail z linkiem do zmiany hasła przychodzi tylko na prośbę gracza).
+- **Sprawdzone w przeglądarce:**
+  - okno bez logowania ma przyciski „Zaloguj e-mailem”, „Zaloguj przez Google”, „Polityka”, „Wróć”;
+  - formularz ma pole e-mail (z fokusem) i pole hasła;
+  - przy akcji, która nigdy nie odpowiada, „Zaloguj” jest ignorowane, a „Wróć” zamyka okno;
+  - pusty e-mail daje „To nie jest poprawny adres e-mail.”;
+  - `v0.86` widać w rogu menu;
+  - w konsoli są tylko znane błędy 404 i jeden 400 (odpowiedź serwera na test z pustym e-mailem).
+- **Nie sprawdzone:** prawdziwe założenie konta i logowanie (wymaga włączenia Email/Password w konsoli) oraz wygląd na iPhonie z ekranu początkowego.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

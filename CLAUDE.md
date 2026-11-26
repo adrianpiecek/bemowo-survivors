@@ -90,6 +90,7 @@ Nowy plik tylko wtedy, gdy zadanie tego wymaga. Jedna scena na plik.
 
 ## Koniec każdego zadania
 
+- Podbij `config.version` do numeru kroku (menu pokazuje `v0.<krok>` w rogu).
 - Gra uruchamia się bez błędów w konsoli przeglądarki.
 - Sprawdź kryteria "Gotowe, gdy" z treści zadania. Jeśli masz dostęp do przeglądarki, sprawdź je sam. Jeśli nie, napisz dokładnie, co mam przetestować.
 - Na koniec podaj krótko: jakie pliki zmieniłeś, co działa, co zostało świadomie pominięte.

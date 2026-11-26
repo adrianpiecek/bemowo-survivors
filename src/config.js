@@ -1,5 +1,6 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
+  version: 86, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -665,7 +666,7 @@ export const config = {
     // quoteSide at (quoteLeft, top).
     menu: { titleY: 120, titleFontSize: 60, proteinGap: 18, top: 380, columnX: 0.5, width: 480, gap: 16, goHeight: 96, goFontSize: 40,
       height: 72, fontSize: 28, betsFontSize: 22, smallHeight: 64, smallFontSize: 20, iconSize: 32, iconPad: 14, hintFontSize: 16,
-      quoteSide: false, quoteLeft: 0, quoteGap: 40, bottom: 40 },
+      quoteSide: false, quoteLeft: 0, quoteGap: 40, bottom: 40, versionFontSize: 15, versionMargin: 10, versionColor: '#757575' },
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
