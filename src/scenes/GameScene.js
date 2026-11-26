@@ -254,7 +254,7 @@ export default class GameScene extends Phaser.Scene {
       this.hurtEnemy(enemy, this.weaponDamage(rl.ramDamage), enemy.x, enemy.y);
       return;
     }
-    if (this.hurtPlayer(enemy.stats.contactDamage, enemy.stats.touchVfx) && enemy.stats.leavesScar) this.run.scarred = true;
+    if (this.hurtPlayer(enemy.stats.contactDamage * enemy.touchMult, enemy.stats.touchVfx) && enemy.stats.leavesScar) this.run.scarred = true;
   }
 
   // An enemy's touch or a boss power (systems/telegraph.js) hits Bartek for `base`, which grows as the run goes on; armor
@@ -297,7 +297,7 @@ export default class GameScene extends Phaser.Scene {
     cam.pan(this.player.x, this.player.y, d.zoomMs, 'Sine.easeInOut');
     cam.zoomTo(cam.zoom * d.zoom, d.zoomMs, 'Sine.easeInOut');
     this.tweens.add({ targets: this.player, angle: d.fallDeg, y: this.player.y + d.fallDrop, duration: d.fallMs, delay: d.fallDelayMs, ease: 'Bounce.easeOut' });
-    this.time.delayedCall(d.totalMs, () => this.scene.start('GameOverScene', { run: this.run, won: false }));
+    this.time.delayedCall(d.totalMs, () => this.scene.start('GameOverScene', { run: this.run, won: this.run.mapCleared }));
   }
 
   onBulletHit(bullet, enemy) {
@@ -444,7 +444,19 @@ export default class GameScene extends Phaser.Scene {
     this.boss = this.enemies.getChildren().find((z) => z.active && z.stats.isBoss) ?? null;
     if (!this.boss) playMusic(this, 'gameplay');
     const run = this.run;
-    if (!this.boss && run.nextBoss >= this.bossQueue.length && !run.overtime && !run.portalShown) this.openPortal();
+    if (this.boss || run.nextBoss < this.bossQueue.length) return;
+    if (!run.overtime && !run.portalShown) this.openPortal();
+    else if (run.overtime && this.lastStage() && !run.mapCleared) { // its bosses outlived the stage's time
+      this.clearMap();
+      this.scene.get('UIScene').showBanner('MAPA ZALICZONA', 'Dogrywka trwa dalej: każdy zabity to punkty');
+    }
+  }
+
+  lastStage() { return this.run.stage >= config.stages.count; }
+
+  clearMap() {
+    this.run.mapCleared = true;
+    this.run.stagesCleared++;
   }
 
   stageBossHp(hp) { return Math.round(hp * config.stages.bossHpMult ** (this.run.stage - 1)); }
@@ -461,8 +473,10 @@ export default class GameScene extends Phaser.Scene {
       if (!wet) { x = px; y = py; break; }
     }
     this.portal = this.dropPickup(stagePortal, x, y, p.sec);
-    const last = run.stage >= config.stages.count;
-    this.scene.get('UIScene').showBanner('PORTAL', `Wejdź w ciągu ${p.sec} s: ${last ? 'koniec mapy' : `etap ${run.stage + 1}`}. Inaczej dogrywka`);
+    if (this.lastStage()) {
+      if (!run.mapCleared) this.clearMap();
+      this.scene.get('UIScene').showBanner('MAPA ZALICZONA', `Portal to wyjście z wygraną (${p.sec} s). Inaczej dogrywka bez końca`);
+    } else this.scene.get('UIScene').showBanner('PORTAL', `Wejdź w ciągu ${p.sec} s: etap ${run.stage + 1}. Inaczej dogrywka`);
     playSfx(this, 'pickup');
   }
 
@@ -475,19 +489,23 @@ export default class GameScene extends Phaser.Scene {
     run.hordes = 0;
     run.portalMs = 0;
     if (this.portal?.active && this.portal.def === stagePortal) this.portal.disableBody(true, true);
-    this.scene.get('UIScene').showBanner('DOGRYWKA', `Hordy Uncanny rosną. Przetrwaj ${ot.durationSec / 60} min, by przejść dalej`);
+    if (this.lastStage()) this.scene.get('UIScene').showBanner('DOGRYWKA BEZ KOŃCA', 'Hordy Uncanny rosną bez limitu. Każdy zabity to punkty');
+    else this.scene.get('UIScene').showBanner('DOGRYWKA', `Hordy Uncanny rosną. Przetrwaj ${ot.durationSec / 60} min, by przejść dalej`);
     playMusic(this, 'boss');
   }
 
   spawnHorde() {
     const run = this.run, ot = config.stages.overtime, def = enemies.find((d) => d.id === ot.enemy);
-    const count = Math.round(ot.baseCount * (1 + ot.countPct * run.hordes)), hp = 1 + ot.hpPct * run.hordes;
+    const count = Math.round(ot.baseCount * (1 + ot.countPct * run.hordes)), endless = this.lastStage();
+    const hp = endless ? ot.endless.hpGrowth ** run.hordes : 1 + ot.hpPct * run.hordes;
+    const touch = endless ? ot.endless.damageGrowth ** run.hordes : 1;
     run.hordes++;
     for (let i = 0; i < count; i++) {
       const z = this.spawnEnemy(def);
       if (!z) break; // the enemy cap
       z.hp *= hp;
       z.maxHp = z.hp;
+      z.touchMult = touch;
     }
   }
 
@@ -502,7 +520,7 @@ export default class GameScene extends Phaser.Scene {
         run.hordeMs += ot.everySec * 1000;
         this.spawnHorde();
       }
-      if (run.overtimeMs >= ot.durationSec * 1000) return this.nextStage();
+      if (!this.lastStage() && run.overtimeMs >= ot.durationSec * 1000) return this.nextStage(); // the last one never ends
     } else if (run.portalMs > 0) {
       run.portalMs -= delta;
       if (run.portalMs <= 0) this.startOvertime();
@@ -513,11 +531,11 @@ export default class GameScene extends Phaser.Scene {
   // Through the portal or out of overtime: the next stage on the same map, harder; after the last one the run is won (true).
   nextStage() {
     const run = this.run, sc = config.stages;
-    run.stagesCleared++;
-    if (run.stage >= sc.count) {
+    if (this.lastStage()) { // the exit portal: clearMap already counted the stage
       this.scene.start('GameOverScene', { run, won: true });
       return true;
     }
+    run.stagesCleared++;
     run.stage++;
     Object.assign(run, { stageMs: 0, overtime: false, overtimeMs: 0, portalMs: 0, portalShown: false, wave: 0, nextBoss: 0, bossAnnounced: false });
     run.enemyHpMult *= 1 + sc.hpPct;
@@ -1049,6 +1067,7 @@ export default class GameScene extends Phaser.Scene {
     z.knockReadyAt = 0;
     z.ramUntil = 0;
     z.powerMs = 0; // a boss's count to its power (data/bossPowers.js)
+    z.touchMult = 1; // an endless overtime horde hits harder
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
     z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000) * this.run.enemyHpMult
       * (1 + this.run.pressure * config.dda.hpBonus);

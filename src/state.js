@@ -56,7 +56,8 @@ export function newRun() {
     elapsedMs: 0, // the whole run; enemies' growth and unlocks go by it
     stageMs: 0, // the current stage (config.stages): bosses, events, waves, the spawn curve and the clock go by it
     stage: 1,
-    stagesCleared: 0, // by the portal or by overtime survived
+    stagesCleared: 0, // by the portal or by overtime survived; the last one by its bosses dead
+    mapCleared: false, // the last stage's bosses dead: the run is a win however it ends
     overtime: false, // dogrywka: hordes after a missed portal or the stage's time up
     overtimeMs: 0,
     hordeMs: 0, // to the next overtime horde

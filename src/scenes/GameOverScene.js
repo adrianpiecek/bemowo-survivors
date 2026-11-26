@@ -62,7 +62,9 @@ export default class GameOverScene extends Phaser.Scene {
         callback: () => playVfx(this, 'firework', Phaser.Math.Between(0, width), Phaser.Math.Between(0, height)) });
     }
 
-    const [title, subtitle] = this.won ? ['Przetrwałeś!', 'Bemowo jest bezpieczne. Na razie.']
+    const endless = r.overtime && r.stage >= config.stages.count; // the map cleared, then the endless overtime
+    const [title, subtitle] = this.won && endless ? ['Mapa zaliczona!', `Dogrywka bez końca: ${formatTime(r.overtimeMs)}`]
+      : this.won ? ['Przetrwałeś!', 'Bemowo jest bezpieczne. Na razie.']
       : this.quit ? ['Koniec rundy', 'Bartek poszedł do domu.']
         : ['Tu spoczywa Bartosz', '(Bartłomiej)'];
     const t = this.add.text(cx, y, title, font(u.titleFontSize, { fontStyle: 'bold', stroke: '#000000', strokeThickness: 6 })).setOrigin(0.5, 0);

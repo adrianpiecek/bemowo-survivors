@@ -1078,6 +1078,26 @@ Mapa dzieli się na 3 etapy po 10 minut. W każdym etapie są wszyscy czterej bo
   - w konsoli są tylko znane błędy 404.
 - **Nie sprawdzone:** balans (czy etap 3 i dogrywka są do przejścia) oraz ekran końca w poziomie z wieloma broniami (doszły 3 wiersze).
 
+### 60. Wynik bez sufitu: dogrywka bez końca (krok 84)
+
+Krok 83 miał sufit wyniku. Runda trwała najwyżej 3 × (10 + 10) minut, a wrogów było skończenie wielu, więc każdy mocny build kończył z tym samym wynikiem. Ostatni etap działa teraz inaczej:
+
+- **Mapa zaliczona.** Na ostatnim etapie śmierć jego bossów oznacza wygraną (`run.mapCleared`): odblokowania, białko za etap i fajerwerki. Wygraną zostaje także wtedy, gdy Bartek potem zginie albo gracz wyjdzie z pauzy. Bossowie mogą zginąć także już w dogrywce, wtedy pojawia się baner „MAPA ZALICZONA”.
+- **Portal-wyjście.** Portal ostatniego etapu kończy rundę z wygraną (tytuł „Przetrwałeś!”).
+- **Dogrywka bez końca.** Zaczyna się, gdy portal zgaśnie albo gdy czas ostatniego etapu minie. Nie ma końca: zegar liczy w górę na czerwono, a pod licznikami jest napis „Dogrywka bez końca”.
+  - Każda kolejna horda ma ×1,12 HP i ×1,08 obrażeń dotyku względem poprzedniej (`config.stages.overtime.endless`). Rośnie wykładniczo, bo liczbę wrogów i tak trzyma limit 250.
+  - Lepszy build po prostu trwa dłużej, więc wynik nie ma sufitu.
+  - Po śmierci ekran końca pokazuje „Mapa zaliczona!” i czas dogrywki.
+- **Dogrywki etapów 1 i 2 bez zmian.** Trwają 10 minut, liniowy wzrost, potem następny etap.
+- **Obrażenia dotyku** każdego wroga mnoży `touchMult` (1 poza hordami dogrywki bez końca).
+- **Sprawdzone w przeglądarce:**
+  - bossowie etapu 3: „MAPA ZALICZONA”, 3 zaliczone etapy, portal;
+  - zgaszony portal: dogrywka bez końca, która trwa po 11:40, z 31 hordami i limitem 250 wrogów;
+  - śmierć: wygrana z tytułem „Mapa zaliczona!”;
+  - wejście w portal-wyjście: wygrana „Przetrwałeś!”;
+  - w konsoli są tylko znane błędy 404.
+- **Nie sprawdzone:** jak długo realny build wytrzymuje dogrywkę bez końca (to kwestia balansu `hpGrowth` i `damageGrowth`).
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

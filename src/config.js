@@ -362,11 +362,15 @@ export const config = {
   // at once: the walkers on the map go, walker HP +hpPct and spawns +spawnPct per stage, bosses bossHpMult x per stage.
   // The portal not walked into, or the stage's time up first: overtime (dogrywka) for overtime.durationSec, then the next
   // stage anyway. In overtime a horde of `enemy` walks in every everySec on top of the usual spawn: baseCount of them,
-  // +countPct and +hpPct HP for every horde before it. The last stage done is the win; protein's winBonus is paid per stage.
+  // +countPct and +hpPct HP for every horde before it. Protein's winBonus is paid per stage done.
+  // The last stage: its bosses dead is the win (the map cleared). Its portal is the exit; missed (or its time up) its
+  // overtime never ends: every horde's HP x endless.hpGrowth and touch damage x endless.damageGrowth over the one before
+  // (the enemy cap holds the count), so a better build only lasts longer and the score has no ceiling.
   // Wynik: every kill adds scoreMult[stage - 1] x (1 + difficultyPct per difficulty level above 1).
   stages: { count: 3, hpPct: 0.3, spawnPct: 0.3, bossHpMult: 2.5,
     portal: { sec: 10, dist: 260, tries: 24, clearance: 50, pulse: { scale: 1.15, ms: 700, vfx: 'portalGlow', everyMs: 700 } },
-    overtime: { durationSec: 600, enemy: 'runner', everySec: 15, baseCount: 20, countPct: 0.25, hpPct: 0.35 },
+    overtime: { durationSec: 600, enemy: 'runner', everySec: 15, baseCount: 20, countPct: 0.25, hpPct: 0.35,
+      endless: { hpGrowth: 1.12, damageGrowth: 1.08 } },
     scoreMult: [1, 1.5, 2], difficultyPct: 0.25 },
   // Bartek's death: the run stops, everything but Bartek goes black over fadeMs while the camera zooms in by `zoom` over
   // zoomMs; after fallDelayMs he falls over (fallDeg, fallDrop px lower) in fallMs; the end screen comes after totalMs.

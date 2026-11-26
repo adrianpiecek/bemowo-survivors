@@ -163,6 +163,6 @@ export default class SettingsScene extends Phaser.Scene {
     this.closing = true;
     this.scene.stop();
     const gs = this.scene.get(this.from);
-    gs.scene.start('GameOverScene', { run: gs.run, won: false, quit: true });
+    gs.scene.start('GameOverScene', { run: gs.run, won: !!gs.run?.mapCleared, quit: true }); // the map cleared stays a win
   }
 }

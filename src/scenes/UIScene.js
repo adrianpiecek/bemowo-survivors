@@ -188,9 +188,11 @@ export default class UIScene extends Phaser.Scene {
     this.levelText.setText(r.level);
     // +999 so the clock shows 10:00 at the start instead of 9:59.
     const ot = config.stages.overtime, sh = config.ui.stageHud;
-    this.timeText.setText(formatTime((r.overtime ? ot.durationSec * 1000 - r.overtimeMs : config.run.durationSec * 1000 - r.stageMs) + 999))
+    const endless = r.overtime && r.stage >= config.stages.count; // counts up: it never ends
+    this.timeText.setText(endless ? formatTime(r.overtimeMs)
+      : formatTime((r.overtime ? ot.durationSec * 1000 - r.overtimeMs : config.run.durationSec * 1000 - r.stageMs) + 999))
       .setColor(r.overtime ? sh.overtimeColor : '#ffffff');
-    this.stageText.setText(r.overtime ? `Dogrywka, etap ${r.stage}/${config.stages.count}` : `Etap ${r.stage}/${config.stages.count}`)
+    this.stageText.setText(endless ? 'Dogrywka bez końca' : r.overtime ? `Dogrywka, etap ${r.stage}/${config.stages.count}` : `Etap ${r.stage}/${config.stages.count}`)
       .setColor(r.overtime ? sh.overtimeColor : sh.color);
     this.killsText.setText(r.kills);
     this.coinText.setText(r.coinProtein);
