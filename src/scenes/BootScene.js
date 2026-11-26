@@ -647,6 +647,11 @@ export default class BootScene extends Phaser.Scene {
     g.lineStyle(s * 0.07, ic.metal).strokePoints(coil);
     g.fillStyle(ic.metalDark).fillCircle(coil[0].x, coil[0].y, s * 0.07).fillCircle(coil[8].x, coil[8].y, s * 0.07);
     done('spring');
+    // Kapeć mamy: a pink slipper from above, a brown sole peeking out, a fluffy strap.
+    g.fillStyle(ic.slipperSole).fillEllipse(c, c, s * 0.5, s * 0.9).lineStyle(2, o).strokeEllipse(c, c, s * 0.5, s * 0.9);
+    g.fillStyle(ic.slipper).fillEllipse(c, s * 0.46, s * 0.42, s * 0.78);
+    g.fillStyle(ic.page).fillRoundedRect(s * 0.26, s * 0.18, s * 0.48, s * 0.22, s * 0.1).lineStyle(2, o).strokeRoundedRect(s * 0.26, s * 0.18, s * 0.48, s * 0.22, s * 0.1);
+    done('slipper');
     this.drawItemIcons(g);
   }
 
@@ -727,5 +732,9 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.medalDark).fillCircle(c, s * 0.64, s * 0.16);
     g.fillStyle(ic.medal).fillTriangle(c, s * 0.52, s * 0.44, s * 0.7, s * 0.56, s * 0.7);
     done('medal');
+    // Gumka recepturka: a tan rubber band, a loose loop drawn twice for its thickness.
+    g.lineStyle(s * 0.12, o).strokeEllipse(c, c, s * 0.7, s * 0.46);
+    g.lineStyle(s * 0.07, ic.rubber).strokeEllipse(c, c, s * 0.7, s * 0.46);
+    done('rubber');
   }
 }

@@ -327,6 +327,12 @@ export default class GameScene extends Phaser.Scene {
     if (src) this.run.weaponDamage[src.def.id] = (this.run.weaponDamage[src.def.id] ?? 0) + dealt;
     this.showDamage(x, enemy.y - enemy.displayHeight / 2, damage, crit);
     enemy.hp -= damage;
+    if (enemy.hp > 0 && pl.knockback > 0 && !enemy.stats.isBoss && this.isWalker(enemy) && this.time.now >= enemy.knockReadyAt) {
+      const a = Phaser.Math.Angle.Between(this.player.x, this.player.y, enemy.x, enemy.y), kb = config.knockback;
+      enemy.setVelocity(Math.cos(a) * pl.knockback, Math.sin(a) * pl.knockback);
+      enemy.knockMs = kb.ms; // the enemy loop lets it fly (as a ram on rollers)
+      enemy.knockReadyAt = this.time.now + kb.everyMs;
+    }
     if (enemy.hp > 0) {
       enemy.flashMs = config.look.hitFlashMs; // a white (gold on a crit) flash, run in the enemy loop
       enemy.flashColor = crit ? config.look.critFlashColor : config.look.hitFlashColor;
@@ -941,7 +947,8 @@ export default class GameScene extends Phaser.Scene {
     z.speed = def.speed * this.run.enemySpeedMult; // its walk; a fast elite raises its own
     z.charge = null; // a pooled sprite may have died mid-leap
     z.leapMs = 0;
-    z.knockMs = 0; // pushed off by Bartek on rollers
+    z.knockMs = 0; // pushed off by Bartek on rollers or by a hit (config.knockback)
+    z.knockReadyAt = 0;
     z.ramUntil = 0;
     z.powerMs = 0; // a boss's count to its power (data/bossPowers.js)
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.

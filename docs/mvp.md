@@ -466,7 +466,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 **Nowe bronie (wymagają odblokowania; okno wyzwań od kroku 46):**
 
 **Nowe statystyki i karty:**
-- Odrzut jako statystyka broni, z kartami i przedmiotami, które go zwiększają.
 - Bonus do XP z „Podręcznika do informatyki”: istnieje już jako pasywka Zeszyt w kratkę, więc tylko jeśli ma być czymś innym (np. przedmiotem).
 
 **Przedmioty:**
@@ -1029,6 +1028,17 @@ Każda mapa ma 5 poziomów trudności (`config.difficulty`). Na start otwarty je
 - **Koniec rundy:** wiersz „Białko z rundy” pokazuje np. „trudność 3 +50%”, a po odblokowaniu pojawia się „Nowy poziom trudności: Jelonki 4 (+75% białka)!”.
 - Debug: `config.debug.unlockMaps` otwiera też wszystkie poziomy (bez zapisu w save).
 - Sprawdzone w przeglądarce: kliknięcie > zmieniło poziom 2 → 3 bez startu rundy; runda na poziomie 3 miała HP wrogów x1,5, spawn x1,3 i +50% białka (90 → 135 przy tej samej rundzie); wygrana na poziomie 3 otworzyła poziom 4; w konsoli tylko znane błędy 404.
+
+### 57. Odrzut (krok 81)
+
+Nowa statystyka `run.player.knockback` (prędkość odepchnięcia w px/s, na start 0). Gdy jest większa od zera, każde trafienie bronią odpycha idącego wroga od Bartka (`hurtEnemy` w `GameScene`): wróg leci z tą prędkością przez 160 ms (`config.knockback.ms`), tak jak przy taranowaniu na Rolkach. Ten sam wróg może zostać odepchnięty najwyżej raz na 450 ms (`everyMs`), żeby szybkie bronie nie przyszpilały tłumu. Bossowie nie są odpychani.
+
+- **Kapeć mamy** (nowa pasywka, 5 poziomów, od początku dostępna): +80 odrzutu na poziom, razy mnożnik rzadkości karty.
+- **Gumka recepturka** (nowy zwykły przedmiot): +40 odrzutu za kopię; Klon Bartek umie ją zabrać jak inne.
+- Ekwipunek (pauza) pokazuje wiersz „Odrzut”.
+- Ikony rysowane w `BootScene`: różowy kapeć z białym paskiem, gumka recepturka.
+- Sprawdzone w przeglądarce: bez odrzutu zombie zbliżył się o 17 px przez 0,2 s, z odrzutem 320 odleciał o 52 px (320 x 0,16 s); drugie trafienie w ciągu 0,45 s go nie odepchnęło; ikony się rysują; w konsoli tylko znane błędy 404.
+- Nie sprawdzone: odczucie w grze i balans (czy 80 na poziom to dużo).
 
 ## Architektura
 

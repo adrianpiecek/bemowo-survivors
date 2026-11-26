@@ -49,6 +49,10 @@ export const items = [
     apply(pl, k = 1) { addShare(pl, 'magnetRadius', c.fridgeMagnet.magnetPct * k); },
   },
   {
+    id: 'rubber', name: 'Gumka recepturka', icon: 'item_rubber', description: `+${c.rubber.knockback} odrzutu trafionych wrogów`,
+    apply(pl, k = 1) { pl.knockback += c.rubber.knockback * k; },
+  },
+  {
     id: 'piggy', name: 'Skarbonka', icon: 'item_piggy', rarity: 'rare',
     description: `+${pct(c.piggy.damagePct)} obrażeń za każde ${c.piggy.everyBCoins} zebranych monet B${cap(c.piggy.damagePct, c.piggy.maxSteps)}`,
     apply() {},

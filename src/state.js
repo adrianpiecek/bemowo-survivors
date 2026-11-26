@@ -20,6 +20,7 @@ function startingStats() {
     critChance: config.player.critChance, // share of hits that crit
     critMult: config.player.critMult, // a crit's damage multiplier
     closeDamage: 0, // extra share of damage to enemies near Bartek (Rękawice bokserskie)
+    knockback: 0, // px/s a weapon hit pushes a walker away (config.knockback): Kapeć mamy, Gumka recepturka
     dodge: 0, // share of hits on Bartek that miss (Śliski dres)
     eliteRate: 1, // how often elites come, 1 = every config.elites.everySec (Gwizdek WF-isty)
     projectileSpeed: 1, // speed of every weapon's projectiles (Sprężyna z długopisu), on top of the pistol's bulletSpeed

@@ -126,7 +126,12 @@ export const config = {
     whistle: { ratePct: 0.2, maxLevel: 5 },
     // Sprężyna z długopisu: +speedPct per level to the speed of bullets, pellets, arrows and thrown shields.
     spring: { speedPct: 0.15, maxLevel: 5 },
+    // Kapeć mamy: +knockback per level to run.player.knockback (see config.knockback).
+    slipper: { knockback: 80, maxLevel: 5 },
   },
+  // Odrzut (run.player.knockback, px/s; 0 at the start): a weapon hit sends a walking enemy (not a boss) away from Bartek
+  // at that speed for ms, at most once per everyMs per enemy, so fast weapons do not pin a crowd in place.
+  knockback: { ms: 160, everyMs: 450 },
   // Enemy numbers; the types themselves are in data/enemies.js. Spawn picks among unlocked types by spawnWeight.
   enemies: {
     // Contact damage is low on purpose: the horde is meant to build up around Bartek, a single touch should not end the run.
@@ -347,6 +352,7 @@ export const config = {
     gloves: { critChance: 0.02 }, scratch: { luckPct: 0.05 }, plaster: { maxHp: 6 }, fridgeMagnet: { magnetPct: 0.08 },
     piggy: { damagePct: 0.01, everyBCoins: 10, maxSteps: 12 }, receipt: { speedPct: 0.01, maxSteps: 10 },
     tally: { damagePct: 0.01, everyKills: 200, maxSteps: 15 }, medal: { damagePct: 0.05, cooldownPct: 0.03, maxSteps: 4 },
+    rubber: { knockback: 40 }, // Gumka recepturka: + run.player.knockback per copy
   },
   run: { durationSec: 600 },
   // Bartek's death: the run stops, everything but Bartek goes black over fadeMs while the camera zooms in by `zoom` over
@@ -545,7 +551,7 @@ export const config = {
       secondary: { color: 0xeceff1, hover: 0xffffff, border: 0x607d8b, text: '#1b1b1b' },
       disabled: { color: 0x3a3a3a, hover: 0x3a3a3a, border: 0x222222, text: '#8a8a8a' } },
     // Drawn icons (heart, skull, clock, gym upgrades), size x size px; shown at the size each place asks for.
-    icons: { size: 48, heart: 0xe53935, heartLight: 0xff8a80, skull: 0xeceff1, skullDark: 0x263238, clock: 0xfafafa, clockDark: 0x263238,
+    icons: { size: 48, slipper: 0xec407a, slipperSole: 0x6d4c41, rubber: 0xd7a86e, heart: 0xe53935, heartLight: 0xff8a80, skull: 0xeceff1, skullDark: 0x263238, clock: 0xfafafa, clockDark: 0x263238,
       metal: 0xb0bec5, metalDark: 0x37474f, accent: 0xffc400, outline: 0x1b1b1b,
       // Passive icons (passive_<id>).
       tub: 0xeceff1, coffee: 0x8d6e63, cup: 0xfff8e1, shoe: 0x1e88e5, gainer: 0x6d4c41, backpack: 0x388e3c, ticket: 0xffd54f,
