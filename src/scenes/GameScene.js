@@ -133,7 +133,7 @@ export default class GameScene extends Phaser.Scene {
         if (!this.bossArmed || !def) return;
         this.bossArmed = false;
         this.announceBoss(def);
-        this.time.delayedCall(config.boss.bannerSec * 1000, () => this.spawnBoss(def));
+        this.time.delayedCall(config.boss.bannerSec * 1000, () => this.spawnBosses(def));
       }));
     }
     if (config.debug.bartkowanieKey) {
@@ -379,6 +379,7 @@ export default class GameScene extends Phaser.Scene {
       for (const t of enemy.elite) t.onDeath?.(this, enemy);
       this.dropChest(enemy.x, enemy.y, 1, true); // an item
       this.clearElite(enemy);
+      this.run.elitesKilled++;
     }
     this.run.kills++;
     this.run.killsByType[enemy.stats.id] = (this.run.killsByType[enemy.stats.id] ?? 0) + 1;
@@ -393,7 +394,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   announceBoss(def) {
-    this.scene.get('UIScene').showBanner(`UWAGA: ${def.name.toUpperCase()}`, bossPowers[def.id]?.hint ?? '', config.boss.bannerSec * 1000);
+    const name = def.partner ? `${def.name} i ${def.partner.name}` : def.name;
+    this.scene.get('UIScene').showBanner(`UWAGA: ${name.toUpperCase()}`, bossPowers[def.id]?.hint ?? '', config.boss.bannerSec * 1000);
     playSfx(this, 'boss');
     playMusic(this, 'boss');
   }
@@ -401,6 +403,12 @@ export default class GameScene extends Phaser.Scene {
   // x, y: where it stands up (a boss skull); without them it walks in from the spawn ring.
   spawnBoss(def, x, y) {
     this.boss = this.spawnEnemy(def, x, y) ?? this.boss;
+  }
+
+  // A boss of the run's line-up and its partner (plan Trening w parze); the HP bar shows the first one.
+  spawnBosses(def) {
+    if (def.partner) this.spawnBoss(def.partner);
+    this.spawnBoss(def);
   }
 
   bossKilled(boss) {
@@ -525,7 +533,7 @@ export default class GameScene extends Phaser.Scene {
 
   // One random trait, or two different ones from config.elites.doubleAfterSec on (doubleChance of the time).
   rollEliteTraits() {
-    const c = config.elites, two = this.run.elapsedMs >= c.doubleAfterSec * 1000 && Math.random() < c.doubleChance;
+    const c = config.elites, two = this.run.eliteTwoTraits || (this.run.elapsedMs >= c.doubleAfterSec * 1000 && Math.random() < c.doubleChance);
     return Phaser.Utils.Array.Shuffle(elites.slice()).slice(0, two ? 2 : 1);
   }
 
@@ -604,9 +612,15 @@ export default class GameScene extends Phaser.Scene {
       if (ids.join() !== this.lastBosses?.join()) break;
     }
     this.lastBosses = ids;
-    return slots.map((s, i) => ({
-      ...enemies.find((d) => d.id === ids[i]), appearsAtSec: s.atSec - this.run.bossEarlySec, hp: s.hp, chest: s.chest, protein: s.protein,
-    }));
+    return slots.map((s, i) => {
+      const slot = { appearsAtSec: s.atSec - this.run.bossEarlySec, chest: s.chest, protein: s.protein };
+      const def = { ...enemies.find((d) => d.id === ids[i]), ...slot, hp: s.hp };
+      if (this.run.bossPairs) { // plan Trening w parze: another boss of the slot's pool when it has one
+        const others = s.pool.filter((id) => id !== ids[i]), id = others.length ? Phaser.Utils.Array.GetRandom(others) : ids[i];
+        def.partner = { ...enemies.find((d) => d.id === id), ...slot, hp: Math.round(s.hp * config.plans.pair.partnerHpMult) };
+      }
+      return def;
+    });
   }
 
   // This run's events (data/events.js): ones the last run did not have first, each at a random second that keeps
@@ -1010,7 +1024,7 @@ export default class GameScene extends Phaser.Scene {
     if (nextBoss && run.elapsedMs >= nextBoss.appearsAtSec * 1000) {
       run.nextBoss++;
       run.bossAnnounced = false;
-      this.spawnBoss(nextBoss);
+      this.spawnBosses(nextBoss);
     }
 
     this.updateEvents(delta);

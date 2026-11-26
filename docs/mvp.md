@@ -472,7 +472,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 **Przedmioty:**
 
 **Bossowie, elity, wydarzenia, plany:**
-- Więcej planów treningowych, w tym plany z kilkoma bossami naraz i z większą liczbą elit.
 - Po przejściu mapy: możliwość zwiększenia zarabianego białka razem z poziomem trudności (jak poziomy trudności po wygranej).
 
 **Ekrany i menu:**
@@ -970,6 +969,33 @@ Po kroku 68 ewolucje dalej były za mocne. Liczby w `config.weapons.*.evolution`
 - Liczba toporów i minionów po ewolucji jest zaokrąglana (`Math.round` w `data/weapons.js`), a opisy pokazują „1,5x”.
 - Sprawdzone w przeglądarce: Młyn przy 3 toporach dał 5, Armia przy 4 minionach dała 6, a opisy ewolucji pokazują nowe liczby. W konsoli są tylko znane błędy 404.
 - Nie zmierzone: o ile spadły obrażenia na sekundę każdej ewolucji.
+
+### 53. Nowe plany treningowe (krok 77)
+
+Dwa nowe plany w `src/data/plans.js` (liczby w `config.plans`). Oba trzeba odblokować, a ich wyzwania pokazują się same w oknie wyzwań.
+
+| Plan | Plus | Minus | Odblokowanie |
+|---|---|---|---|
+| Trening w parze | podwójne skrzynie i białko z bossów | każdy boss przychodzi z drugim bossem | pokonaj 4 bossów w jednej rundzie |
+| Obóz elit | elity 2,5x częściej (więcej skrzyń z przedmiotami) | każda elita ma dwie cechy | zabij 10 elit w jednej rundzie |
+
+- **Trening w parze:** `run.bossPairs`. `drawBosses` dokłada każdemu bossowi partnera: innego bossa z puli tego samego miejsca w kolejce, a gdy pula ma tylko jednego (Homelander), drugiego takiego samego. Partner ma 70% HP (`pair.partnerHpMult`), własną skrzynię i białko. Baner mówi „UWAGA: X I Y”, pasek HP pokazuje głównego bossa, a po jego śmierci następnego żywego. Czachy na mapie przywołują dalej jednego bossa.
+- **Obóz elit:** `eliteRate` x2,5 i `run.eliteTwoTraits`. Pierwsza elita przychodzi jak zwykle po 40 s, kolejne co 16 s.
+- Nowy licznik `run.elitesKilled` (do odblokowania Obozu elit).
+- Debug: `config.debug.forcePlan` ('pair' albo 'eliteCamp').
+- Sprawdzone w przeglądarce:
+  - kolejka z planem Trening w parze: Wielki Uncanny 1300 + Wielki Zombie 910, …, Homelander 4800 + Homelander 3360;
+  - o 2:30 baner „UWAGA: WIELKI UNCANNY I WIELKI ZOMBIE” i dwóch bossów na mapie; po zabiciu obu: 2 bossów w `bossesKilled`, 20 białka;
+  - Obóz elit: częstość elit 2,5, elita z dwiema cechami (Pancerny + Szybki) już w pierwszej minucie;
+  - ekran planów mieści teksty obu planów.
+- Nie sprawdzone: czy da się przejść całą rundę z Treningiem w parze (dwóch Homelanderów naraz o 9:00).
+
+### 54. Dwa sloty broni na start (krok 78)
+
+Bartek zaczyna z 2 slotami broni (było 3, `config.weapons.startSlots`). Kolejne kupuje się w siłowni: Kabura ma teraz 3 poziomy za 150, 400 i 1000 białka (było 2 poziomy za 400 i 1000), więc z pełną Kaburą jest 5 slotów, jak wcześniej.
+
+- Kto miał już kupioną Kaburę, zachowuje poziom, ale ma o jeden slot mniej, dopóki nie dokupi trzeciego poziomu.
+- Sprawdzone w przeglądarce: bez Kabury runda ma 2 sloty broni, HUD rysuje 2 pola w rzędzie broni, opis Kabury mówi „na start 2”.
 
 ## Architektura
 

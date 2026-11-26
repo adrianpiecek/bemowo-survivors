@@ -97,5 +97,22 @@ export const plans = [
       run.enemyHpMult *= 1 + c.lazy.enemyHpPct;
     },
   },
+  {
+    id: 'pair', name: 'Trening w parze',
+    unlock: { text: `Pokonaj ${c.pair.unlockBosses} bossów w jednej rundzie`, check: (run) => run.bossesKilled.length >= c.pair.unlockBosses },
+    plus: 'podwójne skrzynie i białko z bossów',
+    minus: 'każdy boss przychodzi z drugim bossem',
+    apply(pl, run) { run.bossPairs = true; }, // GameScene.drawBosses
+  },
+  {
+    id: 'eliteCamp', name: 'Obóz elit',
+    unlock: { text: `Zabij ${c.eliteCamp.unlockElites} elit w jednej rundzie`, check: (run) => run.elitesKilled >= c.eliteCamp.unlockElites },
+    plus: `elity ${String(c.eliteCamp.rateMult).replace('.', ',')}x częściej: więcej skrzyń z przedmiotami`,
+    minus: 'każda elita ma dwie cechy',
+    apply(pl, run) {
+      pl.eliteRate *= c.eliteCamp.rateMult;
+      run.eliteTwoTraits = true; // GameScene.rollEliteTraits
+    },
+  },
 ];
 

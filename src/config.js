@@ -6,7 +6,7 @@ export const config = {
   // Weapons (data/weapons.js). Bartek starts with one random weapon from `start` and carries up to startSlots (the gym's
   // Kabura adds more); new ones and levels come as cards.
   weapons: {
-    startSlots: 3,
+    startSlots: 2, // step 78: was 3; the rest from the gym's Kabura
     // Draw weight of a weapon card, new or a level (passives and the rest weigh 1), so evolutions come before 8:00.
     cardWeight: 2,
     start: ['pistol', 'shotgun', 'shield'],
@@ -415,7 +415,7 @@ export const config = {
     glasses: { rangePct: 0.1, maxLevel: 5, costs: [30, 90, 220, 450, 800] },
     warmup: { durationSec: 60, speedPct: -0.2, damagePct: 0.3, maxLevel: 1, costs: [120] },
     plan: { rerolls: 1, banishes: 1, maxLevel: 5, costs: [50, 130, 260, 480, 800] }, // Plan dnia: more level-up rerolls and banishes
-    weaponSlot: { maxLevel: 2, costs: [400, 1000] }, // Kabura: +1 weapon slot a level
+    weaponSlot: { maxLevel: 3, costs: [150, 400, 1000] }, // Kabura: +1 weapon slot a level
     passiveSlot: { maxLevel: 2, costs: [300, 800] }, // Plecak: +1 passive slot a level
     // Half a level of the matching passive each (the passive's icon too): XP, regen, armor, luck, crit chance.
     tutoring: { xpPct: 0.05, maxLevel: 5, costs: [30, 80, 180, 350, 650] },
@@ -503,6 +503,11 @@ export const config = {
     unc: { rerolls: 2, banishes: 2, unlockMaxedPassives: 3 },
     bartkowanie: { chanceMult: 3, unlockCount: 10 },
     lazy: { xpPct: 0.3, enemyHpPct: 0.15, earlyDeathSec: 120, unlockEarlyDeaths: 3 },
+    // Trening w parze: every boss walks in with a partner from its slot's pool (another one when the pool has it) at
+    // partnerHpMult of the slot's HP, with its own chest and protein. Unlock: unlockBosses bosses killed in one run.
+    pair: { partnerHpMult: 0.7, unlockBosses: 4 },
+    // Obóz elit: elites rateMult x as often, each with two traits from the start. Unlock: unlockElites elites in one run.
+    eliteCamp: { rateMult: 2.5, unlockElites: 10 },
   },
   ui: { margin: 16, hudFontSize: 24, balanceWindowSec: 10, titleFontSize: 64, subtitleFontSize: 20, buttonFontSize: 32, lineGap: 56,
     // Cards (systems/cards.js makeCard): a panel framed in the rarity's colour, the icon (iconSize, left in portrait, under

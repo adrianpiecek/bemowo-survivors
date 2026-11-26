@@ -124,6 +124,9 @@ export function newRun() {
     bartkowanieChance: config.bartkowanie.levelUpChance, // after each level up; plan Bartkowanie raises it
     bartkowanieCount: 0, // Bartkowania this run, for the plan's unlock
     enemyHpMult: 1, // plan Lenistwo: walking enemies' HP
+    bossPairs: false, // plan Trening w parze: every boss comes with a partner
+    eliteTwoTraits: false, // plan Obóz elit: every elite has two traits
+    elitesKilled: 0, // for the plan Obóz elit unlock
     weapons: [], // the weapons Bartek carries: { def, level, ... }, see data/weapons.js
     passives: [], // the passives Bartek carries: { def, level }, see data/passives.js
   };
