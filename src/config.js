@@ -1,6 +1,6 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
-  version: 86, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 87, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -621,7 +621,10 @@ export const config = {
       // Wielkość interfejsu (the HUD's zoom, save.uiScale) and Przybliżenie kamery (the run's camera zoom, save.cameraZoom):
       // kept between min and max, changed by `step` (the same step as the volumes).
       // uiScale max: the top HUD row (HP panel, pause, clock) still fits the 720 px wide portrait screen.
-      uiScale: { min: 0.8, max: 1.2 }, cameraZoom: { min: 0.8, max: 1.2 },
+      // Wielkość menu (save.menuScale): the zoom of every screen but the run and its HUD (systems/layout.js applyMenuScale);
+      // A screen grows only while its content stays `margin` px inside the screen (layout.js zoomScene; panels drawn in
+      // Graphics are not measured, so margin covers their padding).
+      uiScale: { min: 0.8, max: 1.2 }, menuScale: { min: 0.8, max: 1.3, margin: 28 }, cameraZoom: { min: 0.8, max: 1.2 },
       barColor: 0xffc400, pauseButton: { size: 46, iconSize: 26, gap: 8 } },
     // Round "CZOŁG" button in the bottom right while the tank is ready: a click or tap starts it (phones have no Space).
     tankButton: { radius: 64, margin: 40, color: 0x2e7d32, alpha: 0.85, fontSize: 22 },
@@ -712,8 +715,8 @@ export const config = {
     landscape: {
       game: { width: 1280, height: 720 },
       ui: {
-        // Five rows of settings fit the low screen.
-        settings: { padding: 16, titleFontSize: 40, labelFontSize: 20, rowHeight: 78, stepButton: 48, backHeight: 56, backFontSize: 26,
+        // Six rows of settings fit the low screen.
+        settings: { padding: 16, titleFontSize: 40, labelFontSize: 20, rowHeight: 72, stepButton: 46, backHeight: 56, backFontSize: 26,
           actionHeight: 48, actionFontSize: 20, hintFontSize: 16 },
         card: { row: true, width: 260, height: 320, gap: 40, nameFontSize: 22, textFontSize: 18, rarityFontSize: 18, hintFontSize: 16, iconSize: 56 },
         title: { bemowoY: 250, survivorsY: 410, pressBottom: 90 },

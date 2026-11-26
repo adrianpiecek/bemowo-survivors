@@ -1155,6 +1155,24 @@ Zmiany:
   - w konsoli są tylko znane błędy 404 i jeden 400 (odpowiedź serwera na test z pustym e-mailem).
 - **Nie sprawdzone:** prawdziwe założenie konta i logowanie (wymaga włączenia Email/Password w konsoli) oraz wygląd na iPhonie z ekranu początkowego.
 
+### 63. Wielkość menu (krok 87)
+
+W ustawieniach jest nowy suwak **Wielkość menu** (80–130%, `save.menuScale`, ustawienie tego urządzenia, nie trafia do chmury). Dotychczasowy suwak nazywa się teraz **Wielkość interfejsu w grze** i dalej zmienia tylko HUD.
+
+- Suwak zmienia rozmiar każdego ekranu poza rundą: tytuł, menu, siłownię, mapy, plany, karty ulepszeń, skrzynie, sklep, ekran końca rundy i okna (statystyki, wyzwania, bestiariusz, konto…). Ekran powiększa się względem swojego środka przez zoom kamery (`systems/layout.js`, `watchMenuScale` przy każdym `create`).
+- Nie zmienia się rozmiar rundy, HUD-u, ekranu ładowania ani samego okna ustawień, żeby za duże menu dało się zawsze cofnąć. Menu pod ustawieniami zmienia się na żywo.
+- **Zmniejszanie** działa na każdym ekranie. **Powiększanie** idzie tylko tak daleko, jak pozwala zawartość, z odstępem 28 px od krawędzi. Ekran, który już wypełnia całość (np. siłownia), zostaje w 100%, a ekran z luzem rośnie. W pionie większość ekranów jest szeroka, więc urośnie niewiele (menu o ok. 5%, statystyki o ok. 11%).
+- Numer wersji w rogu menu jest przypięty do rogu ekranu (dane `corner`), więc przy każdej wielkości pozostaje widoczny.
+- W poziomie wiersze ustawień są niższe (72 px), żeby 6 wierszy zmieściło się na ekranie.
+- **Sprawdzone w przeglądarce:**
+  - przyciski + i − zmieniają `menuScale` (od 80% do 110%), a menu pod ustawieniami zmienia się od razu;
+  - restart menu zachowuje wielkość;
+  - kliknięcie w powiększony przycisk „Siłownia” trafia;
+  - przy 130%: menu ×1,05, statystyki ×1,11, konto ×1,24, siłownia ×1,0, nic nie jest ucięte;
+  - przy 80% wszystko jest zmniejszone;
+  - w konsoli są tylko znane błędy 404.
+- **Nie sprawdzone:** wygląd w poziomie i na telefonie.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { save, resetProgress, writeSave } from '../state.js';
 import { setVolume, playSfx, pauseSfx, resumeSfx, toggleMute } from '../systems/audio.js';
 import { font, panel, drawBar, button } from '../systems/ui.js';
-import { setOrientation } from '../systems/layout.js';
+import { setOrientation, applyMenuScale } from '../systems/layout.js';
 
 // Pauses `scene` (GameScene or MenuScene) and opens the settings over it. Ignored when that scene is already paused
 // (level-up cards, a chest, or the settings themselves are open), so closing never resumes a run under the cards.
@@ -13,7 +13,7 @@ export function openSettings(scene) {
   scene.scene.launch('SettingsScene', { from: scene.scene.key });
 }
 
-// Settings over a paused scene: music and sound effect volume, the HUD's size, the camera's zoom, screen orientation (kept in the save). In a run it is the
+// Settings over a paused scene: music and sound effect volume, the HUD's and the menus' size, the camera's zoom, screen orientation (kept in the save). In a run it is the
 // pause screen, and the orientation only says where to change it: the run's world is built for one screen shape.
 // "Wróć", Esc or Enter close it and resume the scene under it (in a run also P, the pause key). "Wycisz" mutes everything
 // (as M does); in a run "Wyjdź do menu" ends the run as a loss: the end screen counts the protein so far. Outside a run
@@ -33,7 +33,8 @@ export default class SettingsScene extends Phaser.Scene {
     const rows = [
       ['Muzyka', 'musicVolume', 0, 1, (v) => setVolume('musicVolume', v)],
       ['Efekty dźwiękowe', 'sfxVolume', 0, 1, (v) => { setVolume('sfxVolume', v); playSfx(this, 'pick'); }], // hear the new level
-      ['Wielkość interfejsu', 'uiScale', st.uiScale.min, st.uiScale.max, (v) => this.setView('uiScale', v)],
+      ['Wielkość interfejsu w grze', 'uiScale', st.uiScale.min, st.uiScale.max, (v) => this.setView('uiScale', v)],
+      ['Wielkość menu', 'menuScale', st.menuScale.min, st.menuScale.max, (v) => this.setView('menuScale', v)],
       ['Przybliżenie kamery', 'cameraZoom', st.cameraZoom.min, st.cameraZoom.max, (v) => this.setView('cameraZoom', v)],
     ];
     const panelH = st.padding * 4 + st.titleFontSize * 1.2 + (rows.length + 1) * st.rowHeight + st.actionHeight + st.backHeight + st.hintFontSize * 2;
@@ -126,6 +127,7 @@ export default class SettingsScene extends Phaser.Scene {
   setView(kind, value) {
     save[kind] = value;
     writeSave(save);
+    if (kind === 'menuScale') return applyMenuScale(this.game); // the menu under the settings shows it at once
     if (this.from !== 'GameScene') return;
     const gs = this.scene.get('GameScene');
     if (kind === 'cameraZoom') gs.cameras.main.setZoom(value);

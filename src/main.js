@@ -1,6 +1,6 @@
 import { config } from './config.js';
 import { toggleMute } from './systems/audio.js';
-import { applyLayout } from './systems/layout.js';
+import { applyLayout, watchMenuScale } from './systems/layout.js';
 import TitleScene from './scenes/TitleScene.js';
 import BootScene from './scenes/BootScene.js';
 import GameScene from './scenes/GameScene.js';
@@ -59,3 +59,6 @@ addEventListener('pointerdown', function goFullscreen(e) {
 
 // Konto (Firebase) loads in the background once the game runs; without it the game plays on as before.
 setTimeout(initOnline, config.online.startDelayMs);
+
+// Wielkość menu on every screen outside the run, from the first one on.
+game.events.once('ready', () => watchMenuScale(game));

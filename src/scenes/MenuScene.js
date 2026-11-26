@@ -66,8 +66,8 @@ export default class MenuScene extends Phaser.Scene {
     else if (y + mn.quoteGap + gs.bartekHeight <= height - mn.bottom) this.addQuote((width - quoteW) / 2, y + mn.quoteGap);
 
     // Which build is on this device (GitHub Pages and the phone cache it): bottom right corner.
-    this.add.text(width - mn.versionMargin, height - mn.versionMargin, `v0.${config.version}`, font(mn.versionFontSize, { color: mn.versionColor }))
-      .setOrigin(1, 1);
+    const vx = width - mn.versionMargin, vy = height - mn.versionMargin; // 'corner': kept there at any Wielkość menu
+    this.add.text(vx, vy, `v0.${config.version}`, font(mn.versionFontSize, { color: mn.versionColor })).setOrigin(1, 1).setData('corner', [vx, vy]);
     this.input.keyboard.once('keydown-ENTER', () => startRun(this));
     this.input.keyboard.on('keydown-ESC', () => openSettings(this));
     // A login or a save taken from the cloud while the menu shows: draw it again (nick on the button, protein).
