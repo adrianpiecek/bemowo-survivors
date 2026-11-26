@@ -53,7 +53,17 @@ function startingStats() {
 // Reset every run.
 export function newRun() {
   return {
-    elapsedMs: 0,
+    elapsedMs: 0, // the whole run; enemies' growth and unlocks go by it
+    stageMs: 0, // the current stage (config.stages): bosses, events, waves, the spawn curve and the clock go by it
+    stage: 1,
+    stagesCleared: 0, // by the portal or by overtime survived
+    overtime: false, // dogrywka: hordes after a missed portal or the stage's time up
+    overtimeMs: 0,
+    hordeMs: 0, // to the next overtime horde
+    hordes: 0, // overtime hordes so far this stage
+    portalMs: 0, // the portal's time left while it stands
+    portalShown: false, // this stage's portal came already
+    score: 0, // wynik: kills x the stage's multiplier (config.stages)
     kills: 0,
     level: 1,
     xp: 0,
@@ -151,7 +161,7 @@ export function formatTime(ms) {
 // Protein earned by a finished run.
 export function proteinForRun(run, won) {
   const p = config.protein;
-  const base = Math.floor(run.kills / p.perKills) + Math.floor(run.elapsedMs / 60000) * p.perMinute + (won ? p.winBonus : 0)
+  const base = Math.floor(run.kills / p.perKills) + Math.floor(run.elapsedMs / 60000) * p.perMinute + run.stagesCleared * p.winBonus
     + run.bossProtein;
   return Math.floor(base * (1 + run.betPct + run.difficultyPct + pressureBonus(run))); // Zakłady z Unc, trudność, presja Bemowa
 }

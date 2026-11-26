@@ -26,6 +26,13 @@ const smallB = {
   },
 };
 
+// The stage portal (config.stages): lies on the map like a pickup for portal.sec (the HUD arrow points at it first),
+// walked into it starts the next stage. Not in `pickups`, so it never drops.
+export const stagePortal = {
+  id: 'portal', name: 'Portal', icon: 'portal', steady: true, arrowFirst: true, pulse: config.stages.portal.pulse,
+  apply(scene) { scene.nextStage(); },
+};
+
 export const pickups = [
   {
     id: 'olx',

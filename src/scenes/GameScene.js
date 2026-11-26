@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { newRun, xpToNextLevel, save, writeSave } from '../state.js';
-import { pickups } from '../data/pickups.js';
+import { pickups, stagePortal } from '../data/pickups.js';
 import { enemies } from '../data/enemies.js';
 import { updateItems, cloneChoices } from '../data/items.js';
 import { weapons } from '../data/weapons.js';
@@ -131,6 +131,7 @@ export default class GameScene extends Phaser.Scene {
     this.darkness = this.add.image(width / 2, height / 2, 'darkness').setScrollFactor(0).setDisplaySize(cover * 2, cover * 2)
       .setDepth(config.events.blackout.depth).setVisible(false);
     this.shop = null; // the Żabka shop sprite while its promotion lasts
+    this.portal = null; // the stage portal's sprite (openPortal)
     if (config.debug.bossKey) {
       // B arms it, then 1-5 calls that boss (in order of appearance): banner first, the boss bannerSec later.
       this.input.keyboard.on('keydown-B', () => { this.bossArmed = true; });
@@ -198,11 +199,14 @@ export default class GameScene extends Phaser.Scene {
         this.startEvent(events[i]);
       }));
     }
+    if (config.debug.portalKey) this.input.keyboard.on('keydown-O', () => { if (!this.run.overtime) this.openPortal(); });
     if (config.debug.tankKey) this.input.keyboard.on('keydown-T', () => { this.run.tankCharge = this.run.tankCost; });
     if (config.debug.timeSkipKey) {
       this.input.keyboard.on('keydown-J', () => {
         this.run.elapsedMs += 60000;
-        this.run.wave = Math.floor(this.run.elapsedMs / (config.wave.everySec * 1000)); // no burst of the skipped waves
+        this.run.stageMs += 60000;
+        if (this.run.overtime) this.run.overtimeMs += 60000;
+        this.run.wave = Math.floor(this.run.stageMs / (config.wave.everySec * 1000)); // no burst of the skipped waves
       });
     }
 
@@ -394,6 +398,8 @@ export default class GameScene extends Phaser.Scene {
       this.run.elitesKilled++;
     }
     this.run.kills++;
+    const sc = config.stages;
+    this.run.score += sc.scoreMult[this.run.stage - 1] * (1 + sc.difficultyPct * (this.run.difficulty - 1));
     this.run.killsByType[enemy.stats.id] = (this.run.killsByType[enemy.stats.id] ?? 0) + 1;
     if (this.run.tankMs <= 0) this.run.tankCharge = Math.min(this.run.tankCharge + 1, this.run.tankCost);
     this.dropGem(enemy.x, enemy.y, enemy.stats.gem);
@@ -437,6 +443,98 @@ export default class GameScene extends Phaser.Scene {
     // A boss not killed before the next one's minute may still be on the map.
     this.boss = this.enemies.getChildren().find((z) => z.active && z.stats.isBoss) ?? null;
     if (!this.boss) playMusic(this, 'gameplay');
+    const run = this.run;
+    if (!this.boss && run.nextBoss >= this.bossQueue.length && !run.overtime && !run.portalShown) this.openPortal();
+  }
+
+  stageBossHp(hp) { return Math.round(hp * config.stages.bossHpMult ** (this.run.stage - 1)); }
+
+  // The stage portal (data/pickups.js stagePortal) portal.dist px from Bartek, on a spot clear of Fort Bema's water.
+  openPortal() {
+    const run = this.run, p = config.stages.portal, c = p.clearance;
+    run.portalShown = true;
+    run.portalMs = p.sec * 1000;
+    let x = this.player.x, y = this.player.y;
+    for (let i = 0; i < p.tries; i++) {
+      const a = Phaser.Math.FloatBetween(0, Math.PI * 2), px = this.player.x + Math.cos(a) * p.dist, py = this.player.y + Math.sin(a) * p.dist;
+      const wet = this.physics.overlapRect(px - c, py - c, c * 2, c * 2, false, true).some((b) => this.map.walls.contains(b.gameObject));
+      if (!wet) { x = px; y = py; break; }
+    }
+    this.portal = this.dropPickup(stagePortal, x, y, p.sec);
+    const last = run.stage >= config.stages.count;
+    this.scene.get('UIScene').showBanner('PORTAL', `Wejdź w ciągu ${p.sec} s: ${last ? 'koniec mapy' : `etap ${run.stage + 1}`}. Inaczej dogrywka`);
+    playSfx(this, 'pickup');
+  }
+
+  // Dogrywka: a missed portal or the stage's time up. Hordes come (spawnHorde) until overtime.durationSec is survived.
+  startOvertime() {
+    const run = this.run, ot = config.stages.overtime;
+    run.overtime = true;
+    run.overtimeMs = 0;
+    run.hordeMs = 0;
+    run.hordes = 0;
+    run.portalMs = 0;
+    if (this.portal?.active && this.portal.def === stagePortal) this.portal.disableBody(true, true);
+    this.scene.get('UIScene').showBanner('DOGRYWKA', `Hordy Uncanny rosną. Przetrwaj ${ot.durationSec / 60} min, by przejść dalej`);
+    playMusic(this, 'boss');
+  }
+
+  spawnHorde() {
+    const run = this.run, ot = config.stages.overtime, def = enemies.find((d) => d.id === ot.enemy);
+    const count = Math.round(ot.baseCount * (1 + ot.countPct * run.hordes)), hp = 1 + ot.hpPct * run.hordes;
+    run.hordes++;
+    for (let i = 0; i < count; i++) {
+      const z = this.spawnEnemy(def);
+      if (!z) break; // the enemy cap
+      z.hp *= hp;
+      z.maxHp = z.hp;
+    }
+  }
+
+  // The stage clock: the portal's time, overtime and its hordes, the stage's end. True once the run is won.
+  updateStage(delta) {
+    const run = this.run, ot = config.stages.overtime;
+    run.stageMs += delta;
+    if (run.overtime) {
+      run.overtimeMs += delta;
+      run.hordeMs -= delta;
+      if (run.hordeMs <= 0) {
+        run.hordeMs += ot.everySec * 1000;
+        this.spawnHorde();
+      }
+      if (run.overtimeMs >= ot.durationSec * 1000) return this.nextStage();
+    } else if (run.portalMs > 0) {
+      run.portalMs -= delta;
+      if (run.portalMs <= 0) this.startOvertime();
+    } else if (run.stageMs >= config.run.durationSec * 1000) this.startOvertime();
+    return false;
+  }
+
+  // Through the portal or out of overtime: the next stage on the same map, harder; after the last one the run is won (true).
+  nextStage() {
+    const run = this.run, sc = config.stages;
+    run.stagesCleared++;
+    if (run.stage >= sc.count) {
+      this.scene.start('GameOverScene', { run, won: true });
+      return true;
+    }
+    run.stage++;
+    Object.assign(run, { stageMs: 0, overtime: false, overtimeMs: 0, portalMs: 0, portalShown: false, wave: 0, nextBoss: 0, bossAnnounced: false });
+    run.enemyHpMult *= 1 + sc.hpPct;
+    run.spawnRateMult *= 1 + sc.spawnPct;
+    if (this.portal?.active && this.portal.def === stagePortal) this.portal.disableBody(true, true);
+    for (const z of this.enemies.getChildren()) {
+      if (!z.active || z.stats.isBoss) continue;
+      this.clearElite(z);
+      z.disableBody(true, true);
+    }
+    this.bossQueue = this.drawBosses();
+    run.events = [];
+    this.scheduleEvents();
+    playVfx(this, 'eventStart', this.player.x, this.player.y);
+    this.scene.get('UIScene').showBanner(`ETAP ${run.stage}`, 'Te same ulice, mocniejsi wrogowie');
+    if (!this.boss) playMusic(this, 'gameplay');
+    return false;
   }
 
   // A free chest (bosses, elites, events) stays until taken; count: upgrades inside; items: true for items in place of
@@ -510,10 +608,10 @@ export default class GameScene extends Phaser.Scene {
   // A boss from the last slot reached (its hp, chest and protein), outside the run's boss plan: the banner now, the boss
   // riseMs later where the skull lay.
   summonSkullBoss(x, y) {
-    const slots = config.boss.slots, sec = this.run.elapsedMs / 1000;
+    const slots = config.boss.slots, sec = this.run.stageMs / 1000;
     const slot = slots.filter((s) => s.atSec <= sec).at(-1) ?? slots[0];
     const id = Phaser.Utils.Array.GetRandom(slot.pool);
-    const def = { ...enemies.find((d) => d.id === id), hp: slot.hp, chest: slot.chest, protein: slot.protein };
+    const def = { ...enemies.find((d) => d.id === id), hp: this.stageBossHp(slot.hp), chest: slot.chest, protein: slot.protein };
     this.announceBoss(def);
     playVfx(this, 'smokePuff', x, y);
     this.time.delayedCall(config.skulls.riseMs, () => {
@@ -626,10 +724,10 @@ export default class GameScene extends Phaser.Scene {
     this.lastBosses = ids;
     return slots.map((s, i) => {
       const slot = { appearsAtSec: s.atSec - this.run.bossEarlySec, chest: s.chest, protein: s.protein };
-      const def = { ...enemies.find((d) => d.id === ids[i]), ...slot, hp: s.hp };
+      const def = { ...enemies.find((d) => d.id === ids[i]), ...slot, hp: this.stageBossHp(s.hp) };
       if (this.run.bossPairs) { // plan Trening w parze: another boss of the slot's pool when it has one
         const others = s.pool.filter((id) => id !== ids[i]), id = others.length ? Phaser.Utils.Array.GetRandom(others) : ids[i];
-        def.partner = { ...enemies.find((d) => d.id === id), ...slot, hp: Math.round(s.hp * config.plans.pair.partnerHpMult) };
+        def.partner = { ...enemies.find((d) => d.id === id), ...slot, hp: Math.round(this.stageBossHp(s.hp) * config.plans.pair.partnerHpMult) };
       }
       return def;
     });
@@ -679,7 +777,7 @@ export default class GameScene extends Phaser.Scene {
   updateEvents(delta) {
     const run = this.run;
     for (const ev of run.events) {
-      if (ev.started || run.elapsedMs < ev.atMs) continue;
+      if (ev.started || run.stageMs < ev.atMs) continue;
       ev.started = true;
       this.startEvent(ev.def);
     }
@@ -1002,10 +1100,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.dying) return; // die(): only the fall plays
     const run = this.run, total = config.run.durationSec * 1000;
     run.elapsedMs += delta;
-    if (run.elapsedMs >= total) {
-      this.scene.start('GameOverScene', { run, won: true });
-      return;
-    }
+    if (this.updateStage(delta)) return; // the last stage done: GameOverScene is starting
     // update() runs after the physics step: a chest picked up in it waits until any level-up cards are picked.
     if (run.screenQueue.length && run.pendingLevelUps === 0) {
       const { scene, data } = run.screenQueue.shift();
@@ -1025,16 +1120,16 @@ export default class GameScene extends Phaser.Scene {
         this.makeElite(z, this.rollEliteTraits());
       }
       const pressure = 1 + run.pressure * config.dda.spawnBonus;
-      run.spawnCooldownMs += 1000 / (Phaser.Math.Linear(startPerSec, endPerSec, (run.elapsedMs / total) ** curvePow) * run.spawnRateMult * pressure);
+      run.spawnCooldownMs += 1000 / (Phaser.Math.Linear(startPerSec, endPerSec, Math.min(1, run.stageMs / total) ** curvePow) * run.spawnRateMult * pressure);
     }
 
     // Bosses walk in at their minute; the banner and the boss music come bannerSec earlier.
     const nextBoss = this.bossQueue[run.nextBoss];
-    if (nextBoss && !run.bossAnnounced && run.elapsedMs >= (nextBoss.appearsAtSec - config.boss.bannerSec) * 1000) {
+    if (nextBoss && !run.bossAnnounced && run.stageMs >= (nextBoss.appearsAtSec - config.boss.bannerSec) * 1000) {
       run.bossAnnounced = true;
       this.announceBoss(nextBoss);
     }
-    if (nextBoss && run.elapsedMs >= nextBoss.appearsAtSec * 1000) {
+    if (nextBoss && run.stageMs >= nextBoss.appearsAtSec * 1000) {
       run.nextBoss++;
       run.bossAnnounced = false;
       this.spawnBosses(nextBoss);
@@ -1055,7 +1150,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Every wave.everySec a ring of enemies spawns at once; each wave is bigger. The enemy cap still applies.
     const w = config.wave;
-    if (Math.floor(run.elapsedMs / (w.everySec * 1000)) > run.wave) {
+    if (Math.floor(run.stageMs / (w.everySec * 1000)) > run.wave) {
       const count = Math.round((w.baseCount + w.perWave * run.wave) * (1 + run.pressure * config.dda.spawnBonus));
       run.wave++;
       for (let i = 0; i < count; i++) this.spawnEnemy();

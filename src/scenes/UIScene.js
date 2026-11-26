@@ -74,6 +74,9 @@ export default class UIScene extends Phaser.Scene {
     this.killsText = stat(0, 'icon_skull');
     this.coinText = stat(1, 'coin_gold');
     this.bCoinText = stat(2, 'coin_b');
+    const sh = u.stageHud;
+    this.stageText = this.add.text(width - m, statTop + 3 * (st.height + st.gap) + sh.gap, '', font(sh.fontSize, { fontStyle: 'bold', ...outline }))
+      .setOrigin(1, 0);
 
     const bb = u.bossBar;
     this.bossText = this.add.text(width / 2, bb.y + bb.height / 2, '', font(bb.fontSize, { fontStyle: 'bold', ...outline }))
@@ -101,6 +104,7 @@ export default class UIScene extends Phaser.Scene {
     this.effectRows = [
       ...pickups.filter((d) => d.effect).map((d) => row(d.icon ?? 'pickup', d.name, () => this.run.effects[d.effect])),
       ...events.filter((d) => d.durationSec > 0).map((d) => row('icon_clock', d.name, () => this.run.activeEvents.find((ev) => ev.def === d))),
+      row('portal', 'Portal', () => (this.run.portalMs > 0 ? { remainingMs: this.run.portalMs, durationMs: config.stages.portal.sec * 1000 } : null)),
     ];
 
     const pa = u.pickupArrow;
@@ -183,7 +187,11 @@ export default class UIScene extends Phaser.Scene {
     this.xpText.setText(`${Math.floor(r.xp)} / ${xpNeed} XP`); // XP can be fractional (Zeszyt w kratkę)
     this.levelText.setText(r.level);
     // +999 so the clock shows 10:00 at the start instead of 9:59.
-    this.timeText.setText(formatTime(config.run.durationSec * 1000 - r.elapsedMs + 999));
+    const ot = config.stages.overtime, sh = config.ui.stageHud;
+    this.timeText.setText(formatTime((r.overtime ? ot.durationSec * 1000 - r.overtimeMs : config.run.durationSec * 1000 - r.stageMs) + 999))
+      .setColor(r.overtime ? sh.overtimeColor : '#ffffff');
+    this.stageText.setText(r.overtime ? `Dogrywka, etap ${r.stage}/${config.stages.count}` : `Etap ${r.stage}/${config.stages.count}`)
+      .setColor(r.overtime ? sh.overtimeColor : sh.color);
     this.killsText.setText(r.kills);
     this.coinText.setText(r.coinProtein);
     this.bCoinText.setText(r.bCoins);

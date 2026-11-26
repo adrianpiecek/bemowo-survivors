@@ -170,6 +170,12 @@ export default class BootScene extends Phaser.Scene {
     g.lineStyle(2, zs.border).strokeRect(1, 1, zw - 2, zh - 2).lineBetween(0, ah, zw, ah);
     g.generateTexture('zabka_shop', zw, zh).clear();
 
+    // Stage portal: violet rings narrowing to a dark middle, a black rim.
+    const pt = t.portal, pr = pt.size / 2;
+    pt.rings.forEach((color, i) => g.fillStyle(color).fillEllipse(pr, pr, pt.size * (1 - i * 0.22), pt.size * (1 - i * 0.22)));
+    g.lineStyle(2, pt.border).strokeEllipse(pr, pr, pt.size - 2, pt.size - 2);
+    g.generateTexture('portal', pt.size, pt.size).clear();
+
     // Awaria prądu: black with a soft see-through hole in the middle. GameScene stretches it over the screen's diagonal,
     // so the hole's radius is worked out against that (the same in portrait and landscape).
     const bo = config.events.blackout, ds = bo.textureSize, cover = Math.hypot(config.game.width, config.game.height) / 2;

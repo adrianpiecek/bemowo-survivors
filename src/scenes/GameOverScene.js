@@ -89,7 +89,10 @@ export default class GameOverScene extends Phaser.Scene {
     row('Czas', formatTime(r.elapsedMs));
     row('Poziom', `${r.level}`);
     row('Zabici', `${r.kills}`);
-    row('Bossowie', `${r.bossesKilled.length} / ${config.boss.slots.length}`);
+    row('Bossowie', `${r.bossesKilled.length} / ${config.boss.slots.length * config.stages.count}`);
+    row('Etap', `${r.stage} / ${config.stages.count}${r.overtime ? `, dogrywka ${formatTime(r.overtimeMs)}` : ''}`);
+    row('Wynik', Math.round(r.score).toLocaleString('pl-PL'), go.headerColor);
+    row('DPS', Math.round(r.damageDealt / Math.max(1, r.elapsedMs / 1000)).toLocaleString('pl-PL'));
     row('Białko z rundy', `${fromRun}${bonus ? ` (${bonus})` : ''}`, go.headerColor);
     row('Białko z monet', `${r.coinProtein}`, go.headerColor);
     row('Razem w siłowni', `${save.protein}`);

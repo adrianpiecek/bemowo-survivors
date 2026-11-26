@@ -356,7 +356,18 @@ export const config = {
     // Podręcznik do informatyki (rare): +xpPct XP and +damagePct damage for every everyLevels of Bartek's level.
     textbook: { xpPct: 0.02, damagePct: 0.01, everyLevels: 5, maxSteps: 8 },
   },
-  run: { durationSec: 600 },
+  run: { durationSec: 600 }, // one stage (config.stages)
+  // Etapy: a map is `count` stages of run.durationSec each, all the boss slots in every one. Once the last slot's boss (and
+  // every other boss) is dead, a portal stands portal.dist px from Bartek for portal.sec. Walking in starts the next stage
+  // at once: the walkers on the map go, walker HP +hpPct and spawns +spawnPct per stage, bosses bossHpMult x per stage.
+  // The portal not walked into, or the stage's time up first: overtime (dogrywka) for overtime.durationSec, then the next
+  // stage anyway. In overtime a horde of `enemy` walks in every everySec on top of the usual spawn: baseCount of them,
+  // +countPct and +hpPct HP for every horde before it. The last stage done is the win; protein's winBonus is paid per stage.
+  // Wynik: every kill adds scoreMult[stage - 1] x (1 + difficultyPct per difficulty level above 1).
+  stages: { count: 3, hpPct: 0.3, spawnPct: 0.3, bossHpMult: 2.5,
+    portal: { sec: 10, dist: 260, tries: 24, clearance: 50, pulse: { scale: 1.15, ms: 700, vfx: 'portalGlow', everyMs: 700 } },
+    overtime: { durationSec: 600, enemy: 'runner', everySec: 15, baseCount: 20, countPct: 0.25, hpPct: 0.35 },
+    scoreMult: [1, 1.5, 2], difficultyPct: 0.25 },
   // Bartek's death: the run stops, everything but Bartek goes black over fadeMs while the camera zooms in by `zoom` over
   // zoomMs; after fallDelayMs he falls over (fallDeg, fallDrop px lower) in fallMs; the end screen comes after totalMs.
   // coverDepth: the black over the world and the HUD-less screen; Bartek is drawn just above it.
@@ -378,6 +389,7 @@ export const config = {
     bartkowanieKey: false, // true: N, then a digit 1-8, runs that Bartkowanie effect
     balanceOverlay: false, // true: numbers for balancing in the top right (enemies, spawn/s, kills/s, DPS)
     timeSkipKey: false, // true: the J key moves the run clock 60 s forward
+    portalKey: false, // true: the O key opens the stage's portal by Bartek (walk in: next stage; leave it: overtime)
     bossKey: false, // true: B, then a digit 1-4, calls that boss (in order of appearance) after its banner
     enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
     giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
@@ -626,6 +638,8 @@ export const config = {
       orientFontSize: 40, orientWidth: 260, orientGap: 30, orientGapY: 90 },
     // y: under the HUD panel and the three stat pills (portrait: the B coin pill ends at 200); the effect rows go under it
     bossBar: { y: 212, width: 600, height: 24, fontSize: 16, color: 0xd03030 },
+    // "Etap 2/3" under the stats column, right-aligned; red in overtime, as the clock then.
+    stageHud: { gap: 4, fontSize: 18, color: '#ffffff', overtimeColor: '#ff5252' },
     // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
     chest: { titleY: 190, titleFontSize: 64, titleColor: '#ffc400', strokeThickness: 8, spinStepMs: 70, spinMs: 1200, stopGapMs: 700,
       popScale: 1.08, popMs: 120, promptBottom: 60 },
@@ -795,6 +809,8 @@ export const config = {
     vacuumPull: { layers: [ // magnet pickup: two rings pulling in
       { image: { texture: 'fx_ring', scale: [6, 0.3], alpha: [0, 0.9], ms: 550, tint: 0xe57373, ease: 'Cubic.easeIn' } },
       { image: { texture: 'fx_ring', scale: [4, 0.2], alpha: [0, 0.9], ms: 450, tint: 0xcfd8dc, ease: 'Cubic.easeIn' } }] },
+    portalGlow: { layers: [ // the stage portal: a violet light ring going out
+      { image: { texture: 'fx_ring', scale: [0.8, 3.4], alpha: [0.8, 0], ms: 700, tint: 0xd500f9 } }] },
     shopGlow: { layers: [ // the Żabka shop: a green light ring going out
       { image: { texture: 'fx_ring', scale: [0.8, 3.2], alpha: [0.8, 0], ms: 800, tint: 0x76ff03 } }] },
     pigeonHit: { layers: [ // a pigeon takes out an enemy: grey feathers
@@ -862,6 +878,7 @@ export const config = {
     goblin: { file: './assets/goblin_bartek_cut.png', height: 52, bodyRadius: 19 },
     sportakus: { file: './assets/sportakus_cut.png', height: 66, bodyRadius: 24 },
     // Żabka shop (event): a white wall, a striped green awning, a door and two windows.
+    portal: { size: 84, rings: [0x4a148c, 0x8e24aa, 0xce93d8, 0x12002a], border: 0x000000 }, // outer to inner
     zabkaShop: { width: 88, height: 74, awningHeight: 20, stripes: 6, wall: 0xf5f5f5, awning: 0x2e7d32, stripe: 0xffffff,
       door: 0x1b5e20, window: 0x81d4fa, border: 0x212121 },
     chest: { width: 54, height: 42, lidHeight: 15, color: 0x8d5524, lidColor: 0x6d3f17, bandColor: 0xffc400, bandWidth: 6, lockSize: 12,

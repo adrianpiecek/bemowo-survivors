@@ -1049,6 +1049,35 @@ Nowy rzadki przedmiot w `src/data/items.js`, inny niż pasywka Zeszyt w kratkę:
 - Klon Bartek może go sklonować albo zabrać (para z innym rzadkim przedmiotem).
 - Sprawdzone w przeglądarce: na poziomie 4 nic, na 5: +2% XP i +1% obrażeń, na 12: +4% / +2%, na 40 i 60: +16% / +8% (sufit); druga kopia podwaja (+32% / +16%), a zabrana oddaje swoją część; ikona się rysuje; w konsoli tylko znane błędy 404.
 
+### 59. Etapy, portal i dogrywka (krok 83)
+
+Mapa dzieli się na 3 etapy po 10 minut. W każdym etapie są wszyscy czterej bossowie. Liczby siedzą w `config.stages`.
+
+- **Portal.** Gdy zginie ostatni boss etapu (i żaden inny boss nie chodzi po mapie), 260 px od Bartka pojawia się portal na 10 s. Miejsce jest losowane z pominięciem fosy Fortu Bema, a strzałka HUD wskazuje go pierwszego. Portal to znajdźka `stagePortal` z `src/data/pickups.js`, która nie wypada z wrogów. Wejście od razu zaczyna kolejny etap na tej samej mapie:
+  - zegar etapu startuje od 10:00, a fale, bossowie i wydarzenia są losowane od nowa;
+  - zwykli wrogowie z mapy znikają;
+  - HP wrogów rośnie o +30% na etap, a spawn o +30%;
+  - bossowie mają ×2,5 HP na każdy kolejny etap.
+- **Dogrywka.** Zaczyna się, gdy portal zgaśnie albo gdy czas etapu minie przed zabiciem bossów. Trwa 10 minut, zegar robi się czerwony, a pod licznikami jest napis „Dogrywka, etap X/3”.
+  - Co 15 s, oprócz zwykłego spawnu, wchodzi horda Uncanny: 20 sztuk i +25% więcej z każdą kolejną hordą, z HP +35% za każdą wcześniejszą hordę. Limit wrogów na mapie nadal obowiązuje.
+  - Kto przetrwa dogrywkę, przechodzi do następnego etapu.
+- **Wygrana.** Runda jest wygrana dopiero po ukończeniu trzeciego etapu, portalem albo dogrywką. Białko za wygraną (20) jest teraz płacone za każdy ukończony etap, czyli maks. 60.
+- **Wynik.** Każde zabójstwo dodaje mnożnik etapu (×1; ×1,5; ×2) razy +25% za każdy poziom trudności powyżej 1. Dogrywka liczy się z mnożnikiem swojego etapu. Ekran końca pokazuje etap (z czasem dogrywki), wynik i DPS całej rundy. DPS tylko się wyświetla, do wyniku się nie liczy.
+- **Dwa zegary.**
+  - `run.elapsedMs` liczy całą rundę. Od niego zależą wzrost HP i obrażeń wrogów, pojawianie się typów wrogów, elity, odblokowania i białko za minuty.
+  - `run.stageMs` liczy bieżący etap. Od niego zależą bossowie, wydarzenia, fale, krzywa spawnu i zegar w HUD.
+- **Debug:** `config.debug.portalKey`: klawisz O otwiera portal przy Bartku. J przesuwa też zegar etapu i dogrywki.
+- **Sprawdzone w przeglądarce:**
+  - po śmierci czterech bossów portal stoi 260 px od Bartka;
+  - wejście w portal: etap 2, wrogowie z mapy znikają, HP i spawn ×1,3, bossowie ×2,5 HP, nowe wydarzenia;
+  - koniec czasu etapu: dogrywka, w której hordy rosną (HP Uncanny od 45 do 108), a zabójstwo daje 1,5 punktu;
+  - koniec dogrywki: etap 3;
+  - zgaszony portal: dogrywka;
+  - koniec dogrywki na etapie 3: wygrana, ekran końca z etapem, wynikiem i DPS;
+  - na Forcie Bema żaden z 60 portali nie stanął w fosie;
+  - w konsoli są tylko znane błędy 404.
+- **Nie sprawdzone:** balans (czy etap 3 i dogrywka są do przejścia) oraz ekran końca w poziomie z wieloma broniami (doszły 3 wiersze).
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
