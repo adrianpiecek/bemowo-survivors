@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { save } from '../state.js';
+import { save, writeSave } from '../state.js';
 
 // Maps, picked in MapScene before the plan. Each one is an endless grid of blocks (systems/map.js):
 //   kinds    the block kinds with draw weights (their textures are drawn in createMapTextures)
@@ -21,3 +21,31 @@ export const maps = [
 
 export const mapUnlocked = (map) => !map.unlock || config.debug.unlockMaps || save.unlocks.includes(map.id);
 export const mapById = (id) => maps.find((d) => d.id === id) ?? maps[0];
+
+// Difficulty levels (config.difficulty) per map in save.difficulty: { max, picked }, clamped here so a hand-edited save
+// cannot break a run.
+const dc = config.difficulty;
+const whole = (n, lo, hi) => (Number.isFinite(n) ? Phaser.Math.Clamp(Math.floor(n), lo, hi) : lo);
+export const mapLevelMax = (map) => (config.debug.unlockMaps ? dc.levels : whole(save.difficulty[map.id]?.max, 1, dc.levels));
+export const mapLevel = (map) => whole(save.difficulty[map.id]?.picked, 1, mapLevelMax(map));
+export function pickMapLevel(map, level) {
+  save.difficulty[map.id] = { max: whole(save.difficulty[map.id]?.max, 1, dc.levels), picked: whole(level, 1, mapLevelMax(map)) };
+  writeSave(save);
+}
+
+// A won run on the map's highest open level opens the next one; returns the new level or null.
+export function openNextLevel(run, won) {
+  const map = mapById(run.map), max = whole(save.difficulty[map.id]?.max, 1, dc.levels);
+  if (!won || run.difficulty < max || max >= dc.levels) return null;
+  save.difficulty[map.id] = { max: max + 1, picked: max + 1 };
+  return max + 1;
+}
+
+// The run's switches for its level: walking enemies' HP, the spawn rate and the protein bonus.
+export function applyDifficulty(run, level) {
+  const k = level - 1;
+  run.difficulty = level;
+  run.enemyHpMult *= 1 + dc.hpPct * k;
+  run.spawnRateMult *= 1 + dc.spawnPct * k;
+  run.difficultyPct = dc.proteinPct * k;
+}

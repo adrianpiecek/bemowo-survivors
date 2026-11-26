@@ -99,6 +99,8 @@ export function newRun() {
     hordeAngle: null, // Chorda nadchodzi: radians, the side every ring spawn comes from while it lasts
     // Zakłady z Unc (data/bets.js), set in GameScene.create:
     betPct: 0, // protein bonus of the run's bets (0.45 = +45%)
+    difficulty: 1, // the map's difficulty level (config.difficulty), picked in MapScene
+    difficultyPct: 0, // its protein bonus
     enemySpeedMult: 1, // every enemy's speed
     spawnRateMult: 1, // the regular spawn rate
     bossEarlySec: 0, // bosses walk in this much earlier
@@ -150,7 +152,7 @@ export function proteinForRun(run, won) {
   const p = config.protein;
   const base = Math.floor(run.kills / p.perKills) + Math.floor(run.elapsedMs / 60000) * p.perMinute + (won ? p.winBonus : 0)
     + run.bossProtein;
-  return Math.floor(base * (1 + run.betPct + pressureBonus(run))); // Zakłady z Unc, presja Bemowa
+  return Math.floor(base * (1 + run.betPct + run.difficultyPct + pressureBonus(run))); // Zakłady z Unc, trudność, presja Bemowa
 }
 
 // The protein bonus for the run's hidden pressure: its average over the run x config.dda.proteinPct, in whole percent.
@@ -165,6 +167,7 @@ const SAVE_VERSION = 1;
 function freshSave() {
   return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, uiScale: 1, cameraZoom: 1, orientation: 'portrait', orientationSet: false, evolutions: [], runsPlayed: 0, stats: freshStats(),
     bets: {}, // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
+    difficulty: {}, // map id -> { max, picked }: difficulty levels open and picked (data/maps.js)
     bestiary: {} }; // enemy type id -> kills over all runs (BestiaryScene)
 }
 
@@ -190,6 +193,7 @@ export function loadSave() {
   if (Number.isFinite(d.protein) && d.protein >= 0) s.protein = d.protein;
   if (isObject(d.gym)) s.gym = d.gym;
   if (isObject(d.bets)) s.bets = d.bets; // levels are clamped where they are read (betLevel)
+  if (isObject(d.difficulty)) s.difficulty = d.difficulty; // clamped where read (data/maps.js)
   if (isObject(d.bestiary)) for (const [k, v] of Object.entries(d.bestiary)) if (Number.isFinite(v) && v >= 0) s.bestiary[k] = v;
   if (Array.isArray(d.unlocks)) s.unlocks = d.unlocks;
   if (typeof d.muted === 'boolean') s.muted = d.muted;

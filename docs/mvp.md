@@ -472,7 +472,6 @@ Nie są to kroki do zrobienia, tylko lista do przejrzenia przy planowaniu kolejn
 **Przedmioty:**
 
 **Bossowie, elity, wydarzenia, plany:**
-- Po przejściu mapy: możliwość zwiększenia zarabianego białka razem z poziomem trudności (jak poziomy trudności po wygranej).
 
 **Ekrany i menu:**
 
@@ -1019,6 +1018,17 @@ Po kliknięciu „Na Bemowo!” (albo „Zagraj ponownie”) pokazuje się **lis
   - przy 157 wrogach co najwyżej 4 naraz stały w wodzie (wepchnięci przez tłum albo zrodzeni w niej);
   - Jelonki wyglądają jak przedtem; w konsoli tylko znane błędy 404.
 - Nie sprawdzone: układ poziomy listy map.
+
+### 56. Poziomy trudności map (krok 80)
+
+Każda mapa ma 5 poziomów trudności (`config.difficulty`). Na start otwarty jest poziom 1. Wygrana na najwyższym otwartym poziomie danej mapy otwiera następny i od razu go wybiera.
+
+- Każdy poziom powyżej 1 daje idącym wrogom +25% HP, +15% częstszy spawn i +25% białka z rundy. Poziom 5: +100% HP, +60% spawnu, +100% białka. Bonus dolicza się razem z Zakładami z Unc i presją Bemowa (`proteinForRun`).
+- **Wybór:** na karcie mapy w `MapScene` jest wiersz „Trudność 2/3: +25% białka” ze strzałkami < i >. Bez otwartego poziomu 2 wiersz mówi „Trudność 1. Wygraj tu, by otworzyć 2”.
+- **Zapis:** `save.difficulty[mapId] = { max, picked }`, przycinane przy odczycie (`data/maps.js`). „Nowa gra” je czyści.
+- **Koniec rundy:** wiersz „Białko z rundy” pokazuje np. „trudność 3 +50%”, a po odblokowaniu pojawia się „Nowy poziom trudności: Jelonki 4 (+75% białka)!”.
+- Debug: `config.debug.unlockMaps` otwiera też wszystkie poziomy (bez zapisu w save).
+- Sprawdzone w przeglądarce: kliknięcie > zmieniło poziom 2 → 3 bez startu rundy; runda na poziomie 3 miała HP wrogów x1,5, spawn x1,3 i +50% białka (90 → 135 przy tej samej rundzie); wygrana na poziomie 3 otworzyła poziom 4; w konsoli tylko znane błędy 404.
 
 ## Architektura
 

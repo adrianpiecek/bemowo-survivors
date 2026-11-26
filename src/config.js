@@ -354,6 +354,10 @@ export const config = {
   // coverDepth: the black over the world and the HUD-less screen; Bartek is drawn just above it.
   death: { fadeMs: 700, zoom: 1.8, zoomMs: 900, fallDelayMs: 400, fallMs: 600, fallDeg: 90, fallDrop: 12, totalMs: 2200, coverDepth: 50 },
   protein: { perKills: 10, perMinute: 2, winBonus: 20 }, // awarded at the end of a run
+  // Difficulty levels per map (data/maps.js, picked on the map's card in MapScene): 1 to `levels`; a win on a map's highest
+  // open level opens the next. Each level above 1 adds hpPct to walking enemies' HP, spawnPct to the spawn rate and
+  // proteinPct to the run's protein (with the bets' bonus).
+  difficulty: { levels: 5, hpPct: 0.25, spawnPct: 0.15, proteinPct: 0.25 },
   // Debug flags, all off by default.
   debug: {
     resetSave: false, // true wipes the save on page load
@@ -371,7 +375,7 @@ export const config = {
     giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
     givePassives: null, // a list of passive ids (e.g. ['ticket', 'dumbbells']): unlocked in the save and given at level 1 every run
     drawCharges: null, // a number: every run starts with this many Odśwież, Pomiń and Wywal (gym included)
-    unlockMaps: false, // true: every map is open in the map list (MapScene)
+    unlockMaps: false, // true: every map and every difficulty level is open in the map list (MapScene)
     forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
     evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
@@ -576,7 +580,9 @@ export const config = {
     gameOver: { top: 110, gap: 18, panelWidth: 600, padding: 18, fontSize: 22, rowHeight: 32, headerColor: '#ffc400', labelColor: '#b0bec5',
       iconSize: 28, nameWidth: 230, valueWidth: 170, barHeight: 14, barColor: 0xffc400, buttonsGap: 50 },
     // Map list (MapScene): the plan screen's cards; a locked map's card at lockedAlpha with its unlock text in lockedColor.
-    mapScreen: { titleY: 120, titleFontSize: 56, textFontSize: 22, textColor: '#e0e0e0', lockedColor: '#9e9e9e', lockedAlpha: 0.45, buttonBottom: 70 },
+    // The difficulty row levelY px under the card's middle: < and > buttons (arrow x arrow px) arrowGap px either side of the text.
+    mapScreen: { titleY: 120, titleFontSize: 56, textFontSize: 22, textColor: '#e0e0e0', lockedColor: '#9e9e9e', lockedAlpha: 0.45, buttonBottom: 70,
+      levelY: 46, levelFontSize: 22, levelColor: '#ffc400', arrow: 48, arrowGap: 150 },
     planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
@@ -678,7 +684,7 @@ export const config = {
         bossBar: { y: 76 },
         chest: { titleY: 110 },
         planScreen: { titleY: 60, lineFontSize: 17 },
-        mapScreen: { titleY: 60, textFontSize: 17, buttonBottom: 50 },
+        mapScreen: { titleY: 60, textFontSize: 17, buttonBottom: 50, levelY: 70, levelFontSize: 17, arrow: 40, arrowGap: 100 },
         gameOver: { top: 14, gap: 8, fontSize: 18, rowHeight: 25, iconSize: 22, buttonsGap: 34 },
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,
           stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },

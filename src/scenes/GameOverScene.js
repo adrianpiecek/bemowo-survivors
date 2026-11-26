@@ -4,7 +4,7 @@ import { stopMusic } from '../systems/audio.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
-import { maps } from '../data/maps.js';
+import { maps, mapById, openNextLevel } from '../data/maps.js';
 import { startRun } from './PlanScene.js';
 import { unlockedByBets } from '../data/bets.js';
 import { button, font, drawPanel, drawBar } from '../systems/ui.js';
@@ -45,6 +45,7 @@ export default class GameOverScene extends Phaser.Scene {
       save.unlocks.push(def.id);
       this.newUnlocks.push(def);
     }
+    this.newLevel = openNextLevel(this.run, this.won); // the map's next difficulty level
     // Evolutions seen for the first time this run: kept in the save, named on this screen.
     this.newEvolutions = weapons.map((d) => d.evolution).filter((e) => e && r.evolutions.includes(e.id) && !save.evolutions.includes(e.id));
     for (const e of this.newEvolutions) save.evolutions.push(e.id);
@@ -84,7 +85,7 @@ export default class GameOverScene extends Phaser.Scene {
     };
     // The hidden pressure only ever shows here, as a reward: "Bemowo się zbroiło".
     const pb = Math.round(pressureBonus(r) * 100), fromRun = this.earned - r.coinProtein;
-    const bonus = [r.betPct ? `zakłady +${Math.round(r.betPct * 100)}%` : '', pb ? `Bemowo się zbroiło +${pb}%` : ''].filter(Boolean).join(', ');
+    const bonus = [r.difficultyPct ? `trudność ${r.difficulty} +${Math.round(r.difficultyPct * 100)}%` : '', r.betPct ? `zakłady +${Math.round(r.betPct * 100)}%` : '', pb ? `Bemowo się zbroiło +${pb}%` : ''].filter(Boolean).join(', ');
     row('Czas', formatTime(r.elapsedMs));
     row('Poziom', `${r.level}`);
     row('Zabici', `${r.kills}`);
@@ -136,6 +137,9 @@ export default class GameOverScene extends Phaser.Scene {
     }
     if (newPlans.length) lines.push(`Nowy plan treningowy: ${newPlans.map((d) => d.name).join(', ')}!`);
     if (newMaps.length) lines.push(`Nowa mapa: ${newMaps.map((d) => d.name).join(', ')}! Wybierzesz ją przed rundą.`);
+    if (this.newLevel) {
+      lines.push(`Nowy poziom trudności: ${mapById(r.map).name} ${this.newLevel} (+${Math.round(config.difficulty.proteinPct * (this.newLevel - 1) * 100)}% białka)!`);
+    }
     if (this.newEvolutions.length) lines.push(`Nowa ewolucja: ${this.newEvolutions.map((e) => e.name).join(', ')}!`);
     if (lines.length) {
       this.add.text(cx, y + go.buttonsGap, lines.join('\n'), {

@@ -7,6 +7,7 @@ import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
 import { elites } from '../data/elites.js';
+import { applyDifficulty } from '../data/maps.js';
 import { events } from '../data/events.js';
 import { font } from '../systems/ui.js';
 import { evolutionReady } from '../systems/cards.js';
@@ -35,6 +36,7 @@ export default class GameScene extends Phaser.Scene {
       this.run.player.hp = this.run.player.maxHp;
     }
     applyBets(this.run); // Zakłady z Unc: enemies, spawn, bosses, pickups, cards
+    applyDifficulty(this.run, this.registry.get('difficulty') ?? 1); // the map's level from MapScene
     playMusic(this, 'gameplay');
     const { width, height } = this.scale;
     const cam = this.cameras.main;

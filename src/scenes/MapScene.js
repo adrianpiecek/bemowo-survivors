@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { maps, mapUnlocked } from '../data/maps.js';
+import { maps, mapUnlocked, mapLevel, mapLevelMax, pickMapLevel } from '../data/maps.js';
 import { cardCenter } from '../systems/cards.js';
 import { font, panel, button } from '../systems/ui.js';
 import { startPlan } from './PlanScene.js';
@@ -32,15 +32,35 @@ export default class MapScene extends Phaser.Scene {
       this.add.text(x, top + c.height - u.margin, `[${i + 1}]`, font(u.hudFontSize)).setOrigin(0.5, 1);
       this.add.zone(x, y, c.width, c.height).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.pick(map));
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.pick(map));
+      this.levelRow(map, x, y + ms.levelY);
     });
     button(this, width / 2, height - ms.buttonBottom, 'Wróć [Esc]', () => this.scene.start('MenuScene'), { variant: 'secondary' });
     this.input.keyboard.on('keydown-ESC', () => this.scene.start('MenuScene'));
+  }
+
+  // "Trudność 2/3" with its bonus, and < > to change it once a higher level is open (over the card's zone, so a click
+  // on them does not start the run).
+  levelRow(map, x, y) {
+    const ms = config.ui.mapScreen, dc = config.difficulty, max = mapLevelMax(map), level = mapLevel(map);
+    const text = max > 1
+      ? `Trudność ${level}/${max}${level > 1 ? `: +${Math.round(dc.proteinPct * (level - 1) * 100)}% białka` : ''}`
+      : 'Trudność 1. Wygraj tu, by otworzyć 2';
+    this.add.text(x, y, text, font(ms.levelFontSize, { color: ms.levelColor })).setOrigin(0.5);
+    if (max < 2) return;
+    const step = (d) => () => {
+      pickMapLevel(map, level + d);
+      this.scene.restart();
+    };
+    const opts = { width: ms.arrow, height: ms.arrow, fontSize: ms.levelFontSize, variant: 'secondary' };
+    if (level > 1) button(this, x - ms.arrowGap - ms.arrow / 2, y, '<', step(-1), opts);
+    if (level < max) button(this, x + ms.arrowGap + ms.arrow / 2, y, '>', step(1), opts);
   }
 
   pick(map) {
     if (this.picked) return; // a click and a key press can land in the same frame
     this.picked = true;
     this.registry.set('map', map.id);
+    this.registry.set('difficulty', mapLevel(map));
     startPlan(this);
   }
 }
