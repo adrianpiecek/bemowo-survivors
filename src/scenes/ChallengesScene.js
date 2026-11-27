@@ -4,7 +4,7 @@ import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
 import { maps } from '../data/maps.js';
-import { font, panel, drawPanel, button, dim } from '../systems/ui.js';
+import { font, panel, drawPanel, button, dim, pageRows, pager } from '../systems/ui.js';
 
 // Wyzwania over the paused gym: every weapon, passive and plan with an unlock condition (data files' `unlock.text`),
 // done ones (in save.unlocks) with a green frame. More than fit on the screen: pages ("<  Strona 1/2  >", arrow keys), so
@@ -40,13 +40,9 @@ export default class ChallengesScene extends Phaser.Scene {
     y += intro.height + c.gap;
 
     // Rows that fit between the intro and Wróć (with the pager under them when one page is not enough).
-    const step = c.rowHeight + c.rowGap, below = c.gap + c.backHeight + c.padding;
-    const fit = (room) => Math.max(1, Math.floor((room + c.rowGap) / step)) * c.columns;
-    let perPage = fit(height - c.margin * 2 - y - below);
-    if (perPage < list.length) perPage = fit(height - c.margin * 2 - y - below - c.gap - c.pagerHeight);
-    const pages = Math.ceil(list.length / perPage);
-    this.page = Phaser.Math.Clamp(this.page, 0, pages - 1);
-    const shown = list.slice(this.page * perPage, (this.page + 1) * perPage);
+    const step = c.rowHeight + c.rowGap, rows = pageRows(list, this.page, height - c.margin * 2 - y - (c.gap + c.backHeight + c.padding), c);
+    const { pages, shown } = rows;
+    this.page = rows.page;
 
     shown.forEach(({ kind, def, icon, done }, i) => {
       const rx = x0 + c.padding + (i % c.columns) * (rowW + c.columnGap), ry = y + Math.floor(i / c.columns) * step;
@@ -60,15 +56,9 @@ export default class ChallengesScene extends Phaser.Scene {
       what.setY(name.y + name.height);
     });
     // A full page's height on every page, so Wróć and the pager stay put.
-    y += Math.ceil((pages > 1 ? perPage : list.length) / c.columns) * step - c.rowGap + c.gap;
+    y += rows.height + c.gap;
     if (pages > 1) {
-      const py = y + c.pagerHeight / 2, turn = (d) => this.turnPage(d, pages);
-      const pw = c.pagerButton, opts = (on) => ({ width: pw, height: c.pagerHeight, fontSize: c.pagerFontSize, variant: on ? 'secondary' : 'disabled' });
-      const label = add(this.add.text(cx, py, `Strona ${this.page + 1}/${pages}`, font(c.pagerFontSize, { fontStyle: 'bold' })).setOrigin(0.5));
-      add(button(this, label.x - label.width / 2 - c.padding - pw / 2, py, '<', () => turn(-1), opts(this.page > 0)));
-      add(button(this, label.x + label.width / 2 + c.padding + pw / 2, py, '>', () => turn(1), opts(this.page < pages - 1)));
-      this.input.keyboard.on('keydown-LEFT', () => turn(-1));
-      this.input.keyboard.on('keydown-RIGHT', () => turn(1));
+      pager(this, cx, y + c.pagerHeight / 2, this.page, pages, (d) => this.turnPage(d, pages), c).forEach(add);
       y += c.pagerHeight + c.gap;
     }
 

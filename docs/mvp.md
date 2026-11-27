@@ -1295,6 +1295,35 @@ Przegląd wszystkich ekranów w przeglądarce (telefon w pionie 375×812 i w poz
   - bestiariusz, statystyki, pauza w rundzie;
   - w konsoli tylko znane błędy 404.
 
+### 70. Czytelność menu, siłowni i okien w pionie (krok 94)
+
+Telefon w pionie pokazuje grę (720 px szerokości) w skali około 0,52. Tekst 20 px wychodził więc na ekranie około 10 px, a przycisk 64 px miał około 33 px, czyli mniej niż opuszek palca (około 44 px). Nowe minimum w pionie:
+- tekst opisów ma 22–24 px, nazwy 26–28 px;
+- przyciski mają co najmniej 76–88 px wysokości;
+- okna mają 680–700 px szerokości.
+
+Poziom zostaje bez zmian: zmienione klucze mają w `layouts.landscape` swoje stare wartości.
+
+- **Menu.**
+  - Kolumna ma 600 px szerokości.
+  - „Na Bemowo!” ma 120 px wysokości, „Siłownia” 96 px, a małe okna 88 px, dwa w rzędzie, z tekstem 28 px i ikonami 44 px.
+  - Cytat Bartka ma 24 px, a definicja 22 px.
+- **Siłownia.**
+  - Wiersze mają 152 px i pełną szerokość. Nazwa ma 28 px, opis 24 px, a koszt 26 px.
+  - „Kup” ma 130×76 px.
+  - Na stronę mieści się 6 ulepszeń, czyli 3 strony.
+  - Pager ma przyciski 96×64 px.
+- **Okna** (Statystyki, Bestiariusz, Wyzwania, Konto, Wyniki, Zakłady z Unc, Ustawienia):
+  - tekst ma 22–26 px, a wiersze są wyższe;
+  - „Wróć” ma 300×84 px, przyciski Konta 80 px, a pola tekstowe 72 px;
+  - Wyniki pokazują 15 graczy zamiast 20.
+- **Strony.** Bestiariusz ma strony, w pionie po 10 rodzajów. Wspólne `pageRows` (ile wierszy mieści się na stronie) i `pager` („<  Strona 1/2  >” ze strzałkami) w `systems/ui.js` obsługują siłownię, wyzwania i bestiariusz.
+- **Sprawdzone w przeglądarce** (pion 375×812, Wielkość menu 100%):
+  - menu, siłownia (strona 1/3), bestiariusz (strona 1/2), wyzwania (strona 1/3), statystyki, konto, wyniki, zakłady, ustawienia;
+  - poziom: siłownia wygląda jak przedtem;
+  - w konsoli tylko znane błędy 404.
+- **Czeka:** czarne pasy. W pionie na telefonie 9:19,5 gra traci około 18% wysokości. Ich wykorzystanie (`Scale.EXPAND`) dałoby więcej miejsca na większy tekst bez kolejnych stron.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

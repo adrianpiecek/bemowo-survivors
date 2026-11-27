@@ -2,11 +2,11 @@ import { config } from '../config.js';
 import { save } from '../state.js';
 import { enemies } from '../data/enemies.js';
 import { bossPowers } from '../data/bossPowers.js';
-import { font, panel, drawPanel, button, dim } from '../systems/ui.js';
+import { font, panel, drawPanel, button, dim, pageRows, pager } from '../systems/ui.js';
 
 // Bestiariusz over the paused gym: every enemy type and boss (data/enemies.js) with how many Bartek killed over all runs
-// (save.bestiary). One never killed shows as a black shape with "???". Wróć, Esc or Enter restart the gym under it on
-// the page it was on.
+// (save.bestiary). One never killed shows as a black shape with "???". More than fit on the screen: pages ("<  Strona 1/2  >",
+// arrow keys). Wróć, Esc or Enter restart the menu under it.
 export default class BestiaryScene extends Phaser.Scene {
   constructor() { super('BestiaryScene'); }
 
@@ -28,10 +28,13 @@ export default class BestiaryScene extends Phaser.Scene {
     const title = add(this.add.text(cx, y, 'Bestiariusz', font(c.titleFontSize, { fontStyle: 'bold', color: '#ffc400' })).setOrigin(0.5, 0));
     y += title.height + c.gap / 2;
     const known = enemies.filter((d) => save.bestiary[d.id]).length;
-    const intro = add(this.add.text(cx, y, `Pokonane rodzaje: ${known}/${enemies.length}. Pomarańczowa ramka: boss.`, font(c.textFontSize, { color: c.dimColor })).setOrigin(0.5, 0));
+    const intro = add(this.add.text(cx, y, `Pokonane rodzaje: ${known}/${enemies.length}. Pomarańczowa ramka: boss.`,
+      font(c.textFontSize, { color: c.dimColor, align: 'center', wordWrap: { width: c.width - c.padding * 2 } })).setOrigin(0.5, 0));
     y += intro.height + c.gap;
 
-    enemies.forEach((d, i) => {
+    const rows = pageRows(enemies, this.page, height - c.margin * 2 - y - (c.gap + c.backHeight + c.padding), c);
+    this.page = rows.page;
+    rows.shown.forEach((d, i) => {
       const kills = save.bestiary[d.id] ?? 0, rx = x0 + c.padding + (i % c.columns) * (rowW + c.columnGap);
       const ry = y + Math.floor(i / c.columns) * (c.rowHeight + c.rowGap), mid = ry + c.rowHeight / 2;
       add(panel(this, rx, ry, rowW, c.rowHeight, d.isBoss ? { borderColor: c.bossColor, borderAlpha: 1 } : {}));
@@ -48,7 +51,11 @@ export default class BestiaryScene extends Phaser.Scene {
       what.setY(name.y + name.height);
       count.setY(name.y); // the kill count, level with the name
     });
-    y += Math.ceil(enemies.length / c.columns) * (c.rowHeight + c.rowGap) - c.rowGap + c.gap;
+    y += rows.height + c.gap;
+    if (rows.pages > 1) {
+      pager(this, cx, y + c.pagerHeight / 2, this.page, rows.pages, (d) => this.turnPage(d, rows.pages), c).forEach(add);
+      y += c.pagerHeight + c.gap;
+    }
 
     add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize, variant: 'secondary' }));
     y += c.backHeight + c.padding;
@@ -59,6 +66,12 @@ export default class BestiaryScene extends Phaser.Scene {
 
     this.input.keyboard.once('keydown-ESC', () => this.close());
     this.input.keyboard.once('keydown-ENTER', () => this.close());
+  }
+
+  turnPage(dir, pages) {
+    const page = this.page + dir;
+    if (page < 0 || page >= pages || this.closing) return;
+    this.scene.restart({ page });
   }
 
   close() {

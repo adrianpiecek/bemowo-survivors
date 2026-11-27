@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { gymUpgrades } from '../data/gym.js';
 import { save, writeSave, gymLevel } from '../state.js';
 import { playMusic, playSfx } from '../systems/audio.js';
-import { font, panel, button, touch } from '../systems/ui.js';
+import { font, panel, button, touch, pager } from '../systems/ui.js';
 
 // Between runs, from the main menu (MenuScene): spend protein on permanent upgrades. "Wróć", Esc or Enter go back to the menu.
 // A purchase restarts the scene with { bought, cost, page }, so the new pip pops and the cost floats up from the protein.
@@ -100,13 +100,8 @@ export default class GymScene extends Phaser.Scene {
     // Pager under the rows of a full page, so it stays put from page to page.
     let rowsBottom = gs.top + Math.ceil(shown.length / gs.columns) * step;
     if (this.pages > 1) {
-      const py = gs.top + (perPage / gs.columns) * step + gs.pagerGap + gs.pagerHeight / 2, turn = (d) => this.turnPage(d);
-      const pw = gs.pagerButton, opts = (on) => ({ width: pw, height: gs.pagerHeight, fontSize: gs.pagerFontSize, variant: on ? 'secondary' : 'disabled' });
-      const label = this.add.text(cx, py, `Strona ${this.page + 1}/${this.pages}`, font(gs.pagerFontSize, { fontStyle: 'bold' })).setOrigin(0.5);
-      button(this, label.x - label.width / 2 - gs.padding - pw / 2, py, '<', () => turn(-1), opts(this.page > 0));
-      button(this, label.x + label.width / 2 + gs.padding + pw / 2, py, '>', () => turn(1), opts(this.page < this.pages - 1));
-      this.input.keyboard.on('keydown-LEFT', () => turn(-1));
-      this.input.keyboard.on('keydown-RIGHT', () => turn(1));
+      const py = gs.top + (perPage / gs.columns) * step + gs.pagerGap + gs.pagerHeight / 2;
+      pager(this, cx, py, this.page, this.pages, (d) => this.turnPage(d), gs);
       rowsBottom = py + gs.pagerHeight / 2;
     }
     this.addBackButton(x0, totalW, cx);

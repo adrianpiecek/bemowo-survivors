@@ -43,6 +43,29 @@ export function drawBar(g, x, y, w, h, fill, color) {
   g.lineStyle(b.borderWidth, b.borderColor).strokeRoundedRect(x, y, w, h, r);
 }
 
+// Rows of a window split into pages: as many as fit in `room` px (less the pager when one page is not enough).
+// c: { rowHeight, rowGap, columns, gap, pagerHeight }. Returns the page (clamped), the page count, the rows shown and
+// a full page's height (every page as tall, so what is under the rows stays put).
+export function pageRows(list, page, room, c) {
+  const step = c.rowHeight + c.rowGap, fit = (r) => Math.max(1, Math.floor((r + c.rowGap) / step)) * c.columns;
+  let perPage = fit(room);
+  if (perPage < list.length) perPage = fit(room - c.gap - c.pagerHeight);
+  const pages = Math.ceil(list.length / perPage), p = Phaser.Math.Clamp(page, 0, pages - 1);
+  return { page: p, pages, shown: list.slice(p * perPage, (p + 1) * perPage), height: Math.ceil((pages > 1 ? perPage : list.length) / c.columns) * step - c.rowGap };
+}
+
+// "<  Strona 1/3  >" centred on (cx, y), the arrow keys too; turn(-1 | 1) changes the page.
+// c: { pagerHeight, pagerButton, pagerFontSize, padding }. Returns what it drew (windows move it with their panel).
+export function pager(scene, cx, y, page, pages, turn, c) {
+  const pw = c.pagerButton, opts = (on) => ({ width: pw, height: c.pagerHeight, fontSize: c.pagerFontSize, variant: on ? 'secondary' : 'disabled' });
+  const label = scene.add.text(cx, y, `Strona ${page + 1}/${pages}`, font(c.pagerFontSize, { fontStyle: 'bold' })).setOrigin(0.5);
+  const prev = button(scene, cx - label.width / 2 - c.padding - pw / 2, y, '<', () => turn(-1), opts(page > 0));
+  const next = button(scene, cx + label.width / 2 + c.padding + pw / 2, y, '>', () => turn(1), opts(page < pages - 1));
+  scene.input.keyboard.on('keydown-LEFT', () => turn(-1));
+  scene.input.keyboard.on('keydown-RIGHT', () => turn(1));
+  return [label, prev, next];
+}
+
 // Button: a container at (x, y) (its middle) with a rounded face, a shadow and a label.
 // variant: 'primary' (green, the main action), 'secondary' (dark, the rest: Wróć, side screens) or 'disabled' (grey, not clickable). Hover lightens, a press squashes it.
 // opts: { width, height, fontSize, variant }. The container gets setLabel(text) and setVariant(variant).

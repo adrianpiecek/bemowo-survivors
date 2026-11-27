@@ -1,6 +1,6 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
-  version: 93, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 94, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -617,9 +617,9 @@ export const config = {
       levelY: 46, levelFontSize: 22, levelColor: '#ffc400', arrow: 48, arrowGap: 150 },
     planScreen: { titleY: 120, buttonBottom: 70, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
-    settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
-      valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, inventoryWidth: 240, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
-      actionHeight: 60, actionFontSize: 22, wipeColor: '#ff8a80', // wipeColor: the "Nowa gra" warning
+    settings: { width: 660, padding: 28, titleFontSize: 56, labelFontSize: 28, rowHeight: 124, stepButton: 72, barHeight: 26,
+      valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, inventoryWidth: 240, backWidth: 320, backHeight: 84, backFontSize: 34, hintFontSize: 22, hintColor: '#b0bec5',
+      actionHeight: 80, actionFontSize: 28, wipeColor: '#ff8a80', // wipeColor: the "Nowa gra" warning
       // Wielkość interfejsu (the HUD's zoom, save.uiScale) and Przybliżenie kamery (the run's camera zoom, save.cameraZoom):
       // kept between min and max, changed by `step` (the same step as the volumes).
       // uiScale max: the top HUD row (HP panel, pause, clock) still fits the 720 px wide portrait screen.
@@ -633,9 +633,9 @@ export const config = {
     // Arrow at the screen edge toward the nearest pickup lying off screen.
     pickupArrow: { size: 22, margin: 30, color: 0xffcc00 }, // points at the Żabka shop first, else at the nearest pickup off screen
     // Zakłady z Unc window over the gym; gymButton*: its button next to "Na Bemowo!" (two lines: name and bonus).
-    bets: { width: 660, padding: 22, gap: 12, titleFontSize: 44, textFontSize: 19, nameFontSize: 22, descFontSize: 19, rowHeight: 92,
-      stepButton: 52, levelWidth: 70, sumFontSize: 28, sumColor: '#9ccc65', onColor: '#ff8a80', hintColor: '#b0bec5',
-      backWidth: 240, backHeight: 60, backFontSize: 26, gymButtonWidth: 260, gymButtonGap: 20, gymButtonFontSize: 22 },
+    bets: { width: 700, padding: 22, gap: 12, titleFontSize: 48, textFontSize: 22, nameFontSize: 26, descFontSize: 22, rowHeight: 110,
+      stepButton: 72, levelWidth: 80, sumFontSize: 28, sumColor: '#9ccc65', onColor: '#ff8a80', hintColor: '#b0bec5',
+      backWidth: 300, backHeight: 84, backFontSize: 32, gymButtonWidth: 260, gymButtonGap: 20, gymButtonFontSize: 22 },
     shop: { titleFontSize: 56, titleColor: '#76ff03', poorColor: '#ff8a80', boughtColor: '#9e9e9e', boughtAlpha: 0.45, shakePx: 6, shakeMs: 50 },
     // Active timed effects under the HUD panel: icon, name, a bar of the time left.
     effectHud: { width: 230, height: 38, iconSize: 28, barHeight: 6, gap: 6, fontSize: 18, color: 0xffcc00 },
@@ -672,8 +672,8 @@ export const config = {
     // (smallHeight, an icon iconPad from the left). Bartek's quote under it where it fits above `bottom`, or with
     // quoteSide in the middle of the room left of the buttons (at least quoteLeft from the edge), level with them;
     // bartekHeight: Bartek's height there (0: the gym's).
-    menu: { titleY: 120, titleFontSize: 60, proteinGap: 18, top: 380, columnX: 0.5, width: 480, gap: 16, goHeight: 96, goFontSize: 40,
-      height: 72, fontSize: 28, betsFontSize: 22, smallHeight: 64, smallFontSize: 22, iconSize: 32, iconPad: 14, hintFontSize: 16,
+    menu: { titleY: 120, titleFontSize: 60, proteinGap: 18, top: 360, columnX: 0.5, width: 600, gap: 18, goHeight: 120, goFontSize: 46,
+      height: 96, fontSize: 34, betsFontSize: 28, smallHeight: 88, smallFontSize: 28, iconSize: 44, iconPad: 18, hintFontSize: 16,
       quoteSide: false, quoteLeft: 0, quoteGap: 40, bartekHeight: 0, bottom: 40, versionFontSize: 15, versionMargin: 10, versionColor: '#757575' },
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
@@ -686,38 +686,38 @@ export const config = {
       evoColor: '#ffc400', backWidth: 240, backHeight: 60, backFontSize: 26 },
     // Bestiariusz (BestiaryScene, the skull after the chart in the gym): one row per enemy type and boss in `columns`
     // columns; bosses framed in bossColor. A type never killed shows as a black shape.
-    bestiary: { width: 680, columns: 1, columnGap: 0, padding: 18, inner: 10, gap: 12, titleFontSize: 44, textFontSize: 19,
-      rowHeight: 64, rowGap: 5, iconSize: 50, nameFontSize: 21, descFontSize: 18, dimColor: '#b0bec5', bossColor: 0xff7043,
-      bossText: '#ffab91', backWidth: 240, backHeight: 56, backFontSize: 26 },
+    bestiary: { margin: 16, pagerHeight: 72, pagerButton: 96, pagerFontSize: 28, width: 700, columns: 1, columnGap: 0, padding: 18, inner: 10, gap: 12, titleFontSize: 48, textFontSize: 24,
+      rowHeight: 88, rowGap: 6, iconSize: 64, nameFontSize: 26, descFontSize: 22, dimColor: '#b0bec5', bossColor: 0xff7043,
+      bossText: '#ffab91', backWidth: 300, backHeight: 84, backFontSize: 32},
     // Statystyki (StatsScene, the chart next to the cup in the gym): label and value rows in `columns` columns, every other
     // row lighter (stripeAlpha).
     // Konto (AccountScene): a panel `width` wide, its rows `gap` apart; the nick field inputWidth x inputHeight.
-    account: { width: 620, padding: 24, gap: 14, titleFontSize: 42, textFontSize: 21, smallFontSize: 18, textColor: '#e0e0e0',
-      dimColor: '#b0bec5', errorColor: '#ff8a80', okColor: '#a5d6a7', buttonHeight: 56, buttonFontSize: 22, inputWidth: 380,
-      inputHeight: 52, inputFontSize: 24 },
+    account: { width: 680, padding: 24, gap: 16, titleFontSize: 48, textFontSize: 24, smallFontSize: 22, textColor: '#e0e0e0',
+      dimColor: '#b0bec5', errorColor: '#ff8a80', okColor: '#a5d6a7', buttonHeight: 80, buttonFontSize: 28, inputWidth: 460,
+      inputHeight: 72, inputFontSize: 28},
     // Wyniki (LeaderboardScene, from the menu): the best `count` players, one row each; the columns at nickX and mapX of
     // the inner width (place at the left, score at the right); the player's own row in mineColor.
-    leaderboard: { width: 660, count: 20, padding: 22, inner: 10, gap: 12, titleFontSize: 44, rowHeight: 38, fontSize: 21,
-      detailFontSize: 18, textFontSize: 18, nickX: 0.1, mapX: 0.44, stripeAlpha: 0.06, mineColor: 0xffc400, mineAlpha: 0.18,
-      dimColor: '#b0bec5', errorColor: '#ff8a80', backWidth: 280, backHeight: 60, backFontSize: 26 },
-    stats: { width: 640, columns: 1, columnGap: 0, padding: 22, inner: 12, gap: 14, titleFontSize: 44, rowHeight: 40, fontSize: 21,
-      stripeAlpha: 0.06, labelColor: '#b0bec5', backWidth: 240, backHeight: 60, backFontSize: 26 },
+    leaderboard: { width: 700, count: 15, padding: 22, inner: 10, gap: 12, titleFontSize: 48, rowHeight: 50, fontSize: 26,
+      detailFontSize: 22, textFontSize: 22, nickX: 0.1, mapX: 0.44, stripeAlpha: 0.06, mineColor: 0xffc400, mineAlpha: 0.18,
+      dimColor: '#b0bec5', errorColor: '#ff8a80', backWidth: 300, backHeight: 84, backFontSize: 32},
+    stats: { width: 700, columns: 1, columnGap: 0, padding: 24, inner: 12, gap: 14, titleFontSize: 48, rowHeight: 52, fontSize: 26,
+      stripeAlpha: 0.06, labelColor: '#b0bec5', backWidth: 300, backHeight: 84, backFontSize: 32},
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
     // done ones with a doneColor frame; a locked one's icon at lockedAlpha.
     // More rows than fit on the screen (margin px from its top and bottom): pages, "<  Strona 1/2  >" under the rows.
-    challenges: { width: 680, columns: 1, columnGap: 0, padding: 20, inner: 10, gap: 14, titleFontSize: 44, textFontSize: 19,
-      margin: 16, pagerHeight: 50, pagerButton: 70, pagerFontSize: 22,
-      rowHeight: 72, rowGap: 6, iconSize: 44, nameFontSize: 21, descFontSize: 19, hintColor: '#b0bec5', lockedColor: '#cfd8dc',
-      lockedAlpha: 0.35, doneColor: 0x66bb6a, doneText: '#a5d6a7', backWidth: 240, backHeight: 60, backFontSize: 26 },
-    gymScreen: { titleY: 40, titleFontSize: 56, top: 128, columns: 1, columnGap: 0, goRight: false, rowWidth: 680, rowHeight: 124, rowGap: 6, padding: 12, iconSize: 56,
-      nameFontSize: 24, descFontSize: 20, descGap: 4, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipColor: 0xffc400, pipEmpty: 0x37474f,
-      costGap: 24, costFontSize: 22, costIconSize: 24, shortFontSize: 18, shortColor: '#ff8a80', maxColor: '#ffc400',
-      buyWidth: 140, buyHeight: 50, buyFontSize: 22, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
+    challenges: { width: 700, columns: 1, columnGap: 0, padding: 20, inner: 10, gap: 14, titleFontSize: 48, textFontSize: 22,
+      margin: 16, pagerHeight: 72, pagerButton: 96, pagerFontSize: 28,
+      rowHeight: 96, rowGap: 8, iconSize: 56, nameFontSize: 26, descFontSize: 22, hintColor: '#b0bec5', lockedColor: '#cfd8dc',
+      lockedAlpha: 0.35, doneColor: 0x66bb6a, doneText: '#a5d6a7', backWidth: 300, backHeight: 84, backFontSize: 32},
+    gymScreen: { titleY: 28, titleFontSize: 56, top: 112, columns: 1, columnGap: 0, goRight: false, rowWidth: 700, rowHeight: 152, rowGap: 8, padding: 12, iconSize: 64,
+      nameFontSize: 28, descFontSize: 24, descGap: 4, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipColor: 0xffc400, pipEmpty: 0x37474f,
+      costGap: 24, costFontSize: 26, costIconSize: 28, shortFontSize: 22, shortColor: '#ff8a80', maxColor: '#ffc400',
+      buyWidth: 130, buyHeight: 76, buyFontSize: 28, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
       protein: { width: 200, height: 50, fontSize: 28, iconSize: 32 },
-      bartekHeight: 120, quoteFontSize: 20, quoteWidth: 460, quoteGap: 16, tail: 14, definitionColor: '#b0bec5', definitionFontSize: 18,
-      sectionGap: 40, bottom: 40, goWidth: 400, goHeight: 80, goFontSize: 34,
+      bartekHeight: 120, quoteFontSize: 24, quoteWidth: 460, quoteGap: 16, tail: 14, definitionColor: '#b0bec5', definitionFontSize: 22,
+      sectionGap: 20, bottom: 24, goWidth: 400, goHeight: 88, goFontSize: 36,
       // More rows than fit: pages of as many rows as fit, "<  Strona 1/2  >" pagerGap under them (pagerButton px buttons).
-      pagerHeight: 50, pagerGap: 12, pagerButton: 70, pagerFontSize: 22 },
+      pagerHeight: 64, pagerGap: 10, pagerButton: 96, pagerFontSize: 28},
   },
   // Screen layouts. The values above are portrait; `landscape` overrides the ones that depend on the screen's shape
   // (systems/layout.js merges it in at start and when the player switches in the settings, save.orientation).
@@ -729,7 +729,8 @@ export const config = {
       ui: {
         // Six rows of settings fit the low screen.
         settings: { padding: 16, titleFontSize: 40, labelFontSize: 20, rowHeight: 72, stepButton: 46, backHeight: 56, backFontSize: 26,
-          actionHeight: 48, actionFontSize: 20, hintFontSize: 16 },
+          actionHeight: 48, actionFontSize: 20, hintFontSize: 16,
+          width: 620 },
         card: { row: true, width: 260, height: 320, gap: 40, nameFontSize: 22, textFontSize: 18, rarityFontSize: 18, hintFontSize: 16, iconSize: 56 },
         title: { bemowoY: 250, survivorsY: 410 },
         bossBar: { y: 76 },
@@ -738,21 +739,29 @@ export const config = {
         mapScreen: { titleY: 60, textFontSize: 17, buttonBottom: 50, levelY: 70, levelFontSize: 17, arrow: 40, arrowGap: 100 },
         gameOver: { top: 14, gap: 8, fontSize: 18, rowHeight: 25, iconSize: 22, buttonsGap: 34 },
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 16, nameFontSize: 19, descFontSize: 16, rowHeight: 62,
-          stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22 },
+          stepButton: 44, sumFontSize: 24, backHeight: 48, backFontSize: 22,
+          levelWidth: 70, backWidth: 240 },
         inventory: { width: 1220, padding: 16, gap: 8, columns: 4, statColumns: 3, rowHeight: 46, statHeight: 24, iconSize: 36,
           titleFontSize: 34, headFontSize: 19, nameFontSize: 17, textFontSize: 16, backHeight: 52 },
         bestiary: { width: 1220, columns: 2, columnGap: 14, padding: 14, gap: 8, titleFontSize: 34, textFontSize: 16,
-          rowHeight: 58, rowGap: 5, iconSize: 44, nameFontSize: 17, descFontSize: 16, backHeight: 50 },
+          rowHeight: 58, rowGap: 5, iconSize: 44, nameFontSize: 17, descFontSize: 16, backHeight: 50,
+          pagerHeight: 50, pagerButton: 70, pagerFontSize: 22, backWidth: 240, backFontSize: 26 },
         leaderboard: { width: 900, count: 10, padding: 14, gap: 6, titleFontSize: 34, rowHeight: 34, fontSize: 18, detailFontSize: 16, textFontSize: 16,
-          backHeight: 50, backFontSize: 22 },
-        stats: { width: 1000, columns: 2, columnGap: 24, padding: 16, gap: 10, titleFontSize: 34, rowHeight: 36, fontSize: 17, backHeight: 52 },
+          backHeight: 50, backFontSize: 22,
+          backWidth: 280 },
+        stats: { width: 1000, columns: 2, columnGap: 24, padding: 16, gap: 10, titleFontSize: 34, rowHeight: 36, fontSize: 17, backHeight: 52,
+          backWidth: 240, backFontSize: 26 },
         challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 16,
-          rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 16, backHeight: 52 },
+          rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 16, backHeight: 52,
+          backWidth: 240, backFontSize: 26, pagerHeight: 50, pagerButton: 70, pagerFontSize: 22 },
+        account: { width: 620, gap: 14, titleFontSize: 42, textFontSize: 21, smallFontSize: 18, buttonHeight: 56, buttonFontSize: 22, inputWidth: 380, inputHeight: 52, inputFontSize: 24 },
         menu: { titleY: 24, titleFontSize: 52, top: 190, columnX: 0.72, width: 440, gap: 12, goHeight: 80, goFontSize: 36, height: 60,
-          smallHeight: 54, quoteSide: true, quoteLeft: 60, bartekHeight: 150 },
+          smallHeight: 54, quoteSide: true, quoteLeft: 60, bartekHeight: 150,
+          fontSize: 28, betsFontSize: 22, smallFontSize: 22, iconSize: 32, iconPad: 14 },
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30, top: 96, rowHeight: 126, rowGap: 8, bartekHeight: 90,
-          descFontSize: 17, shortFontSize: 16 },
+          descFontSize: 17, shortFontSize: 16,
+          iconSize: 56, nameFontSize: 24, costFontSize: 22, costIconSize: 24, buyWidth: 140, buyHeight: 50, buyFontSize: 22, pagerHeight: 50, pagerButton: 70, pagerFontSize: 22, pagerGap: 12 },
       },
     },
   },
