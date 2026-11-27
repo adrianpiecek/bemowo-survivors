@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { maps, mapUnlocked, mapLevel, mapLevelMax, pickMapLevel } from '../data/maps.js';
 import { cardCenter } from '../systems/cards.js';
-import { font, panel, button } from '../systems/ui.js';
+import { font, panel, button, touch, keyHint } from '../systems/ui.js';
 import { startPlan } from './PlanScene.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -29,12 +29,12 @@ export default class MapScene extends Phaser.Scene {
         color: open ? ms.textColor : ms.lockedColor, ...wrap,
       })).setOrigin(0.5);
       if (!open) return;
-      this.add.text(x, top + c.height - u.margin, `[${i + 1}]`, font(u.hudFontSize)).setOrigin(0.5, 1);
+      if (!touch) this.add.text(x, top + c.height - u.margin, `[${i + 1}]`, font(u.hudFontSize)).setOrigin(0.5, 1);
       this.add.zone(x, y, c.width, c.height).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.pick(map));
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.pick(map));
       this.levelRow(map, x, y + ms.levelY);
     });
-    button(this, width / 2, height - ms.buttonBottom, 'Wróć [Esc]', () => this.scene.start('MenuScene'), { variant: 'secondary' });
+    button(this, width / 2, height - ms.buttonBottom, keyHint('Wróć', '[Esc]'), () => this.scene.start('MenuScene'), { variant: 'secondary' });
     this.input.keyboard.on('keydown-ESC', () => this.scene.start('MenuScene'));
   }
 

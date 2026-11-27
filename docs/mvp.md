@@ -1242,6 +1242,25 @@ Przegląd wszystkich ekranów w przeglądarce (telefon w pionie 375×812 i w poz
   - w konsoli są tylko znane błędy 404.
 - **Pozostałe uwagi z przeglądu** czekają na osobne kroki: za mały tekst na telefonie, podpowiedzi klawiatury na dotyku, dwa dotknięcia do menu i ucięty tytuł, hierarchia przycisków, przyciemnienie pod oknami, czarne pasy, układ menu w poziomie, karty map i planów bez widocznej akcji.
 
+### 67. Ważne poprawki z przeglądu UI (krok 91)
+
+- **Na dotyku nie ma podpowiedzi klawiatury.** `touch` w `systems/ui.js` to `matchMedia('(pointer: coarse)')`, czyli telefon albo tablet. `keyHint(napis, klawisz)` daje „Wróć [Esc]” z klawiaturą i samo „Wróć” na dotyku. Znikają:
+  - linia klawiszy w menu i „[Esc]” w siłowni;
+  - cyfry na kartach map, planów, ulepszeń i klonów;
+  - „[Spacja]” w sklepie, skrzyni i przy „CZOŁG GOTOWY!”;
+  - podpowiedź w pauzie.
+
+  Teksty z klawiszami mają na dotyku swoje wersje: „Dotknij, by przejść dalej” w skrzyni i „Dotknij ją” przy wyrzucaniu karty.
+- **Większy tekst.** W pionie drobny tekst ma co najmniej 18–20 px w HUD i w oknach: siłownia, ekwipunek, bestiariusz, konto, wyniki, statystyki, wyzwania i zakłady. W poziomie, gdzie miejsca jest mniej, ma co najmniej 16 px. Wiersze siłowni mają 124 px w pionie i 126 px w poziomie, żeby trzylinijkowy opis nie wchodził na kropki poziomów.
+- **Tytuł: jedno dotknięcie.** Napis „Dotknij albo naciśnij…” zniknął. Intro gra samo i po `title.holdMs` przechodzi do menu. Dotknięcie albo klawisz pomija je od razu, ale dopiero po `title.skipDelayMs`, żeby dotknięcie, które uruchomiło grę, nie przeskoczyło intra. Logo zmniejsza się do szerokości ekranu. `TitleScene` nie dostaje powiększenia z Wielkości menu (`UNSCALED` w `layout.js`), bo przycinało „SURVIVORS”.
+- **Sprawdzone w przeglądarce.** W pionie, z emulacją telefonu:
+  - tytuł, menu, siłownia (7 wierszy na stronę), wyzwania, bestiariusz, statystyki, konto, pauza;
+  - karty ulepszeń bez cyfr, HUD, ekwipunek.
+
+  W poziomie: siłownia (4 wiersze), bestiariusz, statystyki, ekwipunek. W konsoli są tylko znane błędy 404.
+- **Uwaga:** bestiariusz w pionie sięga już krawędzi ekranu. Kolejne typy wrogów będą wymagały stron, tak jak w wyzwaniach.
+- **Czekają na osobne kroki:** hierarchia przycisków, przyciemnienie pod oknami i pod kartami, czarne pasy, układ menu w poziomie, karty map i planów bez widocznej akcji, ikona tarczy podobna do monety, kolejność wiadomości na ekranie końca, stara notka w statystykach, niewyjaśnione ramki w bestiariuszu, plany bez ikon, pauza mieszająca ustawienia z akcjami gry.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

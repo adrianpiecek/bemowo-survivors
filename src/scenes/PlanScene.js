@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
 import { plans } from '../data/plans.js';
 import { cardCenter } from '../systems/cards.js';
-import { font, panel, button } from '../systems/ui.js';
+import { font, panel, button, touch, keyHint } from '../systems/ui.js';
 import { betSum } from '../data/bets.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -56,7 +56,7 @@ export default class PlanScene extends Phaser.Scene {
         .setOrigin(0.5, 0);
       plus.setY(y - (plus.height + ps.lineGap + minus.height) / 2);
       minus.setY(plus.y + plus.height + ps.lineGap);
-      this.add.text(x, top + c.height - u.margin, `[${i + 1}]`, font(u.hudFontSize)).setOrigin(0.5, 1);
+      if (!touch) this.add.text(x, top + c.height - u.margin, `[${i + 1}]`, font(u.hudFontSize)).setOrigin(0.5, 1);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.pick(i));
     });
     // The bets picked in the gym, so the bonus is in view before the run.
@@ -66,7 +66,7 @@ export default class PlanScene extends Phaser.Scene {
         .setOrigin(0.5, 0);
     }
     const back = () => { if (!this.picked) this.scene.start('MapScene'); };
-    button(this, width / 2, height - ps.buttonBottom, 'Wróć [Esc]', back, { variant: 'secondary' });
+    button(this, width / 2, height - ps.buttonBottom, keyHint('Wróć', '[Esc]'), back, { variant: 'secondary' });
     this.input.keyboard.on('keydown-ESC', back);
   }
 

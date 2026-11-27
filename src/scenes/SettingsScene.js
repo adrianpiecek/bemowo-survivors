@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { save, resetProgress, writeSave } from '../state.js';
 import { setVolume, playSfx, pauseSfx, resumeSfx, toggleMute } from '../systems/audio.js';
-import { font, panel, drawBar, button } from '../systems/ui.js';
+import { font, panel, drawBar, button, touch } from '../systems/ui.js';
 import { setOrientation, applyMenuScale } from '../systems/layout.js';
 
 // Pauses `scene` (GameScene or MenuScene) and opens the settings over it. Ignored when that scene is already paused
@@ -126,7 +126,7 @@ export default class SettingsScene extends Phaser.Scene {
       }, { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
     }
     button(this, cx, backY, inRun ? 'Wznów' : 'Wróć', () => this.close(), { width: st.backWidth, height: st.backHeight, fontSize: st.backFontSize });
-    this.hint = this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, inRun ? '[Esc / P]   I: ekwipunek   M: wycisz' : '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
+    this.hint = this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, touch ? '' : inRun ? '[Esc / P]   I: ekwipunek   M: wycisz' : '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
       .setOrigin(0.5, 0);
     this.input.keyboard.once('keydown-ESC', () => this.close());
     this.input.keyboard.once('keydown-ENTER', () => this.close());

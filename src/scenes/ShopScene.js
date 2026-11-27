@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { rollRarity, drawUpgrades, applyUpgrade, cardCenter, makeCard } from '../systems/cards.js';
-import { font, button } from '../systems/ui.js';
+import { font, button, keyHint } from '../systems/ui.js';
 import { playSfx } from '../systems/audio.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -26,14 +26,14 @@ export default class ShopScene extends Phaser.Scene {
     const choices = drawUpgrades(this.run, z.cards);
     this.items = choices.map((up, i) => {
       const rarity = rollRarity(up, this.run), price = z.prices[rarity?.id ?? 'none'];
-      const card = makeCard(this, i, choices.length, () => this.buy(i)).fill(up, rarity, `${price} białka [${i + 1}]`);
+      const card = makeCard(this, i, choices.length, () => this.buy(i)).fill(up, rarity, keyHint(`${price} białka`, `[${i + 1}]`));
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.buy(i));
       return { up, rarity, price, card, foot: card.foot, bought: false };
     });
 
     // Wyjdź under the lowest card (where the level up has its buttons), the coins left under it.
     const last = cardCenter(this, choices.length - 1, choices.length), by = last.y + c.height / 2 + db.top + db.height / 2;
-    button(this, width / 2, by, 'Wyjdź [Spacja]', () => this.close(), { height: db.height, fontSize: db.fontSize, variant: 'secondary' });
+    button(this, width / 2, by, keyHint('Wyjdź', '[Spacja]'), () => this.close(), { height: db.height, fontSize: db.fontSize, variant: 'secondary' });
     this.coins = this.add.text(width / 2, by + db.height / 2 + db.hintGap, '', font(db.hintFontSize, { color: db.hintColor, align: 'center' }))
       .setOrigin(0.5, 0);
     this.input.keyboard.once('keydown-SPACE', () => this.close());
@@ -50,7 +50,7 @@ export default class ShopScene extends Phaser.Scene {
         it.foot.setText('KUPIONE').setColor(sh.boughtColor);
         it.card.setAlpha(sh.boughtAlpha);
       } else {
-        it.foot.setText(`${it.price} białka [${i + 1}]`).setColor(this.run.coinProtein >= it.price ? '#ffffff' : sh.poorColor);
+        it.foot.setText(keyHint(`${it.price} białka`, `[${i + 1}]`)).setColor(this.run.coinProtein >= it.price ? '#ffffff' : sh.poorColor);
       }
     });
   }

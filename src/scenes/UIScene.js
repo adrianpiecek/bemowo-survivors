@@ -3,7 +3,7 @@ import { xpToNextLevel, formatTime, save } from '../state.js';
 import { isEffectActive } from '../systems/effects.js';
 import { pickups } from '../data/pickups.js';
 import { events } from '../data/events.js';
-import { font, drawPanel, drawBar } from '../systems/ui.js';
+import { font, drawPanel, drawBar, keyHint } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
 import { evolutionReady } from '../systems/cards.js';
 import { pressureBonus } from '../state.js';
@@ -212,7 +212,7 @@ export default class UIScene extends Phaser.Scene {
     this.updatePickupArrow();
     if (this.balanceText) this.updateBalance();
     this.tankText.setText(r.tankMs > 0 ? `CZOŁG ${Math.ceil(r.tankMs / 1000)} s`
-      : full ? 'CZOŁG GOTOWY! [Spacja]' : `Czołg ${r.tankCharge} / ${r.tankCost}`);
+      : full ? keyHint('CZOŁG GOTOWY!', '[Spacja]') : `Czołg ${r.tankCharge} / ${r.tankCost}`);
   }
 
   // Active timed effects, stacked under the HUD panel: a small panel with the icon, the name and a bar of the time left.

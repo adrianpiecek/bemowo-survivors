@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { items, giveItem, takeItem, itemRarity, cloneChoices } from '../data/items.js';
 import { makeCard } from '../systems/cards.js';
-import { font, button } from '../systems/ui.js';
+import { font, button, keyHint } from '../systems/ui.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
 
@@ -29,10 +29,10 @@ export default class CloneScene extends Phaser.Scene {
 
     const choices = Phaser.Utils.Array.Shuffle(cloneChoices(this.run)).slice(0, ct.cards);
     choices.forEach((it, i) => {
-      makeCard(this, i, choices.length, () => this.clone(it)).fill(it, itemRarity(it), `Masz x${this.run.items[it.id]}  [${i + 1}]`);
+      makeCard(this, i, choices.length, () => this.clone(it)).fill(it, itemRarity(it), keyHint(`Masz x${this.run.items[it.id]} `, `[${i + 1}]`));
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.clone(it));
     });
-    button(this, width / 2, height - ct.buttonBottom, 'Nie teraz [Esc]', () => this.close(), { variant: 'secondary' });
+    button(this, width / 2, height - ct.buttonBottom, keyHint('Nie teraz', '[Esc]'), () => this.close(), { variant: 'secondary' });
     this.input.keyboard.on('keydown-ESC', () => this.close());
   }
 

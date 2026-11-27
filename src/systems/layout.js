@@ -25,9 +25,10 @@ export function setOrientation(scene, orientation) {
   scene.scene.restart();
 }
 
-// Wielkość menu (save.menuScale): every screen but the run (GameScene, its HUD in UIScene, sized by uiScale), the loading
-// and the settings themselves (always readable, so a too big menu can be set back) zooms its camera around the middle.
-const UNSCALED = ['BootScene', 'GameScene', 'UIScene', 'SettingsScene'];
+// Wielkość menu (save.menuScale): every screen but the run (GameScene, its HUD in UIScene, sized by uiScale), the loading,
+// the title (its logo comes in after the zoom is set and is sized to the screen itself) and the settings themselves
+// (always readable, so a too big menu can be set back) zooms its camera around the middle.
+const UNSCALED = ['BootScene', 'TitleScene', 'GameScene', 'UIScene', 'SettingsScene'];
 const scaled = (game) => game.scene.scenes.filter((s) => !UNSCALED.includes(s.sys.settings.key));
 
 // The zoom of one screen: smaller as set; bigger only as far as its content (all but full-screen backgrounds and dims)

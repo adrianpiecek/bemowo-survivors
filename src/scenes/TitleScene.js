@@ -5,14 +5,15 @@ import { playSfx, playMusic } from '../systems/audio.js';
 import { font, button } from '../systems/ui.js';
 
 // Title with the intro. Browsers keep audio locked until the player does something, so the intro only starts
-// after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one,
-// then the music starts and any key or click goes to the gym (straight into a run the very first time).
+// after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one, the music
+// starts and the menu comes by itself (straight into a run the very first time). A tap or key during it skips there.
 // The very first launch asks how the screen is held instead of the start button; that click starts the intro.
 export default class TitleScene extends Phaser.Scene {
   constructor() { super('TitleScene'); }
 
   create() {
     const t = config.ui.title, { width, height } = this.scale;
+    this.left = false;
     if (!save.orientationSet) {
       this.askOrientation();
       return;
@@ -65,10 +66,13 @@ export default class TitleScene extends Phaser.Scene {
 
   intro() {
     const t = config.ui.title, { width, height } = this.scale, cx = width / 2;
+    const logoWidth = (text) => this.add.text(0, 0, text, { fontFamily: t.fontFamily, fontSize: `${t.logoFontSize}px`, strokeThickness: t.strokeThickness })
+      .setVisible(false).width;
     const logo = (text, color) => this.add.text(cx, 0, text, {
       fontFamily: t.fontFamily, fontSize: `${t.logoFontSize}px`, color, stroke: '#000000', strokeThickness: t.strokeThickness,
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScale(Math.min(1, (width - 2 * config.ui.margin) / logoWidth(text))); // SURVIVORS fits a phone
 
+    this.time.delayedCall(t.skipDelayMs, () => this.onFirstInput(() => this.leave())); // not the tap that started it
     const bemowo = logo('BEMOWO', t.bemowoColor).setY(-t.logoFontSize);
     this.tweens.add({
       targets: bemowo, y: t.bemowoY, duration: t.dropMs, ease: 'Quad.easeIn',
@@ -95,12 +99,13 @@ export default class TitleScene extends Phaser.Scene {
   }
 
   ready() {
-    const t = config.ui.title, { width, height } = this.scale;
     playMusic(this, 'boss');
-    const press = this.add.text(width / 2, height - t.pressBottom, 'Dotknij albo naciśnij dowolny klawisz',
-      font(t.promptFontSize, { fontStyle: 'bold', stroke: '#000000', strokeThickness: t.promptStroke, align: 'center',
-        wordWrap: { width: width - 2 * config.ui.margin } })).setOrigin(0.5);
-    this.tweens.add({ targets: press, alpha: 0, duration: t.blinkMs, yoyo: true, repeat: -1 });
-    this.onFirstInput(() => this.scene.start(save.runsPlayed ? 'MenuScene' : 'GameScene'));
+    this.time.delayedCall(config.ui.title.holdMs, () => this.leave());
+  }
+
+  leave() {
+    if (this.left) return; // the timer and a tap can both come
+    this.left = true;
+    this.scene.start(save.runsPlayed ? 'MenuScene' : 'GameScene');
   }
 }

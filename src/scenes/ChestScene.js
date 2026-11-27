@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import { touch } from '../systems/ui.js';
 import { upgrades, fallbackUpgrade } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
@@ -61,7 +62,7 @@ export default class ChestScene extends Phaser.Scene {
 
   allowClose() {
     const { width, height } = this.scale, ch = config.ui.chest;
-    this.add.text(width / 2, height - ch.promptBottom, 'Dalej [Spacja]', { fontFamily: config.ui.font, fontSize: `${config.ui.hudFontSize}px` }).setOrigin(0.5);
+    this.add.text(width / 2, height - ch.promptBottom, touch ? 'Dotknij, by przejść dalej' : 'Dalej [Spacja]', { fontFamily: config.ui.font, fontSize: `${config.ui.hudFontSize}px` }).setOrigin(0.5);
     const close = () => {
       if (this.closing) return; // a click and a key press can land in the same frame
       this.closing = true;

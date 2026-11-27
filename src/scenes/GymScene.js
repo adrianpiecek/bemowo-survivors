@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { gymUpgrades } from '../data/gym.js';
 import { save, writeSave, gymLevel } from '../state.js';
 import { playMusic, playSfx } from '../systems/audio.js';
-import { font, panel, button } from '../systems/ui.js';
+import { font, panel, button, touch } from '../systems/ui.js';
 
 // Between runs, from the main menu (MenuScene): spend protein on permanent upgrades. "Wróć", Esc or Enter go back to the menu.
 // A purchase restarts the scene with { bought, cost, page }, so the new pip pops and the cost floats up from the protein.
@@ -118,7 +118,7 @@ export default class GymScene extends Phaser.Scene {
     const back = () => this.scene.start('MenuScene');
     const x = gs.goRight ? x0 + totalW - gs.goWidth / 2 : cx, y = height - gs.bottom - gs.goHeight / 2;
     button(this, x, y, 'Wróć', back, { width: gs.goWidth, height: gs.goHeight, fontSize: gs.goFontSize, variant: 'secondary' });
-    this.add.text(x, height - gs.bottom - gs.goHeight - gs.pipGap, '[Esc]', font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
+    if (!touch) this.add.text(x, height - gs.bottom - gs.goHeight - gs.pipGap, '[Esc]', font(gs.shortFontSize, { color: gs.descColor })).setOrigin(0.5, 1);
     this.input.keyboard.once('keydown-ESC', back);
     this.input.keyboard.once('keydown-ENTER', back);
   }

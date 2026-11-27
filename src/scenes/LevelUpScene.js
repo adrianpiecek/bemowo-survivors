@@ -3,7 +3,7 @@ import { fallbackUpgrade } from '../data/upgrades.js';
 import { rollRarity, drawUpgrades, applyUpgrade, cardCenter, makeCard } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
-import { font, button } from '../systems/ui.js';
+import { font, button, touch } from '../systems/ui.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 
@@ -42,7 +42,7 @@ export default class LevelUpScene extends Phaser.Scene {
       const rarity = this.rarities[i], { x, y } = cardCenter(this, i, n);
       if (rarity?.id === 'legendary') playVfx(this, 'starBurst', x, y - c.height / 2);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.choose(i));
-      return makeCard(this, i, n, () => this.choose(i)).fill(up, rarity, `${level}[${i + 1}]`);
+      return makeCard(this, i, n, () => this.choose(i)).fill(up, rarity, touch ? level.trim() : `${level}[${i + 1}]`);
     });
 
     if (this.flashAt) playVfx(this, 'levelUp', this.flashAt.x, this.flashAt.y);
@@ -69,8 +69,8 @@ export default class LevelUpScene extends Phaser.Scene {
 
   setHint() {
     const db = config.ui.drawButtons;
-    if (this.banishing) this.hint.setText(`Którą kartę wywalić? [1-${this.choices.length}]   [X] anuluj`).setColor(db.banishColor);
-    else this.hint.setText('[R] odśwież   [P] pomiń (+HP)   [X] wywal').setColor(db.hintColor);
+    if (this.banishing) this.hint.setText(touch ? 'Którą kartę wywalić? Dotknij ją (Wywal: anuluj)' : `Którą kartę wywalić? [1-${this.choices.length}]   [X] anuluj`).setColor(db.banishColor);
+    else this.hint.setText(touch ? 'Pomiń dodaje trochę HP' : '[R] odśwież   [P] pomiń (+HP)   [X] wywal').setColor(db.hintColor);
   }
 
   // A card click or digit: picks the card, or banishes it while Wywal is on.

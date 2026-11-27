@@ -4,6 +4,11 @@ import { config } from '../config.js';
 
 export const font = (size, extra = {}) => ({ fontFamily: config.ui.font, fontSize: `${size}px`, ...extra });
 
+// Phones and tablets (a coarse main pointer) get no keyboard hints: no keys to press, they only clutter the screen.
+export const touch = window.matchMedia('(pointer: coarse)').matches;
+// "Wróć [Esc]" with a keyboard, "Wróć" on touch; keyHint('', '[1]') is '[1]' or ''.
+export const keyHint = (label, key) => (touch ? label : [label, key].filter(Boolean).join(' '));
+
 // Rounded panel with a drop shadow, drawn into g (the caller clears g when it redraws).
 export function drawPanel(g, x, y, w, h, style = {}) {
   const p = { ...config.ui.panel, ...style };

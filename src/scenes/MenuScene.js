@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { save } from '../state.js';
 import { playMusic } from '../systems/audio.js';
-import { font, panel, drawPanel, button } from '../systems/ui.js';
+import { font, panel, drawPanel, button, touch } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
 import { startRun } from './PlanScene.js';
 import { betsOpen, betSum } from '../data/bets.js';
@@ -57,8 +57,10 @@ export default class MenuScene extends Phaser.Scene {
       b.add(this.add.image(-sw / 2 + mn.iconPad + mn.iconSize / 2, 0, icon).setDisplaySize(mn.iconSize, mn.iconSize));
     });
     y += Math.ceil(small.length / 2) * (mn.smallHeight + mn.gap);
-    this.add.text(cx, y, '[Enter] na Bemowo   [Esc] ustawienia', font(mn.hintFontSize, { color: gs.descColor })).setOrigin(0.5, 0);
-    y += mn.hintFontSize * 1.2;
+    if (!touch) {
+      this.add.text(cx, y, '[Enter] na Bemowo   [Esc] ustawienia', font(mn.hintFontSize, { color: gs.descColor })).setOrigin(0.5, 0);
+      y += mn.hintFontSize * 1.2;
+    }
 
     // Bartek and his quote: under the buttons (portrait) or left of them (landscape), only where it fits.
     const quoteW = gs.bartekHeight + gs.quoteGap + gs.tail + gs.quoteWidth + gs.padding * 2;
