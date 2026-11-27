@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { save } from '../state.js';
 import { enemies } from '../data/enemies.js';
 import { bossPowers } from '../data/bossPowers.js';
-import { font, panel, drawPanel, button } from '../systems/ui.js';
+import { font, panel, drawPanel, button, dim } from '../systems/ui.js';
 
 // Bestiariusz over the paused gym: every enemy type and boss (data/enemies.js) with how many Bartek killed over all runs
 // (save.bestiary). One never killed shows as a black shape with "???". Wróć, Esc or Enter restart the gym under it on
@@ -18,7 +18,7 @@ export default class BestiaryScene extends Phaser.Scene {
   create() {
     const u = config.ui, c = u.bestiary, { width, height } = this.scale, cx = width / 2, x0 = cx - c.width / 2;
     const rowW = (c.width - c.padding * 2 - (c.columns - 1) * c.columnGap) / c.columns;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps for the gym below
+    dim(this).setInteractive(); // swallows taps for the gym below
     const bg = this.add.graphics(); // the panel, drawn once the content's height is known
 
     // Top to bottom from y; the whole block is moved to the middle of the screen at the end.
@@ -50,7 +50,7 @@ export default class BestiaryScene extends Phaser.Scene {
     });
     y += Math.ceil(enemies.length / c.columns) * (c.rowHeight + c.rowGap) - c.rowGap + c.gap;
 
-    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize }));
+    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize, variant: 'secondary' }));
     y += c.backHeight + c.padding;
 
     const top = Math.max(0, (height - y) / 2);

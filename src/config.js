@@ -1,6 +1,6 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
-  version: 91, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 92, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -559,8 +559,10 @@ export const config = {
     // Cards (systems/cards.js makeCard): a panel framed in the rarity's colour, the icon (iconSize, left in portrait, under
     // the name side by side), "NOWA" on the top right corner of a new weapon or passive; each slides in from below,
     // slideMs long, card i slideGapMs after the one before.
-    dimAlpha: 0.6, card: { count: 3, row: false, width: 600, height: 230, gap: 44, hintFontSize: 20, hintColor: '#ffc400', evolutionColor: 0xffc400, color: 0x22252c, alpha: 0.96, nameFontSize: 30, textFontSize: 24,
-      rarityBorderWidth: 5, rarityFontSize: 22, iconSize: 80, slideMs: 380, slideGapMs: 90, badgeFontSize: 18, badgeColor: '#ffc400', badgeAngle: 14 },
+    dimAlpha: 0.78, card: { count: 3, row: false, width: 600, height: 230, gap: 44, hintFontSize: 20, hintColor: '#ffc400', evolutionColor: 0xffc400, color: 0x22252c, alpha: 0.96, nameFontSize: 30, textFontSize: 24,
+      rarityBorderWidth: 5, rarityFontSize: 22, iconSize: 80, slideMs: 380, slideGapMs: 90, badgeFontSize: 18, badgeColor: '#ffc400', badgeAngle: 14,
+      // Map and plan cards (cards.js pickCard): framed in the button green, a "Wybierz" chip on the bottom right corner.
+      pick: { borderWidth: 3, hoverAlpha: 0.95, chipFontSize: 20, chipColor: '#43a047', chipPadX: 12, chipPadY: 5 } },
     bubble: { durationMs: 1500, offsetY: 56, fontSize: 20, padding: 6 },
     // Every text uses this font: Not Jam Mono Clean 16 (CC0, assets/font), loaded in BootScene under fontKey. The system
     // fonts behind it only fill in glyphs it lacks („ ”). fontFile has its spaces encoded: Phaser puts it in an unquoted url().
@@ -572,8 +574,8 @@ export const config = {
     bar: { radius: 6, bg: 0x000000, bgAlpha: 0.6, borderColor: 0x000000, borderWidth: 2, shineAlpha: 0.3 },
     button: { fontSize: 28, padX: 28, padY: 12, radius: 12, shadow: 4, pressScale: 0.94, pressMs: 70,
       color: 0x43a047, hover: 0x66bb6a, border: 0x1b5e20, text: '#ffffff', // primary: green
-      secondary: { color: 0xeceff1, hover: 0xffffff, border: 0x607d8b, text: '#1b1b1b' },
-      disabled: { color: 0x3a3a3a, hover: 0x3a3a3a, border: 0x222222, text: '#8a8a8a' } },
+      secondary: { color: 0x37474f, hover: 0x455a64, border: 0x78909c, text: '#ffffff' }, // dark: below the green main action
+      disabled: { color: 0x26282c, hover: 0x26282c, border: 0x1a1a1a, text: '#6f6f6f' } }, // darker than secondary: reads as off
     // Drawn icons (heart, skull, clock, gym upgrades), size x size px; shown at the size each place asks for.
     icons: { size: 48, account: 0x90caf9, textbook: 0x1565c0, textbookCode: 0xffd54f, slipper: 0xec407a, slipperSole: 0x6d4c41, rubber: 0xd7a86e, heart: 0xe53935, heartLight: 0xff8a80, skull: 0xeceff1, skullDark: 0x263238, clock: 0xfafafa, clockDark: 0x263238,
       metal: 0xb0bec5, metalDark: 0x37474f, accent: 0xffc400, outline: 0x1b1b1b,
@@ -668,10 +670,11 @@ export const config = {
     // Main menu (MenuScene): title, protein pill proteinGap under it, then a button column `width` wide at columnX of the
     // screen from `top`: Na Bemowo! (goHeight), Siłownia and Zakłady z Unc (height), the small windows two per row
     // (smallHeight, an icon iconPad from the left). Bartek's quote under it where it fits above `bottom`, or with
-    // quoteSide at (quoteLeft, top).
+    // quoteSide in the middle of the room left of the buttons (at least quoteLeft from the edge), level with them;
+    // bartekHeight: Bartek's height there (0: the gym's).
     menu: { titleY: 120, titleFontSize: 60, proteinGap: 18, top: 380, columnX: 0.5, width: 480, gap: 16, goHeight: 96, goFontSize: 40,
       height: 72, fontSize: 28, betsFontSize: 22, smallHeight: 64, smallFontSize: 22, iconSize: 32, iconPad: 14, hintFontSize: 16,
-      quoteSide: false, quoteLeft: 0, quoteGap: 40, bottom: 40, versionFontSize: 15, versionMargin: 10, versionColor: '#757575' },
+      quoteSide: false, quoteLeft: 0, quoteGap: 40, bartekHeight: 0, bottom: 40, versionFontSize: 15, versionMargin: 10, versionColor: '#757575' },
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
@@ -746,7 +749,7 @@ export const config = {
         challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 16,
           rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 16, backHeight: 52 },
         menu: { titleY: 24, titleFontSize: 52, top: 190, columnX: 0.72, width: 440, gap: 12, goHeight: 80, goFontSize: 36, height: 60,
-          smallHeight: 54, quoteSide: true, quoteLeft: 60 },
+          smallHeight: 54, quoteSide: true, quoteLeft: 60, bartekHeight: 150 },
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30, top: 96, rowHeight: 126, rowGap: 8, bartekHeight: 90,
           descFontSize: 17, shortFontSize: 16 },

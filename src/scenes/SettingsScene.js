@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { save, resetProgress, writeSave } from '../state.js';
 import { setVolume, playSfx, pauseSfx, resumeSfx, toggleMute } from '../systems/audio.js';
-import { font, panel, drawBar, button, touch } from '../systems/ui.js';
+import { font, panel, drawBar, button, touch, dim } from '../systems/ui.js';
 import { setOrientation, applyMenuScale } from '../systems/layout.js';
 
 // Pauses `scene` (GameScene or MenuScene) and opens the settings over it. Ignored when that scene is already paused
@@ -41,7 +41,7 @@ export default class SettingsScene extends Phaser.Scene {
     ];
     const panelH = st.padding * 4 + st.titleFontSize * 1.2 + (rows.length + 1) * st.rowHeight + st.actionHeight + st.backHeight + st.hintFontSize * 2;
     const x0 = cx - st.width / 2, y0 = (height - panelH) / 2;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps meant for the HUD below
+    dim(this).setInteractive(); // swallows taps meant for the HUD below
     panel(this, x0, y0, st.width, panelH);
     const inRun = this.from === 'GameScene';
     this.add.text(cx, y0 + st.padding, inRun ? 'Pauza' : 'Ustawienia', font(st.titleFontSize, { fontStyle: 'bold', color: '#ffc400' })).setOrigin(0.5, 0);
@@ -125,7 +125,7 @@ export default class SettingsScene extends Phaser.Scene {
         this.newGame();
       }, { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
     }
-    button(this, cx, backY, inRun ? 'Wznów' : 'Wróć', () => this.close(), { width: st.backWidth, height: st.backHeight, fontSize: st.backFontSize });
+    button(this, cx, backY, inRun ? 'Wznów' : 'Wróć', () => this.close(), { width: st.backWidth, height: st.backHeight, fontSize: st.backFontSize, variant: inRun ? 'primary' : 'secondary' });
     this.hint = this.add.text(cx, backY + st.backHeight / 2 + st.padding / 2, touch ? '' : inRun ? '[Esc / P]   I: ekwipunek   M: wycisz' : '[Esc]   M: wycisz wszystko', font(st.hintFontSize, { color: st.hintColor }))
       .setOrigin(0.5, 0);
     this.input.keyboard.once('keydown-ESC', () => this.close());

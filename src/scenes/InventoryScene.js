@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { items } from '../data/items.js';
-import { font, drawPanel, button } from '../systems/ui.js';
+import { font, drawPanel, button, dim } from '../systems/ui.js';
 
 // Ekwipunek, from the pause screen: Bartek's weapons and passives with their levels, the items with how many, and his
 // stats from every source (config, gym, cards, items) as they are now. Wróć, Esc, Enter or I go back to the pause screen.
@@ -18,7 +18,7 @@ export default class InventoryScene extends Phaser.Scene {
   create() {
     const u = config.ui, c = u.inventory, { width, height } = this.scale, cx = width / 2, x0 = cx - c.width / 2;
     const run = this.scene.get(this.from).run, pl = run.player;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps for the run below
+    dim(this).setInteractive(); // swallows taps for the run below
     const bg = this.add.graphics(); // the panel, drawn once the content's height is known
 
     // Top to bottom from y; the whole block is moved to the middle of the screen at the end.
@@ -88,7 +88,7 @@ export default class InventoryScene extends Phaser.Scene {
     });
     y += perCol * c.statHeight + c.gap;
 
-    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize }));
+    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize, variant: 'secondary' }));
     y += c.backHeight + c.padding;
 
     const top = Math.max(0, (height - y) / 2);

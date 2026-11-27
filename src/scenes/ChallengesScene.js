@@ -4,7 +4,7 @@ import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
 import { maps } from '../data/maps.js';
-import { font, panel, drawPanel, button } from '../systems/ui.js';
+import { font, panel, drawPanel, button, dim } from '../systems/ui.js';
 
 // Wyzwania over the paused gym: every weapon, passive and plan with an unlock condition (data files' `unlock.text`),
 // done ones (in save.unlocks) with a green frame. More than fit on the screen: pages ("<  Strona 1/2  >", arrow keys), so
@@ -24,7 +24,7 @@ export default class ChallengesScene extends Phaser.Scene {
     const list = kinds.flatMap(([kind, defs]) => defs.filter((d) => d.unlock).map((def) => ({ kind, def, done: save.unlocks.includes(def.id) })));
     const rowW = (c.width - c.padding * 2 - (c.columns - 1) * c.columnGap) / c.columns;
     const x0 = cx - c.width / 2;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps for the gym below
+    dim(this).setInteractive(); // swallows taps for the gym below
     const bg = this.add.graphics(); // the panel, drawn once the content's height is known
 
     // Top to bottom from y; the whole block is moved to the middle of the screen at the end.
@@ -72,7 +72,7 @@ export default class ChallengesScene extends Phaser.Scene {
       y += c.pagerHeight + c.gap;
     }
 
-    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize }));
+    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize, variant: 'secondary' }));
     y += c.backHeight + c.padding;
 
     const top = Math.max(0, (height - y) / 2);

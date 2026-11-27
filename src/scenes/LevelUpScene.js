@@ -3,7 +3,7 @@ import { fallbackUpgrade } from '../data/upgrades.js';
 import { rollRarity, drawUpgrades, applyUpgrade, cardCenter, makeCard } from '../systems/cards.js';
 import { playVfx } from '../systems/vfx.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
-import { font, button, touch } from '../systems/ui.js';
+import { font, button, touch, dim } from '../systems/ui.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 
@@ -25,7 +25,7 @@ export default class LevelUpScene extends Phaser.Scene {
   create() {
     const u = config.ui, c = u.card, db = u.drawButtons, pl = this.run.player;
     const { width, height } = this.scale;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0);
+    dim(this);
 
     const taken = this.run.upgrades;
     // Cards are drawn by weight without repeats. Short of cards, the heal fills in.

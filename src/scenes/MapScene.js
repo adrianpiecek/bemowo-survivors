@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { maps, mapUnlocked, mapLevel, mapLevelMax, pickMapLevel } from '../data/maps.js';
-import { cardCenter } from '../systems/cards.js';
-import { font, panel, button, touch, keyHint } from '../systems/ui.js';
+import { cardCenter, pickCard } from '../systems/cards.js';
+import { font, panel, button, keyHint } from '../systems/ui.js';
 import { startPlan } from './PlanScene.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -22,15 +22,14 @@ export default class MapScene extends Phaser.Scene {
     const wrap = { align: 'center', wordWrap: { width: c.width - 2 * u.margin } };
     maps.forEach((map, i) => {
       const open = mapUnlocked(map), { x, y } = cardCenter(this, i, maps.length), top = y - c.height / 2;
-      panel(this, x - c.width / 2, top, c.width, c.height, open ? {} : { alpha: ms.lockedAlpha });
+      if (open) pickCard(this, i, maps.length, () => this.pick(map));
+      else panel(this, x - c.width / 2, top, c.width, c.height, { alpha: ms.lockedAlpha });
       this.add.text(x, top + u.margin, map.name, font(c.nameFontSize, { fontStyle: 'bold', color: open ? '#ffffff' : ms.lockedColor, ...wrap }))
         .setOrigin(0.5, 0);
       this.add.text(x, y, open ? map.description : `Zablokowana. ${map.unlock.text}`, font(ms.textFontSize, {
         color: open ? ms.textColor : ms.lockedColor, ...wrap,
       })).setOrigin(0.5);
       if (!open) return;
-      if (!touch) this.add.text(x, top + c.height - u.margin, `[${i + 1}]`, font(u.hudFontSize)).setOrigin(0.5, 1);
-      this.add.zone(x, y, c.width, c.height).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.pick(map));
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.pick(map));
       this.levelRow(map, x, y + ms.levelY);
     });
@@ -45,7 +44,8 @@ export default class MapScene extends Phaser.Scene {
     const text = max > 1
       ? `Trudność ${level}/${max}${level > 1 ? `: +${Math.round(dc.proteinPct * (level - 1) * 100)}% białka` : ''}`
       : 'Trudność 1. Wygraj tu, by otworzyć 2';
-    this.add.text(x, y, text, font(ms.levelFontSize, { color: ms.levelColor })).setOrigin(0.5);
+    const wrap = { align: 'center', wordWrap: { width: config.ui.card.width - 2 * config.ui.margin } }; // narrow landscape cards
+    this.add.text(x, y, text, font(ms.levelFontSize, { color: ms.levelColor, ...wrap })).setOrigin(0.5);
     if (max < 2) return;
     const step = (d) => () => {
       pickMapLevel(map, level + d);

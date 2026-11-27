@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { touch } from '../systems/ui.js';
+import { touch, dim } from '../systems/ui.js';
 import { upgrades, fallbackUpgrade } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
@@ -24,7 +24,7 @@ export default class ChestScene extends Phaser.Scene {
   create() {
     const u = config.ui, c = u.card, ch = u.chest;
     const { width, height } = this.scale;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0);
+    dim(this);
     this.add.text(width / 2, ch.titleY, 'SKRZYNIA', {
       fontFamily: config.ui.font, fontSize: `${ch.titleFontSize}px`, fontStyle: 'bold', color: ch.titleColor, stroke: '#000000', strokeThickness: ch.strokeThickness,
     }).setOrigin(0.5);

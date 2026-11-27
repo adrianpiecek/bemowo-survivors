@@ -1261,6 +1261,26 @@ Przegląd wszystkich ekranów w przeglądarce (telefon w pionie 375×812 i w poz
 - **Uwaga:** bestiariusz w pionie sięga już krawędzi ekranu. Kolejne typy wrogów będą wymagały stron, tak jak w wyzwaniach.
 - **Czekają na osobne kroki:** hierarchia przycisków, przyciemnienie pod oknami i pod kartami, czarne pasy, układ menu w poziomie, karty map i planów bez widocznej akcji, ikona tarczy podobna do monety, kolejność wiadomości na ekranie końca, stara notka w statystykach, niewyjaśnione ramki w bestiariuszu, plany bez ikon, pauza mieszająca ustawienia z akcjami gry.
 
+### 68. Średnie poprawki z przeglądu UI (krok 92)
+
+- **Hierarchia przycisków.**
+  - Zielony przycisk to tylko główna akcja: Na Bemowo!, Kup, Zaloguj, Wznów w pauzie.
+  - Przyciski drugorzędne (`ui.button.secondary`) są ciemnoszare z białym napisem, zamiast jasnych, które świeciły mocniej niż treść.
+  - „Wróć” we wszystkich oknach (Konto, Wyniki, Statystyki, Wyzwania, Bestiariusz, Zakłady, Ekwipunek, Ustawienia w menu) jest drugorzędny.
+  - Wyłączone przyciski są jeszcze ciemniejsze, żeby nie myliły się z drugorzędnymi.
+- **Mocniejsze przyciemnienie.** `ui.dimAlpha` 0,78 zamiast 0,6. Każde okno i ekran kart rysuje je funkcją `dim(scene)` z `systems/ui.js`. Prostokąt ma trzy szerokości ekranu, więc zakrywa całość także przy pomniejszonej Wielkości menu.
+- **Menu w poziomie.** Bartek z cytatem stoi na środku miejsca po lewej od przycisków, na wysokości ich kolumny, i jest większy (`ui.menu.bartekHeight`, w poziomie 150).
+- **Karty map i planów wyglądają na klikalne.**
+  - Mają zieloną ramkę, która jaśnieje pod kursorem, i zieloną plakietkę „Wybierz” w prawym dolnym rogu („Wybierz [1]” z klawiaturą).
+  - Robi to wspólna `pickCard` w `systems/cards.js`, liczby są w `ui.card.pick`.
+  - Napis trudności na karcie mapy zawija się w szerokości karty (w poziomie wychodził poza nią).
+- **Czarne pasy zostają.** Próbowałem trybu `Scale.EXPAND`, który rozciąga grę na cały ekran. Każdy ekran musiałby wtedy układać się do zmiennej wysokości lub szerokości, a to osobny, większy krok.
+- **Sprawdzone w przeglądarce:**
+  - w poziomie: menu, Konto nad menu, mapy, plany;
+  - w pionie: menu, siłownia, karty awansu (przyciemnienie zakrywa cały ekran), mapy;
+  - w konsoli tylko znane błędy 404.
+- **Czekają:** czarne pasy, podgląd mapy na karcie, drobne uwagi z przeglądu.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

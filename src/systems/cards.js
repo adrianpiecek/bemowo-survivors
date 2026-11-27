@@ -3,7 +3,7 @@ import { upgrades, overflowUpgrades } from '../data/upgrades.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { save } from '../state.js';
-import { font, drawPanel } from './ui.js';
+import { font, drawPanel, keyHint } from './ui.js';
 
 // Upgrade cards, shared by the level-up screen and the boss chest.
 
@@ -177,6 +177,24 @@ export function makeCard(scene, i, n, onClick) {
   box.setY(y + scene.scale.height / 2).setAlpha(0);
   scene.tweens.add({ targets: box, y, alpha: 1, duration: c.slideMs, delay: i * c.slideGapMs, ease: 'Back.easeOut' });
   return box;
+}
+
+// A map or plan card i of n you pick by a tap: the panel framed in the button green (brighter under the pointer), a
+// green "Wybierz [1]" chip on its bottom right corner and the zone that calls onPick. Returns the card's middle and top.
+export function pickCard(scene, i, n, onPick) {
+  const c = config.ui.card, p = c.pick, b = config.ui.button, { x, y } = cardCenter(scene, i, n), top = y - c.height / 2;
+  const g = scene.add.graphics();
+  const draw = (hover) => {
+    g.clear();
+    drawPanel(g, x - c.width / 2, top, c.width, c.height, { borderColor: hover ? b.hover : b.color, borderAlpha: 1, borderWidth: p.borderWidth, ...(hover && { alpha: p.hoverAlpha }) });
+  };
+  draw(false);
+  scene.add.text(x + c.width / 2 - config.ui.margin, top + c.height - config.ui.margin, keyHint('Wybierz', `[${i + 1}]`), font(p.chipFontSize, {
+    fontStyle: 'bold', backgroundColor: p.chipColor, padding: { x: p.chipPadX, y: p.chipPadY },
+  })).setOrigin(1, 1);
+  scene.add.zone(x, y, c.width, c.height).setInteractive({ useHandCursor: true })
+    .on('pointerover', () => draw(true)).on('pointerout', () => draw(false)).on('pointerdown', onPick);
+  return { x, y, top };
 }
 
 // Middle of card i of n on the level up and chest screens: side by side in landscape (card.row), stacked in portrait.

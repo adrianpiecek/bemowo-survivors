@@ -64,8 +64,10 @@ export default class MenuScene extends Phaser.Scene {
 
     // Bartek and his quote: under the buttons (portrait) or left of them (landscape), only where it fits.
     const quoteW = gs.bartekHeight + gs.quoteGap + gs.tail + gs.quoteWidth + gs.padding * 2;
-    if (mn.quoteSide) this.addQuote(mn.quoteLeft, mn.top);
-    else if (y + mn.quoteGap + gs.bartekHeight <= height - mn.bottom) this.addQuote((width - quoteW) / 2, y + mn.quoteGap);
+    if (mn.quoteSide) {
+      const quote = this.addQuote(0, 0), r = quote.getBounds(), room = cx - mn.width / 2;
+      quote.setPosition(Math.max(mn.quoteLeft, (room - r.width) / 2) - r.x, (mn.top + y - r.height) / 2 - r.y);
+    } else if (y + mn.quoteGap + gs.bartekHeight <= height - mn.bottom) this.addQuote((width - quoteW) / 2, y + mn.quoteGap);
 
     // Which build is on this device (GitHub Pages and the phone cache it): bottom right corner.
     const vx = width - mn.versionMargin, vy = height - mn.versionMargin; // 'corner': kept there at any Wielkość menu
@@ -80,20 +82,21 @@ export default class MenuScene extends Phaser.Scene {
     this.events.once('shutdown', off);
   }
 
-  // Bartek with a speech bubble (a random quote) and a Bartkowanie definition under it, from (x0, top).
+  // Bartek with a speech bubble (a random quote) and a Bartkowanie definition under it, from (x0, top); one container.
   addQuote(x0, top) {
-    const gs = config.ui.gymScreen;
+    const gs = config.ui.gymScreen, all = this.add.container(0, 0);
     const bartek = this.add.image(x0, top, 'bartek').setOrigin(0, 0);
-    bartek.setScale(gs.bartekHeight / bartek.height);
+    bartek.setScale((config.ui.menu.bartekHeight || gs.bartekHeight) / bartek.height);
     const bx = x0 + bartek.displayWidth + gs.quoteGap + gs.tail, by = bartek.y;
     const quote = this.add.text(bx + gs.padding, by + gs.padding, `„${Phaser.Utils.Array.GetRandom(config.gym.quotes)}”`,
       font(gs.quoteFontSize, { color: '#1b1b1b', fontStyle: 'bold', wordWrap: { width: gs.quoteWidth } }));
     const bw = quote.width + gs.padding * 2, bh = quote.height + gs.padding * 2;
-    const bubble = this.add.graphics().setDepth(-1);
+    const bubble = this.add.graphics();
     drawPanel(bubble, bx, by, bw, bh, { color: 0xffffff, alpha: 1, borderColor: 0x000000, borderAlpha: 0.6 });
     bubble.fillStyle(0xffffff).fillTriangle(bx + 1, by + bh * 0.35, bx + 1, by + bh * 0.75, bx - gs.tail, by + bh * 0.7); // tail toward Bartek
-    this.add.text(bx, by + bh + gs.padding, Phaser.Utils.Array.GetRandom(config.bartkowanie.definitions), font(gs.definitionFontSize, {
+    const definition = this.add.text(bx, by + bh + gs.padding, Phaser.Utils.Array.GetRandom(config.bartkowanie.definitions), font(gs.definitionFontSize, {
       fontStyle: 'italic', color: gs.definitionColor, wordWrap: { width: gs.quoteWidth + gs.padding * 2 },
     }));
+    return all.add([bartek, bubble, quote, definition]);
   }
 }

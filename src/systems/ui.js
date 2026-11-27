@@ -9,6 +9,13 @@ export const touch = window.matchMedia('(pointer: coarse)').matches;
 // "Wróć [Esc]" with a keyboard, "Wróć" on touch; keyHint('', '[1]') is '[1]' or ''.
 export const keyHint = (label, key) => (touch ? label : [label, key].filter(Boolean).join(' '));
 
+// Dark veil over the screen under a window or the cards, three screens wide around the middle so it still covers all
+// when Wielkość menu zooms the scene out.
+export function dim(scene) {
+  const { width, height } = scene.scale;
+  return scene.add.rectangle(width / 2, height / 2, width * 3, height * 3, 0x000000, config.ui.dimAlpha);
+}
+
 // Rounded panel with a drop shadow, drawn into g (the caller clears g when it redraws).
 export function drawPanel(g, x, y, w, h, style = {}) {
   const p = { ...config.ui.panel, ...style };
@@ -37,7 +44,7 @@ export function drawBar(g, x, y, w, h, fill, color) {
 }
 
 // Button: a container at (x, y) (its middle) with a rounded face, a shadow and a label.
-// variant: 'primary' (green), 'secondary' (light) or 'disabled' (grey, not clickable). Hover lightens, a press squashes it.
+// variant: 'primary' (green, the main action), 'secondary' (dark, the rest: Wróć, side screens) or 'disabled' (grey, not clickable). Hover lightens, a press squashes it.
 // opts: { width, height, fontSize, variant }. The container gets setLabel(text) and setVariant(variant).
 export function button(scene, x, y, label, onClick, opts = {}) {
   const b = config.ui.button, size = opts.fontSize ?? b.fontSize;

@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { items, giveItem, takeItem, itemRarity, cloneChoices } from '../data/items.js';
 import { makeCard } from '../systems/cards.js';
-import { font, button, keyHint } from '../systems/ui.js';
+import { font, button, keyHint, dim } from '../systems/ui.js';
 import { playVfx } from '../systems/vfx.js';
 import { playSfx } from '../systems/audio.js';
 
@@ -21,7 +21,7 @@ export default class CloneScene extends Phaser.Scene {
 
   create() {
     const u = config.ui, ct = config.cloneTrees, { width, height } = this.scale;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0);
+    dim(this);
     this.add.text(width / 2, ct.titleY, 'KLON BARTEK', font(ct.titleFontSize, { fontStyle: 'bold', color: ct.titleColor, stroke: '#000000', strokeThickness: 8 }))
       .setOrigin(0.5);
     this.add.text(width / 2, ct.titleY + ct.titleFontSize, 'Wybierz przedmiot do sklonowania.\nDrzewo zabierze losowy inny przedmiot tej samej rzadkości.',

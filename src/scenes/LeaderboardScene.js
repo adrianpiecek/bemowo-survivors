@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { formatTime } from '../state.js';
 import { maps } from '../data/maps.js';
-import { font, drawPanel, button } from '../systems/ui.js';
+import { font, drawPanel, button, dim } from '../systems/ui.js';
 import { online, onOnlineChange, initOnline, retryOnline, fetchLeaderboard } from '../systems/online.js';
 
 // Wyniki over the paused menu: the best `count` players (systems/online.js fetchLeaderboard), one row each: place, nick,
@@ -24,7 +24,7 @@ export default class LeaderboardScene extends Phaser.Scene {
     const u = config.ui, c = u.leaderboard, { width, height } = this.scale, cx = width / 2, x0 = cx - c.width / 2;
     const inner = c.width - c.padding * 2, left = x0 + c.padding;
     if (online.state === 'off') initOnline();
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps for the menu below
+    dim(this).setInteractive(); // swallows taps for the menu below
     const bg = this.add.graphics();
     const objs = [];
     const add = (o) => { objs.push(o); return o; };
@@ -70,7 +70,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       text('Wynik: zabici wrogowie razy mnożnik etapu i trudności. Liczy się najlepsza runda.', c.dimColor);
     }
 
-    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize }));
+    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize, variant: 'secondary' }));
     y += c.backHeight + c.padding;
 
     const top = Math.max(0, (height - y) / 2);

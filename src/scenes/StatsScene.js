@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { save, formatTime } from '../state.js';
 import { weapons } from '../data/weapons.js';
-import { font, drawPanel, button } from '../systems/ui.js';
+import { font, drawPanel, button, dim } from '../systems/ui.js';
 
 // Statystyki over the paused gym: totals and records over every run (save.stats, added in GameOverScene), label left and
 // value right, in `columns` columns. Wróć, Esc or Enter restart the gym under it on the page it was on.
@@ -37,7 +37,7 @@ export default class StatsScene extends Phaser.Scene {
       ['Bartkowania', st.bartkowanie],
       ['Odkryte ewolucje', `${save.evolutions.length}/${evolutions}`],
     ];
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps for the gym below
+    dim(this).setInteractive(); // swallows taps for the gym below
     const bg = this.add.graphics(); // the panel, drawn once the content's height is known
 
     // Top to bottom from y; the whole block is moved to the middle of the screen at the end.
@@ -60,7 +60,7 @@ export default class StatsScene extends Phaser.Scene {
       font(c.hintFontSize, { color: c.labelColor, align: 'center', wordWrap: { width: c.width - c.padding * 2 } })).setOrigin(0.5, 0));
     y += hint.height + c.gap;
 
-    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize }));
+    add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize, variant: 'secondary' }));
     y += c.backHeight + c.padding;
 
     const top = Math.max(0, (height - y) / 2);

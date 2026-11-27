@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { rollRarity, drawUpgrades, applyUpgrade, cardCenter, makeCard } from '../systems/cards.js';
-import { font, button, keyHint } from '../systems/ui.js';
+import { font, button, keyHint, dim } from '../systems/ui.js';
 import { playSfx } from '../systems/audio.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -18,7 +18,7 @@ export default class ShopScene extends Phaser.Scene {
 
   create() {
     const u = config.ui, c = u.card, sh = u.shop, db = u.drawButtons, z = config.events.zabka, { width, height } = this.scale;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0);
+    dim(this);
     this.add.text(width / 2, u.chest.titleY, 'PROMOCJA W ŻABCE', font(sh.titleFontSize, {
       fontStyle: 'bold', color: sh.titleColor, stroke: '#000000', strokeThickness: u.chest.strokeThickness,
     })).setOrigin(0.5);

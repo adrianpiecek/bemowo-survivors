@@ -1,8 +1,8 @@
 import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
 import { plans } from '../data/plans.js';
-import { cardCenter } from '../systems/cards.js';
-import { font, panel, button, touch, keyHint } from '../systems/ui.js';
+import { cardCenter, pickCard } from '../systems/cards.js';
+import { font, button, keyHint } from '../systems/ui.js';
 import { betSum } from '../data/bets.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -46,9 +46,7 @@ export default class PlanScene extends Phaser.Scene {
 
     const wrap = { align: 'center', wordWrap: { width: c.width - 2 * u.margin } };
     this.choices.forEach((plan, i) => {
-      const { x, y } = cardCenter(this, i, this.choices.length), top = y - c.height / 2;
-      panel(this, x - c.width / 2, top, c.width, c.height);
-      this.add.zone(x, y, c.width, c.height).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.pick(i));
+      const { x, y, top } = pickCard(this, i, this.choices.length, () => this.pick(i));
       this.add.text(x, top + u.margin, plan.name, font(c.nameFontSize, { fontStyle: 'bold', ...wrap })).setOrigin(0.5, 0);
       // Plus over minus, the pair in the middle of the card (the lines carry their own signs).
       const plus = this.add.text(x, 0, plan.plus, font(ps.lineFontSize, { color: ps.plusColor, ...wrap })).setOrigin(0.5, 0);
@@ -56,7 +54,6 @@ export default class PlanScene extends Phaser.Scene {
         .setOrigin(0.5, 0);
       plus.setY(y - (plus.height + ps.lineGap + minus.height) / 2);
       minus.setY(plus.y + plus.height + ps.lineGap);
-      if (!touch) this.add.text(x, top + c.height - u.margin, `[${i + 1}]`, font(u.hudFontSize)).setOrigin(0.5, 1);
       this.input.keyboard.on(`keydown-${KEY_NAMES[i]}`, () => this.pick(i));
     });
     // The bets picked in the gym, so the bonus is in view before the run.

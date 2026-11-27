@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
-import { font, drawPanel, button } from '../systems/ui.js';
+import { font, drawPanel, button, dim } from '../systems/ui.js';
 import {
   online, onOnlineChange, initOnline, retryOnline, googleWorks, signInGoogle, signInEmail, registerEmail, resetPassword,
   usesPassword, signOut, setNick, nickError, resolveConflict, deleteAccount,
@@ -30,7 +30,7 @@ export default class AccountScene extends Phaser.Scene {
     const u = config.ui, a = u.account, { width, height } = this.scale, cx = width / 2, x0 = cx - a.width / 2;
     const inner = a.width - a.padding * 2;
     if (online.state === 'off') initOnline();
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps for the menu below
+    dim(this).setInteractive(); // swallows taps for the menu below
     const bg = this.add.graphics();
     const objs = [];
     let y = a.padding;
@@ -122,7 +122,7 @@ export default class AccountScene extends Phaser.Scene {
       btn('Polityka prywatności', privacy, 'secondary', true);
     }
     if (this.message) text(this.message, this.ok ? a.okColor : a.errorColor, a.smallFontSize);
-    btn('Wróć', () => this.close(), 'primary', true);
+    btn('Wróć', () => this.close(), 'secondary', true);
     y += a.padding - a.gap;
 
     const top = Math.max(0, (height - y) / 2);

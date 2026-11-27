@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
 import { bets, betLevel, betSum } from '../data/bets.js';
 import { playSfx } from '../systems/audio.js';
-import { font, drawPanel, button } from '../systems/ui.js';
+import { font, drawPanel, button, dim } from '../systems/ui.js';
 
 // Zakłady z Unc over the paused gym: one row per bet with [−] level [+], the protein bonus of all of them, the rewards.
 // A change goes to save.bets at once and holds for every run until changed. Wróć, Esc or Enter restart the gym under
@@ -15,7 +15,7 @@ export default class BetsScene extends Phaser.Scene {
   create() {
     const u = config.ui, b = u.bets, rw = config.bets.rewards, { width, height } = this.scale, cx = width / 2;
     const x0 = cx - b.width / 2, inner = b.width - b.padding * 2;
-    this.add.rectangle(0, 0, width, height, 0x000000, u.dimAlpha).setOrigin(0).setInteractive(); // swallows taps for the gym below
+    dim(this).setInteractive(); // swallows taps for the gym below
     const bg = this.add.graphics(); // the panel, drawn once the content's height is known
 
     // Top to bottom from y; the whole block is moved to the middle of the screen at the end.
@@ -53,7 +53,7 @@ export default class BetsScene extends Phaser.Scene {
       `Wygrana z premią od ${Math.round(rw.uncPct * 100)}%: plan Trening z Unc. Od ${Math.round(rw.passivesPct * 100)}%: wszystkie pasywki.`,
       font(b.textFontSize, { color: b.hintColor, align: 'center', wordWrap: { width: inner } })).setOrigin(0.5, 0));
     y += rewards.height + b.gap;
-    add(button(this, cx, y + b.backHeight / 2, 'Wróć', () => this.close(), { width: b.backWidth, height: b.backHeight, fontSize: b.backFontSize }));
+    add(button(this, cx, y + b.backHeight / 2, 'Wróć', () => this.close(), { width: b.backWidth, height: b.backHeight, fontSize: b.backFontSize, variant: 'secondary' }));
     y += b.backHeight + b.padding;
 
     const top = Math.max(0, (height - y) / 2);
