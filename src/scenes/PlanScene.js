@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
 import { plans } from '../data/plans.js';
 import { cardCenter } from '../systems/cards.js';
-import { font, panel } from '../systems/ui.js';
+import { font, panel, button } from '../systems/ui.js';
 import { betSum } from '../data/bets.js';
 
 const KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
@@ -29,14 +29,17 @@ export function startPlan(scene) {
 }
 
 // Before a run: config.plans.cards random unlocked training plans as cards, each with its plus (green) and minus (red).
-// A click or 1-3 picks one and starts the run with it.
+// A click or 1-3 picks one and starts the run with it. Wróć or Esc go back to the map list; the plans drawn stay the same
+// until a run starts (registry 'planChoices'), so going back and forth does not draw new ones.
 export default class PlanScene extends Phaser.Scene {
   constructor() { super('PlanScene'); }
 
   create() {
-    const u = config.ui, c = u.card, ps = u.planScreen, { width } = this.scale;
+    const u = config.ui, c = u.card, ps = u.planScreen, { width, height } = this.scale;
     this.picked = false;
-    this.choices = Phaser.Utils.Array.Shuffle(plans.filter(isUnlocked)).slice(0, config.plans.cards);
+    const kept = (this.registry.get('planChoices') ?? []).map((id) => plans.find((p) => p.id === id)).filter((p) => p && isUnlocked(p));
+    this.choices = kept.length ? kept : Phaser.Utils.Array.Shuffle(plans.filter(isUnlocked)).slice(0, config.plans.cards);
+    this.registry.set('planChoices', this.choices.map((p) => p.id));
     this.add.text(width / 2, ps.titleY, 'Plan treningowy', font(ps.titleFontSize, {
       fontStyle: 'bold', color: '#ffc400', stroke: '#000000', strokeThickness: 5,
     })).setOrigin(0.5, 0);
@@ -62,11 +65,15 @@ export default class PlanScene extends Phaser.Scene {
       this.add.text(width / 2, last.y + c.height / 2 + ps.betsGap, `Zakłady z Unc: +${sum}% białka`, font(ps.lineFontSize, { color: ps.minusColor }))
         .setOrigin(0.5, 0);
     }
+    const back = () => { if (!this.picked) this.scene.start('MapScene'); };
+    button(this, width / 2, height - ps.buttonBottom, 'Wróć [Esc]', back, { variant: 'secondary' });
+    this.input.keyboard.on('keydown-ESC', back);
   }
 
   pick(i) {
     if (this.picked) return; // a click and a key press can land in the same frame
     this.picked = true;
+    this.registry.remove('planChoices'); // the next run draws new plans
     this.scene.start('GameScene', { plan: this.choices[i].id });
   }
 }

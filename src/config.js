@@ -1,6 +1,6 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
-  version: 89, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 90, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -613,7 +613,7 @@ export const config = {
     // The difficulty row levelY px under the card's middle: < and > buttons (arrow x arrow px) arrowGap px either side of the text.
     mapScreen: { titleY: 120, titleFontSize: 56, textFontSize: 22, textColor: '#e0e0e0', lockedColor: '#9e9e9e', lockedAlpha: 0.45, buttonBottom: 70,
       levelY: 46, levelFontSize: 22, levelColor: '#ffc400', arrow: 48, arrowGap: 150 },
-    planScreen: { titleY: 120, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
+    planScreen: { titleY: 120, buttonBottom: 70, titleFontSize: 56, plusColor: '#9ccc65', minusColor: '#ff8a80', lineFontSize: 22, lineGap: 12, betsGap: 24,
       gameOverFontSize: 22, gameOverColor: '#ffc400' },
     settings: { width: 620, padding: 28, titleFontSize: 56, labelFontSize: 26, rowHeight: 116, stepButton: 64, barHeight: 26,
       valueWidth: 90, step: 0.1, orientWidth: 200, orientGap: 20, inventoryWidth: 240, backWidth: 320, backHeight: 72, backFontSize: 30, hintFontSize: 18, hintColor: '#b0bec5',
@@ -699,7 +699,9 @@ export const config = {
       stripeAlpha: 0.06, labelColor: '#b0bec5', hintFontSize: 15, backWidth: 240, backHeight: 60, backFontSize: 26 },
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
     // done ones with a doneColor frame; a locked one's icon at lockedAlpha.
+    // More rows than fit on the screen (margin px from its top and bottom): pages, "<  Strona 1/2  >" under the rows.
     challenges: { width: 680, columns: 1, columnGap: 0, padding: 20, inner: 10, gap: 14, titleFontSize: 44, textFontSize: 17,
+      margin: 16, pagerHeight: 50, pagerButton: 70, pagerFontSize: 22,
       rowHeight: 72, rowGap: 6, iconSize: 44, nameFontSize: 20, descFontSize: 16, hintColor: '#b0bec5', lockedColor: '#cfd8dc',
       lockedAlpha: 0.35, doneColor: 0x66bb6a, doneText: '#a5d6a7', backWidth: 240, backHeight: 60, backFontSize: 26 },
     gymScreen: { titleY: 40, titleFontSize: 56, top: 128, columns: 1, columnGap: 0, goRight: false, rowWidth: 680, rowHeight: 112, rowGap: 8, padding: 12, iconSize: 56,
@@ -727,7 +729,7 @@ export const config = {
         title: { bemowoY: 250, survivorsY: 410, pressBottom: 90 },
         bossBar: { y: 76 },
         chest: { titleY: 110 },
-        planScreen: { titleY: 60, lineFontSize: 17 },
+        planScreen: { titleY: 60, buttonBottom: 50, lineFontSize: 17 },
         mapScreen: { titleY: 60, textFontSize: 17, buttonBottom: 50, levelY: 70, levelFontSize: 17, arrow: 40, arrowGap: 100 },
         gameOver: { top: 14, gap: 8, fontSize: 18, rowHeight: 25, iconSize: 22, buttonsGap: 34 },
         bets: { width: 820, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15, nameFontSize: 19, descFontSize: 15, rowHeight: 62,

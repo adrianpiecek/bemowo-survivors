@@ -1227,6 +1227,21 @@ Po każdej rundzie gra wysyła anonimowe podsumowanie do kolekcji `runs` w Fires
   - w konsoli są tylko znane błędy 404.
 - **Nie sprawdzone:** zapis wpisu po wklejeniu reguł.
 
+### 66. Poprawki krytyczne z przeglądu UI (krok 90)
+
+Przegląd wszystkich ekranów w przeglądarce (telefon w pionie 375×812 i w poziomie 844×390) znalazł trzy rzeczy, które blokują grę na telefonie:
+
+- **Wyzwania mają strony.** Okno było wyższe niż ekran (1501 px przy 1280), więc „Wróć” i ostatnie wyzwania znikały poza dolną krawędzią, a na dotyku nie dało się z okna wyjść. Teraz okno mieści tyle wierszy, ile wejdzie między wstępem a „Wróć” (`ui.challenges.margin` od krawędzi ekranu). Reszta trafia na kolejne strony, „<  Strona 1/2  >” jak w siłowni, także strzałki na klawiaturze. Każda strona ma wysokość pełnej strony, więc przyciski stoją w tym samym miejscu. W pionie mieści się 12 wierszy, w poziomie 12 (6 rzędów po 2).
+- **„Wyjdź do menu” w pauzie pyta „Na pewno?”.** Wcześniej jedno dotknięcie od razu kończyło rundę, a przycisk stoi tuż obok „Wycisz”. Teraz pierwsze dotknięcie zmienia napis na „Na pewno?” i pokazuje ostrzeżenie „Runda się skończy, białko z niej zostanie policzone.”, a drugie kończy rundę. Działa to tak samo jak „Nowa gra”.
+- **Ekran planu ma „Wróć [Esc]”.** Przycisk wraca do listy map (`ui.planScreen.buttonBottom`). Wylosowane plany zostają te same do startu rundy (rejestr `planChoices`), więc powrót do map i z powrotem nie losuje nowych planów.
+- **Sprawdzone w przeglądarce:**
+  - Wyzwania w pionie: strona 1/2 z 12 wierszami i strona 2/2 z 5, przycisk „>” przełącza, „Wróć” zamyka okno;
+  - Wyzwania w poziomie: strona 1/2, wszystko na ekranie;
+  - „Wyjdź do menu”: po pierwszym dotknięciu „Na pewno?” i ostrzeżenie, po drugim koniec rundy;
+  - plan: „Wróć” wraca do map, a po ponownym wyborze mapy plany są te same;
+  - w konsoli są tylko znane błędy 404.
+- **Pozostałe uwagi z przeglądu** czekają na osobne kroki: za mały tekst na telefonie, podpowiedzi klawiatury na dotyku, dwa dotknięcia do menu i ucięty tytuł, hierarchia przycisków, przyciemnienie pod oknami, czarne pasy, układ menu w poziomie, karty map i planów bez widocznej akcji.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

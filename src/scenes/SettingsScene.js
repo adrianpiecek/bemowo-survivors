@@ -16,7 +16,8 @@ export function openSettings(scene) {
 // Settings over a paused scene: music and sound effect volume, the HUD's and the menus' size, the camera's zoom, screen orientation (kept in the save). In a run it is the
 // pause screen, and the orientation only says where to change it: the run's world is built for one screen shape.
 // "Wróć", Esc or Enter close it and resume the scene under it (in a run also P, the pause key). "Wycisz" mutes everything
-// (as M does); in a run "Wyjdź do menu" ends the run as a loss: the end screen counts the protein so far. Outside a run
+// (as M does); in a run "Wyjdź do menu" asks "Na pewno?" first, then ends the run as a loss: the end screen counts the
+// protein so far. Outside a run
 // "Nowa gra" asks "Na pewno?" first, then wipes the progress (state.resetProgress) and goes back to the title.
 export default class SettingsScene extends Phaser.Scene {
   constructor() { super('SettingsScene'); }
@@ -25,6 +26,7 @@ export default class SettingsScene extends Phaser.Scene {
     this.from = data.from;
     this.closing = false;
     this.wipeArmed = false; // "Nowa gra" clicked once: the next click wipes the progress
+    this.quitArmed = false; // "Wyjdź do menu" clicked once: the next click ends the run
   }
 
   create() {
@@ -102,8 +104,15 @@ export default class SettingsScene extends Phaser.Scene {
     }, { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
     const rightX = x0 + st.width - st.padding - actW / 2;
     if (inRun) {
-      button(this, rightX, actY, 'Wyjdź do menu', () => this.quit(),
-        { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
+      const leave = button(this, rightX, actY, 'Wyjdź do menu', () => {
+        if (!this.quitArmed) {
+          this.quitArmed = true;
+          leave.setLabel('Na pewno?');
+          this.hint.setText('Runda się skończy, białko z niej zostanie policzone.').setColor(st.wipeColor);
+          return;
+        }
+        this.quit();
+      }, { width: actW, height: st.actionHeight, fontSize: st.actionFontSize, variant: 'secondary' });
       this.input.keyboard.once('keydown-P', () => this.close());
     } else {
       const fresh = button(this, rightX, actY, 'Nowa gra', () => {
