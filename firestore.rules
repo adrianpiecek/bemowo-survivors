@@ -5,6 +5,8 @@ rules_version = '2';
 //   users/{uid}   { nick, createdAt, updatedAt }  the player's profile, readable only by them
 //   nicks/{lower} { uid, nick }                   one document per nick (lower case), so a nick is unique
 //   saves/{uid}   { data, updatedAt }             the player's progress, only theirs
+//   scores/{uid}  { nick, score, kills, map, stage, overtimeMs, cleared, difficulty, timeMs, at }
+//                 the player's best run: the leaderboard, readable by everyone
 // Everything else is closed.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -14,6 +16,21 @@ service cloud.firestore {
     // Same as nickError() in online.js: 3-16 letters (Polish too), digits or _.
     function validNick(n) { return n is string && n.matches('^[A-Za-z0-9_ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{3,16}$'); }
     function nickPath(n) { return /databases/$(database)/documents/nicks/$(n.lower()); }
+    // The nick in the player's profile (after this write: a nick change updates both at once).
+    function nickIsMine(n) { return getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.nick == n; }
+    // A run that could have happened. Each kill adds at most 4 points (stage x2, difficulty 5 x2, config.stages), at most
+    // 60 kills a second, at most 6 hours; new maps go into the list.
+    function validScore(d) {
+      return d.keys().hasOnly(['nick', 'score', 'kills', 'map', 'stage', 'overtimeMs', 'cleared', 'difficulty', 'timeMs', 'at'])
+        && d.keys().hasAll(['nick', 'score', 'kills', 'map', 'stage', 'overtimeMs', 'cleared', 'difficulty', 'timeMs', 'at'])
+        && nickIsMine(d.nick)
+        && d.score is int && d.kills is int && d.timeMs is int && d.overtimeMs is int && d.stage is int && d.difficulty is int
+        && d.score > 0 && d.score <= d.kills * 4
+        && d.timeMs > 0 && d.timeMs <= 21600000 && d.kills <= d.timeMs * 60 / 1000
+        && d.overtimeMs >= 0 && d.overtimeMs <= d.timeMs
+        && d.map in ['jelonki', 'fortBema'] && d.stage >= 1 && d.stage <= 3 && d.difficulty >= 1 && d.difficulty <= 5
+        && d.cleared is bool && d.at == request.time;
+    }
 
     match /users/{uid} {
       allow read, delete: if isOwner(uid);
@@ -38,6 +55,16 @@ service cloud.firestore {
         && validNick(request.resource.data.nick)
         && key == request.resource.data.nick.lower();
       allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /scores/{uid} {
+      allow read: if true;
+      allow create: if isOwner(uid) && validScore(request.resource.data);
+      // Only a better run, or the nick alone (changed in the profile in the same write).
+      allow update: if isOwner(uid) && (
+        (validScore(request.resource.data) && request.resource.data.score > resource.data.score)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nick']) && nickIsMine(request.resource.data.nick)));
+      allow delete: if isOwner(uid);
     }
 
     match /saves/{uid} {

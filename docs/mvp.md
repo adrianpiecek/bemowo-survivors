@@ -1173,6 +1173,30 @@ W ustawieniach jest nowy suwak **Wielkość menu** (80–130%, `save.menuScale`,
   - w konsoli są tylko znane błędy 404.
 - **Nie sprawdzone:** wygląd w poziomie i na telefonie.
 
+### 64. Tabela wyników (krok 88)
+
+Nowe okno **Wyniki** w menu (mały przycisk z ikoną podium, `LeaderboardScene`). Jest jedna wspólna tabela dla wszystkich graczy.
+
+- **Co trafia do tabeli:** najlepsza runda zalogowanego gracza z nickiem, jeden wpis na gracza (`scores/{uid}` w Firestore). Wpis ma pola: nick, wynik, zabici, mapa, etap, czas dogrywki, czy mapa zaliczona, trudność, czas rundy i datę. Wynik wysyła ekran końca rundy, ale tylko wtedy, gdy pobija rekord gracza (`online.best`, wczytywany przy logowaniu). Gdy rekord padnie, na wierszu „Wynik” pojawia się „Nowy rekord! N. miejsce”.
+- **Okno:** pokazuje 20 najlepszych graczy, a w poziomie 10 (`config.ui.leaderboard`). Każdy wiersz ma miejsce, nick, mapę z osiągniętym etapem (✓ przy zaliczonej mapie i czas dogrywki) oraz wynik. Własny wiersz jest podświetlony. Gdy gracza nie ma w pokazanej części tabeli, pod nią widać „Twoje miejsce: N.”; miejsce liczy serwer (`getCountFromServer`), bez pobierania całej tabeli.
+- **Okno bez wyników:** bez konta pokazuje podpowiedź „Zaloguj się w Konto…”, bez nicku „Wybierz nick…”, a bez rundy „Zagraj rundę…”. Gdy nie ma połączenia, jest komunikat i przycisk „Spróbuj ponownie”. Tabelę może czytać każdy, także bez konta.
+- **Zmiana nicku i usunięcie konta:** zmiana nicku zmienia go też w tabeli, w tej samej transakcji. Usunięcie konta kasuje także wpis w tabeli.
+- **Reguły (`firestore.rules`):** wpis może zapisać tylko jego właściciel, z własnym nickiem. Wynik musi być możliwy do zdobycia:
+  - najwyżej 4 punkty za zabitego wroga;
+  - najwyżej 60 zabitych na sekundę;
+  - runda nie dłuższa niż 6 godzin;
+  - mapa z listy, etap 1–3, trudność 1–5;
+  - data ustawiana przez serwer.
+
+  Zmiana wpisu przechodzi tylko wtedy, gdy wynik jest wyższy albo gdy zmienia się sam nick. Oszustwa nie da się całkiem zablokować, bo gra działa w przeglądarce. Reguły odcinają tylko wyniki niemożliwe. **Nową mapę trzeba dopisać do listy w regułach.**
+- **Polityka prywatności:** opisuje teraz publiczny wynik i jego usuwanie razem z kontem.
+- **Sprawdzone w przeglądarce:**
+  - przycisk i ikona w menu;
+  - okno z 20 wierszami danych testowych mieści się na ekranie;
+  - ekran końca rundy bez konta nie wysyła wyniku i nie zgłasza błędów;
+  - prawdziwa baza odrzuca odczyt (`permission-denied`), dopóki nowe reguły nie są wklejone w konsoli; okno pokazuje wtedy komunikat o błędzie.
+- **Nie sprawdzone:** wysyłanie wyniku z prawdziwego konta, miejsce w tabeli, zmiana nicku w tabeli, wygląd w poziomie.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

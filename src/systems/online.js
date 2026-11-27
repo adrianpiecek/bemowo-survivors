@@ -9,9 +9,11 @@ import { save, onSaveWrite, progressOf, replaceProgress } from '../state.js';
 //   users/{uid}   { nick, createdAt, updatedAt }   readable only by its owner
 //   nicks/{lower} { uid, nick }                    one per nick, so a nick is unique whatever its letter case
 //   saves/{uid}   { data, updatedAt }              the progress (state.js progressOf), only its owner's
+//   scores/{uid}  { nick, score, kills, map, stage, overtimeMs, cleared, difficulty, timeMs, at }
+//                 the player's best run for the leaderboard (Wyniki), readable by everyone
 // online.state: 'off' | 'loading' | 'ready' | 'error'; online.sync: 'none' | 'syncing' | 'synced' | 'conflict' | 'error'.
 // online.revision goes up when a save from the cloud replaced the progress here (MenuScene redraws).
-export const online = { state: 'off', user: null, nick: null, sync: 'none', conflict: null, error: '', revision: 0 };
+export const online = { state: 'off', user: null, nick: null, sync: 'none', conflict: null, error: '', revision: 0, best: 0 };
 
 const o = config.online;
 const SYNC_KEY = 'bemowo-survivors-sync'; // this device's last sync: { uid, at (the cloud save's stamp), dirty (changed since) }
@@ -78,12 +80,13 @@ export function retryOnline() {
 }
 
 async function userChanged(user) {
-  Object.assign(online, { user, nick: null, sync: 'none', conflict: null });
+  Object.assign(online, { user, nick: null, sync: 'none', conflict: null, best: 0 });
   changed();
   if (!user) return;
   try {
-    const profile = await F.getDoc(F.doc(db, 'users', user.uid));
+    const [profile, best] = await Promise.all([F.getDoc(F.doc(db, 'users', user.uid)), F.getDoc(F.doc(db, 'scores', user.uid))]);
     online.nick = profile.exists() ? profile.data().nick : null;
+    online.best = best.exists() ? best.data().score : 0;
     changed();
     await syncOnLogin();
   } catch {
@@ -214,15 +217,16 @@ export async function setNick(nick) {
   if (err) return err;
   const uid = online.user?.uid;
   if (!uid) return 'Najpierw się zaloguj.';
-  const userRef = F.doc(db, 'users', uid), nickRef = F.doc(db, 'nicks', nick.toLowerCase());
+  const userRef = F.doc(db, 'users', uid), nickRef = F.doc(db, 'nicks', nick.toLowerCase()), scoreRef = F.doc(db, 'scores', uid);
   try {
     await F.runTransaction(db, async (t) => {
-      const user = await t.get(userRef), taken = await t.get(nickRef);
+      const user = await t.get(userRef), taken = await t.get(nickRef), score = await t.get(scoreRef);
       if (taken.exists() && taken.data().uid !== uid) throw new Error('taken');
       const old = user.exists() ? user.data().nick : null;
       if (old && old.toLowerCase() !== nick.toLowerCase()) t.delete(F.doc(db, 'nicks', old.toLowerCase()));
       t.set(nickRef, { uid, nick });
       t.set(userRef, { nick, updatedAt: F.serverTimestamp(), ...(user.exists() ? {} : { createdAt: F.serverTimestamp() }) }, { merge: true });
+      if (score.exists()) t.update(scoreRef, { nick }); // the leaderboard shows the new nick
     });
   } catch (e) {
     return e.message === 'taken' ? 'Ten nick jest już zajęty.' : 'Nie udało się zapisać nicku. Sprawdź połączenie.';
@@ -246,6 +250,7 @@ export async function deleteAccount(password) {
   try {
     const batch = F.writeBatch(db);
     batch.delete(F.doc(db, 'saves', user.uid));
+    batch.delete(F.doc(db, 'scores', user.uid));
     if (online.nick) batch.delete(F.doc(db, 'nicks', online.nick.toLowerCase()));
     batch.delete(F.doc(db, 'users', user.uid));
     await batch.commit();
@@ -255,4 +260,38 @@ export async function deleteAccount(password) {
   }
   writeSync({});
   return '';
+}
+
+// Wyniki: a finished run's score goes to the leaderboard when the player is signed in with a nick and beat their best
+// (the rules take only a higher score, and check it is possible: see firestore.rules). Returns { record, rank } after a
+// new best, null otherwise (no account, not better, no connection).
+export async function submitScore(run) {
+  const score = Math.round(run.score);
+  if (online.state !== 'ready' || !online.user || !online.nick || score <= online.best) return null;
+  const entry = {
+    nick: online.nick, score, kills: run.kills, map: run.map, stage: run.stage, overtimeMs: Math.round(run.overtime ? run.overtimeMs : 0),
+    cleared: run.mapCleared, difficulty: run.difficulty, timeMs: Math.round(run.elapsedMs), at: F.serverTimestamp(),
+  };
+  try {
+    await F.setDoc(F.doc(db, 'scores', online.user.uid), entry);
+    online.best = score;
+    return { record: true, rank: await rankOf(score) };
+  } catch {
+    return null;
+  }
+}
+
+// Place of a score: 1 + how many players scored more (a count on the server, not a download of the table).
+async function rankOf(score) {
+  const q = F.query(F.collection(db, 'scores'), F.where('score', '>', score));
+  return (await F.getCountFromServer(q)).data().count + 1;
+}
+
+// The top `count` entries, best first, and this player's place (null without a score). Throws without a connection.
+export async function fetchLeaderboard(count) {
+  if (online.state !== 'ready') throw new Error('offline');
+  const snap = await F.getDocs(F.query(F.collection(db, 'scores'), F.orderBy('score', 'desc'), F.limit(count)));
+  const rows = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+  const mine = online.user && online.best > 0 ? await rankOf(online.best) : null;
+  return { rows, mine };
 }

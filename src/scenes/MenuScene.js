@@ -48,7 +48,7 @@ export default class MenuScene extends Phaser.Scene {
     }
     const small = [['Wyzwania', 'icon_trophy', overlay('ChallengesScene')], ['Statystyki', 'icon_stats', overlay('StatsScene')],
       ['Bestiariusz', 'icon_bestiary', overlay('BestiaryScene')], ['Ustawienia', 'icon_gear', () => openSettings(this)],
-      [online.nick ?? 'Konto', 'icon_account', overlay('AccountScene')]];
+      ['Wyniki', 'icon_ranking', overlay('LeaderboardScene')], [online.nick ?? 'Konto', 'icon_account', overlay('AccountScene')]];
     const sw = (mn.width - mn.gap) / 2;
     small.forEach(([label, icon, onClick], i) => {
       const x = cx + (i % 2 ? 1 : -1) * (sw + mn.gap) / 2, by = y + Math.floor(i / 2) * (mn.smallHeight + mn.gap) + mn.smallHeight / 2;

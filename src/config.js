@@ -1,6 +1,6 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
-  version: 87, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 88, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -690,6 +690,11 @@ export const config = {
     account: { width: 620, padding: 24, gap: 14, titleFontSize: 42, textFontSize: 19, smallFontSize: 15, textColor: '#e0e0e0',
       dimColor: '#b0bec5', errorColor: '#ff8a80', okColor: '#a5d6a7', buttonHeight: 56, buttonFontSize: 22, inputWidth: 380,
       inputHeight: 52, inputFontSize: 24 },
+    // Wyniki (LeaderboardScene, from the menu): the best `count` players, one row each; the columns at nickX and mapX of
+    // the inner width (place at the left, score at the right); the player's own row in mineColor.
+    leaderboard: { width: 660, count: 20, padding: 22, inner: 10, gap: 12, titleFontSize: 44, rowHeight: 38, fontSize: 19,
+      detailFontSize: 15, textFontSize: 16, nickX: 0.1, mapX: 0.44, stripeAlpha: 0.06, mineColor: 0xffc400, mineAlpha: 0.18,
+      dimColor: '#b0bec5', errorColor: '#ff8a80', backWidth: 280, backHeight: 60, backFontSize: 26 },
     stats: { width: 640, columns: 1, columnGap: 0, padding: 22, inner: 12, gap: 14, titleFontSize: 44, rowHeight: 40, fontSize: 19,
       stripeAlpha: 0.06, labelColor: '#b0bec5', hintFontSize: 15, backWidth: 240, backHeight: 60, backFontSize: 26 },
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
@@ -731,6 +736,8 @@ export const config = {
           titleFontSize: 34, headFontSize: 19, backHeight: 52 },
         bestiary: { width: 1220, columns: 2, columnGap: 14, padding: 14, gap: 8, titleFontSize: 34, textFontSize: 15,
           rowHeight: 58, rowGap: 5, iconSize: 44, nameFontSize: 17, descFontSize: 14, backHeight: 50 },
+        leaderboard: { width: 900, count: 10, padding: 14, gap: 6, titleFontSize: 34, rowHeight: 34, fontSize: 18, textFontSize: 15,
+          backHeight: 50, backFontSize: 22 },
         stats: { width: 1000, columns: 2, columnGap: 24, padding: 16, gap: 10, titleFontSize: 34, rowHeight: 36, fontSize: 17, backHeight: 52 },
         challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 15,
           rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 14, backHeight: 52 },

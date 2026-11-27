@@ -86,7 +86,7 @@ export default class AccountScene extends Phaser.Scene {
       if (online.nick) btn('Anuluj', () => this.redraw({ mode: null }), 'secondary', true);
       else btn('Wyloguj', () => signOut());
     } else if (this.mode === 'delete') {
-      text('Usunąć konto, nick i zapis w chmurze? Postęp na tym urządzeniu zostaje. Tego nie da się cofnąć.', a.errorColor);
+      text('Usunąć konto, nick, wynik w tabeli i zapis w chmurze? Postęp na tym urządzeniu zostaje. Tego nie da się cofnąć.', a.errorColor);
       const del = async () => {
         const err = await deleteAccount(this.fields.password?.value ?? '');
         if (!err) this.redraw({ mode: null, message: 'Konto usunięte.', ok: true });

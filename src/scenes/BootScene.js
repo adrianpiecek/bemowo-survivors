@@ -532,6 +532,18 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.account).fillCircle(c, s * 0.34, s * 0.17).fillRoundedRect(s * 0.2, s * 0.56, s * 0.6, s * 0.3, { tl: s * 0.26, tr: s * 0.26, bl: s * 0.04, br: s * 0.04 });
     g.lineStyle(2, ic.outline).strokeCircle(c, s * 0.34, s * 0.17);
     g.generateTexture('icon_account', s, s).clear();
+    // Wyniki: a podium, the middle step highest, a gold star over it.
+    g.fillStyle(ic.metal).fillRect(s * 0.08, s * 0.58, s * 0.28, s * 0.3).fillRect(s * 0.64, s * 0.66, s * 0.28, s * 0.22);
+    g.fillStyle(ic.accent).fillRect(s * 0.36, s * 0.44, s * 0.28, s * 0.44);
+    g.lineStyle(2, ic.outline).strokeRect(s * 0.08, s * 0.58, s * 0.28, s * 0.3).strokeRect(s * 0.36, s * 0.44, s * 0.28, s * 0.44).strokeRect(s * 0.64, s * 0.66, s * 0.28, s * 0.22);
+    const star = [];
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? s * 0.07 : s * 0.17;
+      star.push({ x: c + Math.cos(a) * rr, y: s * 0.24 + Math.sin(a) * rr });
+    }
+    g.fillStyle(ic.accent).fillPoints(star, true);
+    g.lineStyle(2, ic.outline).strokePoints(star, true);
+    g.generateTexture('icon_ranking', s, s).clear();
 
     this.drawPassiveIcons(g);
   }

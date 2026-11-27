@@ -9,6 +9,7 @@ import { startRun } from './PlanScene.js';
 import { unlockedByBets } from '../data/bets.js';
 import { button, font, drawPanel, drawBar } from '../systems/ui.js';
 import { playVfx } from '../systems/vfx.js';
+import { submitScore } from '../systems/online.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
@@ -94,6 +95,9 @@ export default class GameOverScene extends Phaser.Scene {
     row('Bossowie', `${r.bossesKilled.length} / ${config.boss.slots.length * config.stages.count}`);
     row('Etap', `${r.stage} / ${config.stages.count}${r.overtime ? `, dogrywka ${formatTime(r.overtimeMs)}` : ''}`);
     row('Wynik', Math.round(r.score).toLocaleString('pl-PL'), go.headerColor);
+    // Wyniki: a new personal best goes to the leaderboard (signed in with a nick); its place shows on the Wynik row.
+    const record = this.add.text(cx, y - go.rowHeight, '', font(go.fontSize, { fontStyle: 'bold', color: go.headerColor })).setOrigin(0.5, 0);
+    submitScore(r).then((res) => { if (res && record.active) record.setText(`Nowy rekord! ${res.rank}. miejsce`); });
     row('DPS', Math.round(r.damageDealt / Math.max(1, r.elapsedMs / 1000)).toLocaleString('pl-PL'));
     row('Białko z rundy', `${fromRun}${bonus ? ` (${bonus})` : ''}`, go.headerColor);
     row('Białko z monet', `${r.coinProtein}`, go.headerColor);

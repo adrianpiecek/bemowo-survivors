@@ -21,6 +21,7 @@ import InventoryScene from './scenes/InventoryScene.js';
 import StatsScene from './scenes/StatsScene.js';
 import BestiaryScene from './scenes/BestiaryScene.js';
 import AccountScene from './scenes/AccountScene.js';
+import LeaderboardScene from './scenes/LeaderboardScene.js';
 import { initOnline } from './systems/online.js';
 
 applyLayout(); // portrait or landscape from the save, before the game size is read
@@ -32,7 +33,7 @@ const game = new Phaser.Game({
   scale: { parent: 'game', mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { debug: false } },
   dom: { createContainer: true }, // the nick field in Konto
-  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, CloneScene, ShopScene, GameOverScene, MenuScene, GymScene, BetsScene, ChallengesScene, StatsScene, BestiaryScene, AccountScene, MapScene, PlanScene, InventoryScene, SettingsScene], // SettingsScene last: drawn over the rest
+  scene: [BootScene, TitleScene, GameScene, UIScene, LevelUpScene, ChestScene, CloneScene, ShopScene, GameOverScene, MenuScene, GymScene, BetsScene, ChallengesScene, StatsScene, BestiaryScene, AccountScene, LeaderboardScene, MapScene, PlanScene, InventoryScene, SettingsScene], // SettingsScene last: drawn over the rest
 });
 
 // iPhone: Safari mutes web audio while the ring/silent switch is on silent; 'playback' plays it like a video does
