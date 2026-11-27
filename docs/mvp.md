@@ -1197,6 +1197,36 @@ Nowe okno **Wyniki** w menu (mały przycisk z ikoną podium, `LeaderboardScene`)
   - prawdziwa baza odrzuca odczyt (`permission-denied`), dopóki nowe reguły nie są wklejone w konsoli; okno pokazuje wtedy komunikat o błędzie.
 - **Nie sprawdzone:** wysyłanie wyniku z prawdziwego konta, miejsce w tabeli, zmiana nicku w tabeli, wygląd w poziomie.
 
+### 65. Anonimowe statystyki rund (krok 89)
+
+Po każdej rundzie gra wysyła anonimowe podsumowanie do kolekcji `runs` w Firestore (`sendRunStats` w `systems/online.js`, wywoływane z `GameOverScene`). Każdy wpis ma automatyczny identyfikator. Służy to do balansowania gry.
+
+- **Kiedy wysyła:** z kontem i bez konta. Nie wysyła, gdy gracz wyłączył statystyki albo gdy nie ma połączenia z Firebase. Wpis z rundy bez połączenia przepada i nie czeka w kolejce.
+- **Co jest we wpisie:**
+  - wersja gry, mapa, trudność, plan;
+  - wygrana, wyjście z pauzy, zaliczona mapa;
+  - etap, zaliczone etapy, czas dogrywki, czas rundy;
+  - poziom, zabici, wynik, bossowie, białko, otrzymane obrażenia, średnia presja (%);
+  - bronie (id, poziom, ewolucja, obrażenia), pasywki, przedmioty, ulepszenia;
+  - liczba rozegranych rund;
+  - czy ekran jest dotykowy, orientacja ekranu;
+  - data od serwera.
+- **Czego we wpisie nie ma:** konta, nicku, e-maila ani identyfikatora urządzenia. Wpisów nie da się powiązać ze sobą.
+- **Wyłączanie:** przycisk „Anonimowe statystyki rund: wł./wył.” w oknie Konto, widoczny z kontem i bez. Ustawienie `save.shareStats` (domyślnie włączone) dotyczy tego urządzenia, więc nie trafia do chmury i „Nowa gra” go nie zmienia.
+- **Reguły:**
+  - wpis może dodać każdy;
+  - nikt nie może go z gry czytać, zmieniać ani usuwać, statystyki czyta się w konsoli Firebase;
+  - reguły sprawdzają klucze, typy i rozmiary (do 20 broni i pasywek, do 60 przedmiotów i ulepszeń, runda do 6 godzin, data od serwera).
+- **Polityka prywatności:** opisuje statystyki i ich wyłączanie. Podstawą jest prawnie uzasadniony interes (art. 6 ust. 1 lit. f RODO).
+- Gdy wysyłka się nie uda, powód trafia do konsoli na poziomie `debug` („Statystyki rundy nie wysłane: …”).
+- **Sprawdzone w przeglądarce:**
+  - prawdziwa runda (shotgun, 6 zabitych) zbudowała wpis, który przeszedł walidację SDK;
+  - serwer odrzucił go z `permission-denied`, bo nowe reguły nie były jeszcze wklejone;
+  - przełącznik w Koncie zmienia napis i `save.shareStats`;
+  - przy wyłączonym przełączniku gra nic nie wysyła;
+  - w konsoli są tylko znane błędy 404.
+- **Nie sprawdzone:** zapis wpisu po wklejeniu reguł.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

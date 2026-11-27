@@ -11,6 +11,7 @@ import { save, onSaveWrite, progressOf, replaceProgress } from '../state.js';
 //   saves/{uid}   { data, updatedAt }              the progress (state.js progressOf), only its owner's
 //   scores/{uid}  { nick, score, kills, map, stage, overtimeMs, cleared, difficulty, timeMs, at }
 //                 the player's best run for the leaderboard (Wyniki), readable by everyone
+//   runs/{auto}   one finished run, anonymous (no uid, no nick): balancing data, only written by the game
 // online.state: 'off' | 'loading' | 'ready' | 'error'; online.sync: 'none' | 'syncing' | 'synced' | 'conflict' | 'error'.
 // online.revision goes up when a save from the cloud replaced the progress here (MenuScene redraws).
 export const online = { state: 'off', user: null, nick: null, sync: 'none', conflict: null, error: '', revision: 0, best: 0 };
@@ -294,4 +295,24 @@ export async function fetchLeaderboard(count) {
   const rows = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
   const mine = online.user && online.best > 0 ? await rankOf(online.best) : null;
   return { rows, mine };
+}
+
+// Anonymous run stats for balancing: every finished run, signed in or not, unless the player turned them off in Konto
+// (save.shareStats). No account, nick or device id goes with it; the server adds only the date. Fire and forget: a run
+// with no connection is not sent.
+export function sendRunStats(run, won, quit, protein) {
+  if (online.state !== 'ready' || !save.shareStats) return;
+  const whole = (n) => Math.round(n ?? 0);
+  const entry = {
+    v: config.version, map: run.map, difficulty: run.difficulty, plan: run.plan?.id ?? null, won, quit,
+    cleared: run.mapCleared, stage: run.stage, stagesCleared: run.stagesCleared, overtimeMs: whole(run.overtime ? run.overtimeMs : 0),
+    timeMs: whole(run.elapsedMs), level: run.level, kills: run.kills, score: whole(run.score), bosses: run.bossesKilled.length,
+    protein, damageTaken: whole(run.damageTaken), pressure: whole((run.pressureMsSum / Math.max(1, run.elapsedMs)) * 100),
+    weapons: run.weapons.map((w) => ({ id: w.def.id, level: w.level, evolved: !!w.evolved, damage: whole(run.weaponDamage[w.def.id]) })),
+    passives: run.passives.map((p) => ({ id: p.def.id, level: p.level })),
+    items: run.items, upgrades: run.upgrades, runsPlayed: save.runsPlayed,
+    touch: matchMedia('(pointer: coarse)').matches, orientation: save.orientation, at: F.serverTimestamp(),
+  };
+  // Lost stats are not worth bothering the player; the reason stays in the console's verbose level.
+  Promise.resolve().then(() => F.addDoc(F.collection(db, 'runs'), entry)).catch((e) => console.debug('Statystyki rundy nie wysłane:', e.code ?? e.message));
 }

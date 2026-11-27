@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import { save, writeSave } from '../state.js';
 import { font, drawPanel, button } from '../systems/ui.js';
 import {
   online, onOnlineChange, initOnline, retryOnline, googleWorks, signInGoogle, signInEmail, registerEmail, resetPassword,
@@ -49,6 +50,12 @@ export default class AccountScene extends Phaser.Scene {
       y += a.inputHeight + a.gap;
     };
     const privacy = () => window.open('./privacy.html', '_blank', 'noopener');
+    // Anonymous run stats (online.js sendRunStats): this device's choice, with or without an account.
+    const shareStats = () => btn(`Anonimowe statystyki rund: ${save.shareStats ? 'wł.' : 'wył.'}`, () => {
+      save.shareStats = !save.shareStats;
+      writeSave(save);
+      this.redraw({ mode: null });
+    }, 'secondary', true);
     const value = (key) => this.fields[key]?.value.trim() ?? '';
 
     add(this.add.text(cx, y, 'Konto', font(a.titleFontSize, { fontStyle: 'bold', color: '#ffc400' })).setOrigin(0.5, 0));
@@ -76,6 +83,7 @@ export default class AccountScene extends Phaser.Scene {
       btn('Zaloguj e-mailem', () => this.redraw({ mode: 'email' }), 'primary', true);
       if (googleWorks) btn('Zaloguj przez Google', () => signInGoogle());
       else text('Logowanie przez Google nie działa w grze uruchomionej z ekranu początkowego iPhone’a. Użyj e-maila albo otwórz grę w Safari.', a.dimColor, a.smallFontSize);
+      shareStats();
       btn('Polityka prywatności', privacy, 'secondary', true);
     } else if (!online.nick || this.mode === 'nick') {
       text(`Wybierz nick: ${config.online.nickMin}-${config.online.nickMax} znaków, litery, cyfry i _. Widzą go inni gracze.`);
@@ -110,6 +118,7 @@ export default class AccountScene extends Phaser.Scene {
       btn('Zmień nick', () => this.redraw({ mode: 'nick' }), 'secondary', true);
       btn('Wyloguj', () => signOut());
       btn('Usuń konto', () => this.redraw({ mode: 'delete' }), 'secondary', true);
+      shareStats();
       btn('Polityka prywatności', privacy, 'secondary', true);
     }
     if (this.message) text(this.message, this.ok ? a.okColor : a.errorColor, a.smallFontSize);

@@ -7,6 +7,7 @@ rules_version = '2';
 //   saves/{uid}   { data, updatedAt }             the player's progress, only theirs
 //   scores/{uid}  { nick, score, kills, map, stage, overtimeMs, cleared, difficulty, timeMs, at }
 //                 the player's best run: the leaderboard, readable by everyone
+//   runs/{auto}   one finished run, anonymous: balancing stats, written by the game, read only in the console
 // Everything else is closed.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -55,6 +56,25 @@ service cloud.firestore {
         && validNick(request.resource.data.nick)
         && key == request.resource.data.nick.lower();
       allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Anyone may add a run (no account needed), nobody may read, change or delete one from the game. The checks keep
+    // the entries small and in shape.
+    function validRun(d) {
+      return d.keys().hasOnly(['v', 'map', 'difficulty', 'plan', 'won', 'quit', 'cleared', 'stage', 'stagesCleared', 'overtimeMs',
+          'timeMs', 'level', 'kills', 'score', 'bosses', 'protein', 'damageTaken', 'pressure', 'weapons', 'passives', 'items',
+          'upgrades', 'runsPlayed', 'touch', 'orientation', 'at'])
+        && d.v is int && d.map is string && d.map.size() <= 32 && (d.plan == null || (d.plan is string && d.plan.size() <= 32))
+        && d.difficulty is int && d.stage is int && d.level is int && d.kills is int && d.score is int
+        && d.timeMs is int && d.timeMs >= 0 && d.timeMs <= 21600000
+        && d.won is bool && d.quit is bool && d.cleared is bool && d.touch is bool
+        && d.weapons is list && d.weapons.size() <= 20 && d.passives is list && d.passives.size() <= 20
+        && d.items is map && d.items.size() <= 60 && d.upgrades is map && d.upgrades.size() <= 60
+        && d.orientation in ['portrait', 'landscape'] && d.at == request.time;
+    }
+
+    match /runs/{id} {
+      allow create: if validRun(request.resource.data);
     }
 
     match /scores/{uid} {

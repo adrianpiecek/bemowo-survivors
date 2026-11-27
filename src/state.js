@@ -177,7 +177,7 @@ const SAVE_KEY = 'bemowo-survivors-save-v1';
 const SAVE_VERSION = 1;
 
 function freshSave() {
-  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, uiScale: 1, menuScale: 1, cameraZoom: 1, orientation: 'portrait', orientationSet: false, evolutions: [], runsPlayed: 0, stats: freshStats(),
+  return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, uiScale: 1, menuScale: 1, cameraZoom: 1, orientation: 'portrait', orientationSet: false, shareStats: true, evolutions: [], runsPlayed: 0, stats: freshStats(),
     bets: {}, // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
     difficulty: {}, // map id -> { max, picked }: difficulty levels open and picked (data/maps.js)
     bestiary: {} }; // enemy type id -> kills over all runs (BestiaryScene)
@@ -217,6 +217,7 @@ export function parseSave(d) {
   for (const k of ['musicVolume', 'sfxVolume']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], 0, 1);
   for (const k of ['uiScale', 'menuScale', 'cameraZoom']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], config.ui.settings[k].min, config.ui.settings[k].max);
   if (d.orientation === 'landscape') s.orientation = 'landscape';
+  if (d.shareStats === false) s.shareStats = false; // anonymous run stats (systems/online.js), off in Konto
   if (Array.isArray(d.evolutions)) s.evolutions = d.evolutions.filter((id) => typeof id === 'string');
   if (isObject(d.stats)) for (const k of Object.keys(s.stats)) if (Number.isFinite(d.stats[k]) && d.stats[k] >= 0) s.stats[k] = d.stats[k];
   if (Number.isInteger(d.runsPlayed) && d.runsPlayed >= 0) s.runsPlayed = d.runsPlayed;
@@ -233,7 +234,7 @@ export function parseSave(d) {
 export function resetProgress() { replaceProgress(freshSave()); }
 
 // This device's own settings (sound, screen): not progress, so "Nowa gra" and a save from the cloud keep them.
-const DEVICE_KEYS = ['muted', 'musicVolume', 'sfxVolume', 'uiScale', 'menuScale', 'cameraZoom', 'orientation', 'orientationSet'];
+const DEVICE_KEYS = ['muted', 'musicVolume', 'sfxVolume', 'uiScale', 'menuScale', 'cameraZoom', 'orientation', 'orientationSet', 'shareStats'];
 
 // The progress part of a save, as the cloud keeps it.
 export function progressOf(s) {

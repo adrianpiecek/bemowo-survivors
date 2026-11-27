@@ -9,7 +9,7 @@ import { startRun } from './PlanScene.js';
 import { unlockedByBets } from '../data/bets.js';
 import { button, font, drawPanel, drawBar } from '../systems/ui.js';
 import { playVfx } from '../systems/vfx.js';
-import { submitScore } from '../systems/online.js';
+import { submitScore, sendRunStats } from '../systems/online.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
@@ -51,6 +51,7 @@ export default class GameOverScene extends Phaser.Scene {
     this.newEvolutions = weapons.map((d) => d.evolution).filter((e) => e && r.evolutions.includes(e.id) && !save.evolutions.includes(e.id));
     for (const e of this.newEvolutions) save.evolutions.push(e.id);
     writeSave(save);
+    sendRunStats(r, this.won, this.quit, this.earned);
     stopMusic();
   }
 
