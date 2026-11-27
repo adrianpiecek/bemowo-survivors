@@ -1,6 +1,8 @@
 export const config = {
-  game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
-  version: 94, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
+  // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
+  game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
+  version: 95, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -760,7 +762,7 @@ export const config = {
           fontSize: 28, betsFontSize: 22, smallFontSize: 22, iconSize: 32, iconPad: 14 },
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30, top: 96, rowHeight: 126, rowGap: 8, bartekHeight: 90,
-          descFontSize: 17, shortFontSize: 16,
+          descFontSize: 17, shortFontSize: 16, quoteFontSize: 20, definitionFontSize: 18,
           iconSize: 56, nameFontSize: 24, costFontSize: 22, costIconSize: 24, buyWidth: 140, buyHeight: 50, buyFontSize: 22, pagerHeight: 50, pagerButton: 70, pagerFontSize: 22, pagerGap: 12 },
       },
     },

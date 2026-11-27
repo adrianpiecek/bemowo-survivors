@@ -1324,6 +1324,27 @@ Poziom zostaje bez zmian: zmienione klucze mają w `layouts.landscape` swoje sta
   - w konsoli tylko znane błędy 404.
 - **Czeka:** czarne pasy. W pionie na telefonie 9:19,5 gra traci około 18% wysokości. Ich wykorzystanie (`Scale.EXPAND`) dałoby więcej miejsca na większy tekst bez kolejnych stron.
 
+### 71. Bez czarnych pasów w pionie (krok 95)
+
+- **Wyższa gra na wysokim telefonie.** W pionie gra ma 720 px szerokości, a wysokość odpowiada kształtowi ekranu: od 1280 do `game.maxHeight` (1600). Liczy ją `gameHeight()` w `systems/layout.js`. Na telefonie 375×812 to 1559 px, więc pasów nad i pod grą nie ma. Rozmiar się nie zmienia:
+  - w poziomie;
+  - w pionie w szerokim oknie (komputer), tam pasy po bokach zostają.
+- **Ekrany korzystają z dodatkowego miejsca:**
+  - siłownia, wyzwania i bestiariusz mieszczą więcej wierszy na stronę (siłownia 7 zamiast 6, bestiariusz 13 zamiast 10);
+  - okna, karty i przyciski przy dolnej krawędzi układają się względem wysokości ekranu, jak wcześniej;
+  - menu, ekran końca rundy i logo tytułu są ułożone pod 1280 px, więc stoją na środku ekranu (`centerLayout` / `extraHeight`).
+- **Zmiana kształtu okna** (telefon przechodzi na pełny ekran, obrót, zmiana rozmiaru okna):
+  - nowa wysokość wchodzi po `game.resizeMs` bez ruchu, a ekrany na wierzchu rysują się od nowa;
+  - w trakcie rundy i na ekranie końca rundy czeka, aż się skończą, bo runda buduje świat raz, a ekran końca liczy rundę w `init`;
+  - tytuł nie zaczyna się od nowa.
+- **Wrogowie dalej rodzą się poza ekranem.** Pierścień spawnu rośnie z przekątną ekranu (`offscreenMult` w `GameScene`). Dziura Awarii prądu liczona jest dla rozmiaru tego ekranu.
+- **W poziomie** cytat Bartka w menu ma znów 20/18 px. Powiększenie z kroku 94 dosuwało definicję do przycisków.
+- **Sprawdzone w przeglądarce:**
+  - na telefonie 375×812 gra ma 1559 px: tytuł, menu, siłownia, bestiariusz, runda z HUD, ekran końca (test nic nie wysłał do bazy);
+  - po zmianie okna na 375×700 na ekranie końca wysokość zmieniła się na 1344 dopiero po przejściu do menu;
+  - pion w szerokim oknie ma 1280, poziom 1280×720;
+  - w konsoli tylko znane błędy 404.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

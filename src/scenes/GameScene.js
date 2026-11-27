@@ -1082,9 +1082,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // A random point on the spawn ring around Bartek (during Chorda nadchodzi only on its side).
-  // How much farther than usual things must start to stay off screen: more than 1 only with the camera zoomed out.
+  // How much farther than usual things must start to stay off screen: more than 1 with the camera zoomed out or on a
+  // screen taller than config's (the spawn ring is sized for config's diagonal).
   offscreenMult() {
-    return Math.max(1, 1 / this.cameras.main.zoom);
+    const { width, height } = this.scale, g = config.game;
+    return Math.max(1, Math.hypot(width, height) / Math.hypot(g.width, g.height) / this.cameras.main.zoom);
   }
 
   ringPoint() {

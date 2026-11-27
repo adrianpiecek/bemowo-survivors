@@ -10,6 +10,7 @@ import { unlockedByBets } from '../data/bets.js';
 import { button, font, drawPanel, drawBar } from '../systems/ui.js';
 import { playVfx } from '../systems/vfx.js';
 import { submitScore, sendRunStats } from '../systems/online.js';
+import { centerLayout } from '../systems/layout.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
@@ -159,5 +160,6 @@ export default class GameOverScene extends Phaser.Scene {
         this.tweens.add({ targets: btn, scale: u.gymPulse.scale, duration: u.gymPulse.ms, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
     }
+    centerLayout(this); // a taller phone: the whole screen in the middle
   }
 }

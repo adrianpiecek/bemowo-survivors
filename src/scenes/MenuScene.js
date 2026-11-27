@@ -6,6 +6,7 @@ import { openSettings } from './SettingsScene.js';
 import { startRun } from './PlanScene.js';
 import { betsOpen, betSum } from '../data/bets.js';
 import { online, onOnlineChange } from '../systems/online.js';
+import { centerLayout } from '../systems/layout.js';
 
 // The main menu between runs (after the title and after every run): the protein, one button per place, and Bartek with a
 // quote. The gym itself (GymScene) only sells upgrades now. Wyzwania, Statystyki, Bestiariusz and Zakłady z Unc open over
@@ -72,6 +73,7 @@ export default class MenuScene extends Phaser.Scene {
     // Which build is on this device (GitHub Pages and the phone cache it): bottom right corner.
     const vx = width - mn.versionMargin, vy = height - mn.versionMargin; // 'corner': kept there at any Wielkość menu
     this.add.text(vx, vy, `v0.${config.version}`, font(mn.versionFontSize, { color: mn.versionColor })).setOrigin(1, 1).setData('corner', [vx, vy]);
+    centerLayout(this); // a taller phone: the whole menu in the middle
     this.input.keyboard.once('keydown-ENTER', () => startRun(this));
     this.input.keyboard.on('keydown-ESC', () => openSettings(this));
     // A login or a save taken from the cloud while the menu shows: draw it again (nick on the button, protein).

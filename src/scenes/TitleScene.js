@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
-import { setOrientation } from '../systems/layout.js';
+import { setOrientation, extraHeight } from '../systems/layout.js';
 import { playSfx, playMusic } from '../systems/audio.js';
 import { font, button } from '../systems/ui.js';
 
@@ -75,13 +75,13 @@ export default class TitleScene extends Phaser.Scene {
     this.time.delayedCall(t.skipDelayMs, () => this.onFirstInput(() => this.leave())); // not the tap that started it
     const bemowo = logo('BEMOWO', t.bemowoColor).setY(-t.logoFontSize);
     this.tweens.add({
-      targets: bemowo, y: t.bemowoY, duration: t.dropMs, ease: 'Quad.easeIn',
+      targets: bemowo, y: t.bemowoY + extraHeight(this), duration: t.dropMs, ease: 'Quad.easeIn',
       onComplete: () => {
         this.hit();
         this.time.delayedCall(t.gapMs, () => {
           const survivors = logo('SURVIVORS', t.survivorsColor).setY(height + t.logoFontSize);
           this.tweens.add({
-            targets: survivors, y: t.survivorsY, duration: t.dropMs, ease: 'Quad.easeIn',
+            targets: survivors, y: t.survivorsY + extraHeight(this), duration: t.dropMs, ease: 'Quad.easeIn',
             onComplete: () => {
               this.hit();
               this.ready();

@@ -16,13 +16,51 @@ export function applyLayout() {
   merge(config, layouts[save.orientation]);
 }
 
+// The game's height: config's, or in portrait on a screen taller than 9:16 as tall as the screen's shape (up to maxHeight),
+// so a phone shows no black bars above and below. Screens lay out against scale.height; fixed layouts use extraHeight.
+export function gameHeight() {
+  const g = config.game;
+  if (save.orientation !== 'portrait') return g.height;
+  return Phaser.Math.Clamp(Math.round(g.width * innerHeight / innerWidth), g.height, g.maxHeight);
+}
+
+// Half of what the screen has over config's height: a layout made for config's height moves down by it to the middle.
+export const extraHeight = (scene) => (scene.scale.height - config.game.height) / 2;
+
+// Moves every object of `scene` but 'corner' ones down by extraHeight (a layout made for config's height, in the middle).
+export function centerLayout(scene) {
+  const dy = extraHeight(scene);
+  if (dy) for (const o of scene.children.list) if (!o.getData?.('corner')) o.y += dy;
+}
+
 // Switches the orientation for good: config, game size, then `scene` (not a run: GameScene builds its world once) restarts.
 export function setOrientation(scene, orientation) {
   save.orientation = orientation;
   writeSave(save);
   applyLayout();
-  scene.scale.setGameSize(config.game.width, config.game.height);
+  scene.scale.setGameSize(config.game.width, gameHeight());
   scene.scene.restart();
+}
+
+// The window changed shape (a phone going full screen, a turn, a resized window): the new height once it stays still.
+// Not during a run or its end screen (GameScene builds its world once, GameOverScene counts the run in init): it waits
+// until they are gone. The screens on show then restart, but not the title (it goes on to the menu by itself).
+export function watchScreenHeight(game) {
+  let timer, pending = false;
+  const busy = () => ['GameScene', 'GameOverScene'].some((k) => game.scene.isActive(k) || game.scene.isPaused(k));
+  const apply = () => {
+    pending = false;
+    const h = gameHeight();
+    if (h === game.scale.height) return;
+    if (busy()) { pending = true; return; }
+    game.scale.setGameSize(config.game.width, h);
+    for (const s of game.scene.getScenes(true)) if (!['BootScene', 'TitleScene'].includes(s.sys.settings.key)) s.scene.restart();
+  };
+  addEventListener('resize', () => {
+    clearTimeout(timer);
+    timer = setTimeout(apply, config.game.resizeMs);
+  });
+  game.events.on('step', () => { if (pending && !busy()) apply(); });
 }
 
 // Wielkość menu (save.menuScale): every screen but the run (GameScene, its HUD in UIScene, sized by uiScale), the loading,

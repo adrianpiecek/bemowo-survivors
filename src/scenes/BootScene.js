@@ -177,8 +177,8 @@ export default class BootScene extends Phaser.Scene {
     g.generateTexture('portal', pt.size, pt.size).clear();
 
     // Awaria prądu: black with a soft see-through hole in the middle. GameScene stretches it over the screen's diagonal,
-    // so the hole's radius is worked out against that (the same in portrait and landscape).
-    const bo = config.events.blackout, ds = bo.textureSize, cover = Math.hypot(config.game.width, config.game.height) / 2;
+    // so the hole's radius is worked out against that (the same in portrait and landscape; a taller phone's own screen).
+    const bo = config.events.blackout, ds = bo.textureSize, cover = Math.hypot(this.scale.width, this.scale.height) / 2;
     const dark = this.textures.createCanvas('darkness', ds, ds), ctx = dark.getContext();
     const grad = ctx.createRadialGradient(ds / 2, ds / 2, (ds / 2) * (bo.holeRadius / cover), ds / 2, ds / 2, (ds / 2) * ((bo.holeRadius + bo.edge) / cover));
     grad.addColorStop(0, 'rgba(0, 0, 0, 0)');

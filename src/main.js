@@ -1,6 +1,6 @@
 import { config } from './config.js';
 import { toggleMute } from './systems/audio.js';
-import { applyLayout, watchMenuScale } from './systems/layout.js';
+import { applyLayout, gameHeight, watchMenuScale, watchScreenHeight } from './systems/layout.js';
 import TitleScene from './scenes/TitleScene.js';
 import BootScene from './scenes/BootScene.js';
 import GameScene from './scenes/GameScene.js';
@@ -28,7 +28,7 @@ applyLayout(); // portrait or landscape from the save, before the game size is r
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   width: config.game.width,
-  height: config.game.height,
+  height: gameHeight(), // taller than config's on a long phone in portrait
   backgroundColor: config.game.background,
   scale: { parent: 'game', mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { debug: false } },
@@ -50,7 +50,8 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyM' && !e.repeat && !(e.target instanceof HTMLInputElement)) toggleMute(game); // not while typing a nick
 });
 
-// Portrait or landscape as chosen in the settings; Scale.FIT puts black bars where the window has another shape, no rotation is forced.
+// Portrait or landscape as chosen in the settings; Scale.FIT puts black bars where the window has another shape (portrait
+// grows taller first, layout.js gameHeight), no rotation is forced.
 // Android: the first touch goes full screen. iPhone Safari has no full screen API, so this is skipped there.
 addEventListener('pointerdown', function goFullscreen(e) {
   if (e.pointerType !== 'touch') return;
@@ -62,4 +63,7 @@ addEventListener('pointerdown', function goFullscreen(e) {
 setTimeout(initOnline, config.online.startDelayMs);
 
 // Wielkość menu on every screen outside the run, from the first one on.
-game.events.once('ready', () => watchMenuScale(game));
+game.events.once('ready', () => {
+  watchMenuScale(game);
+  watchScreenHeight(game);
+});
