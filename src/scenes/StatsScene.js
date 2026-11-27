@@ -55,10 +55,6 @@ export default class StatsScene extends Phaser.Scene {
       add(this.add.text(rx + colW - c.inner, ry + c.rowHeight / 2, String(value), font(c.fontSize, { fontStyle: 'bold' })).setOrigin(1, 0.5));
     });
     y += perCol * c.rowHeight + c.gap;
-    // The counters added in step 49 start at zero for an older save.
-    const hint = add(this.add.text(cx, y, 'Czas gry, zabici, bossowie, białko i rekordy liczą się od wersji z tym oknem.',
-      font(c.hintFontSize, { color: c.labelColor, align: 'center', wordWrap: { width: c.width - c.padding * 2 } })).setOrigin(0.5, 0));
-    y += hint.height + c.gap;
 
     add(button(this, cx, y + c.backHeight / 2, 'Wróć', () => this.close(), { width: c.backWidth, height: c.backHeight, fontSize: c.backFontSize, variant: 'secondary' }));
     y += c.backHeight + c.padding;

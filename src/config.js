@@ -1,6 +1,6 @@
 export const config = {
   game: { width: 720, height: 1280, background: '#000000' }, // portrait (the default); landscape sizes are in `layouts`
-  version: 92, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 93, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -701,7 +701,7 @@ export const config = {
       detailFontSize: 18, textFontSize: 18, nickX: 0.1, mapX: 0.44, stripeAlpha: 0.06, mineColor: 0xffc400, mineAlpha: 0.18,
       dimColor: '#b0bec5', errorColor: '#ff8a80', backWidth: 280, backHeight: 60, backFontSize: 26 },
     stats: { width: 640, columns: 1, columnGap: 0, padding: 22, inner: 12, gap: 14, titleFontSize: 44, rowHeight: 40, fontSize: 21,
-      stripeAlpha: 0.06, labelColor: '#b0bec5', hintFontSize: 18, backWidth: 240, backHeight: 60, backFontSize: 26 },
+      stripeAlpha: 0.06, labelColor: '#b0bec5', backWidth: 240, backHeight: 60, backFontSize: 26 },
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
     // done ones with a doneColor frame; a locked one's icon at lockedAlpha.
     // More rows than fit on the screen (margin px from its top and bottom): pages, "<  Strona 1/2  >" under the rows.
@@ -745,7 +745,7 @@ export const config = {
           rowHeight: 58, rowGap: 5, iconSize: 44, nameFontSize: 17, descFontSize: 16, backHeight: 50 },
         leaderboard: { width: 900, count: 10, padding: 14, gap: 6, titleFontSize: 34, rowHeight: 34, fontSize: 18, detailFontSize: 16, textFontSize: 16,
           backHeight: 50, backFontSize: 22 },
-        stats: { width: 1000, columns: 2, columnGap: 24, padding: 16, gap: 10, titleFontSize: 34, rowHeight: 36, fontSize: 17, hintFontSize: 16, backHeight: 52 },
+        stats: { width: 1000, columns: 2, columnGap: 24, padding: 16, gap: 10, titleFontSize: 34, rowHeight: 36, fontSize: 17, backHeight: 52 },
         challenges: { width: 1220, columns: 2, columnGap: 14, padding: 16, gap: 8, titleFontSize: 34, textFontSize: 16,
           rowHeight: 64, rowGap: 6, iconSize: 40, nameFontSize: 18, descFontSize: 16, backHeight: 52 },
         menu: { titleY: 24, titleFontSize: 52, top: 190, columnX: 0.72, width: 440, gap: 12, goHeight: 80, goFontSize: 36, height: 60,

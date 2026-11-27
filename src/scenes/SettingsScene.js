@@ -31,19 +31,20 @@ export default class SettingsScene extends Phaser.Scene {
 
   create() {
     const u = config.ui, st = u.settings, { width, height } = this.scale, cx = width / 2;
-    // [label, save key, min, max, what a change does]. The view rows apply at once in a run too.
+    const inRun = this.from === 'GameScene';
+    // [label, save key, min, max, what a change does]. The view rows apply at once in a run too; Wielkość menu only outside one
+    // (no menu to see it on in a run).
     const rows = [
       ['Muzyka', 'musicVolume', 0, 1, (v) => setVolume('musicVolume', v)],
       ['Efekty dźwiękowe', 'sfxVolume', 0, 1, (v) => { setVolume('sfxVolume', v); playSfx(this, 'pick'); }], // hear the new level
       ['Wielkość interfejsu w grze', 'uiScale', st.uiScale.min, st.uiScale.max, (v) => this.setView('uiScale', v)],
       ['Wielkość menu', 'menuScale', st.menuScale.min, st.menuScale.max, (v) => this.setView('menuScale', v)],
       ['Przybliżenie kamery', 'cameraZoom', st.cameraZoom.min, st.cameraZoom.max, (v) => this.setView('cameraZoom', v)],
-    ];
+    ].filter(([, kind]) => !(inRun && kind === 'menuScale'));
     const panelH = st.padding * 4 + st.titleFontSize * 1.2 + (rows.length + 1) * st.rowHeight + st.actionHeight + st.backHeight + st.hintFontSize * 2;
     const x0 = cx - st.width / 2, y0 = (height - panelH) / 2;
     dim(this).setInteractive(); // swallows taps meant for the HUD below
     panel(this, x0, y0, st.width, panelH);
-    const inRun = this.from === 'GameScene';
     this.add.text(cx, y0 + st.padding, inRun ? 'Pauza' : 'Ustawienia', font(st.titleFontSize, { fontStyle: 'bold', color: '#ffc400' })).setOrigin(0.5, 0);
 
     // One row per setting: the label above, then [-] bar [+] and the percent.

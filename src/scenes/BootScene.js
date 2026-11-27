@@ -544,6 +544,15 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.accent).fillPoints(star, true);
     g.lineStyle(2, ic.outline).strokePoints(star, true);
     g.generateTexture('icon_ranking', s, s).clear();
+    // Mapa (Wyzwania): a map folded in three, a red pin on it.
+    const fx = [0.08, 0.36, 0.64, 0.92].map((v) => v * s), fy = [0.12, 0.2, 0.12, 0.2].map((v) => v * s), fh = s * 0.68;
+    for (let i = 0; i < 3; i++) {
+      g.fillStyle(i % 2 ? ic.grid : ic.page).fillPoints([{ x: fx[i], y: fy[i] }, { x: fx[i + 1], y: fy[i + 1] }, { x: fx[i + 1], y: fy[i + 1] + fh }, { x: fx[i], y: fy[i] + fh }], true);
+    }
+    g.lineStyle(2, ic.outline).strokePoints([...fx.map((x, i) => ({ x, y: fy[i] })), ...fx.map((x, i) => ({ x, y: fy[i] + fh })).reverse()], true);
+    g.fillStyle(ic.heart).fillCircle(s * 0.5, s * 0.42, s * 0.1).fillTriangle(s * 0.41, s * 0.46, s * 0.59, s * 0.46, s * 0.5, s * 0.66);
+    g.fillStyle(0xffffff).fillCircle(s * 0.5, s * 0.42, s * 0.04);
+    g.generateTexture('icon_map', s, s).clear();
 
     this.drawPassiveIcons(g);
   }

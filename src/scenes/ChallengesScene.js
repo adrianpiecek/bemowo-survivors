@@ -9,7 +9,8 @@ import { font, panel, drawPanel, button, dim } from '../systems/ui.js';
 // Wyzwania over the paused gym: every weapon, passive and plan with an unlock condition (data files' `unlock.text`),
 // done ones (in save.unlocks) with a green frame. More than fit on the screen: pages ("<  Strona 1/2  >", arrow keys), so
 // Wróć always shows. Wróć, Esc or Enter restart the menu under it.
-const kinds = [['Broń', weapons], ['Pasywka', passives], ['Plan', plans], ['Mapa', maps]];
+// [label, defs, icon for defs without their own]: plans get the gym's calendar, maps a folded map.
+const kinds = [['Broń', weapons], ['Pasywka', passives], ['Plan', plans, 'gym_plan'], ['Mapa', maps, 'icon_map']];
 
 export default class ChallengesScene extends Phaser.Scene {
   constructor() { super('ChallengesScene'); }
@@ -21,7 +22,7 @@ export default class ChallengesScene extends Phaser.Scene {
 
   create() {
     const u = config.ui, c = u.challenges, { width, height } = this.scale, cx = width / 2;
-    const list = kinds.flatMap(([kind, defs]) => defs.filter((d) => d.unlock).map((def) => ({ kind, def, done: save.unlocks.includes(def.id) })));
+    const list = kinds.flatMap(([kind, defs, icon]) => defs.filter((d) => d.unlock).map((def) => ({ kind, def, icon: def.icon ?? icon, done: save.unlocks.includes(def.id) })));
     const rowW = (c.width - c.padding * 2 - (c.columns - 1) * c.columnGap) / c.columns;
     const x0 = cx - c.width / 2;
     dim(this).setInteractive(); // swallows taps for the gym below
@@ -47,11 +48,10 @@ export default class ChallengesScene extends Phaser.Scene {
     this.page = Phaser.Math.Clamp(this.page, 0, pages - 1);
     const shown = list.slice(this.page * perPage, (this.page + 1) * perPage);
 
-    shown.forEach(({ kind, def, done }, i) => {
+    shown.forEach(({ kind, def, icon, done }, i) => {
       const rx = x0 + c.padding + (i % c.columns) * (rowW + c.columnGap), ry = y + Math.floor(i / c.columns) * step;
       add(panel(this, rx, ry, rowW, c.rowHeight, done ? { borderColor: c.doneColor, borderAlpha: 1 } : {}));
-      // Weapons and passives have an icon; plans none, their text starts in the same column anyway.
-      if (def.icon) add(this.add.image(rx + c.inner + c.iconSize / 2, ry + c.rowHeight / 2, def.icon).setDisplaySize(c.iconSize, c.iconSize).setAlpha(done ? 1 : c.lockedAlpha));
+      if (icon) add(this.add.image(rx + c.inner + c.iconSize / 2, ry + c.rowHeight / 2, icon).setDisplaySize(c.iconSize, c.iconSize).setAlpha(done ? 1 : c.lockedAlpha));
       const tx = rx + c.inner * 2 + c.iconSize, textW = rx + rowW - c.inner - tx;
       const name = add(this.add.text(tx, 0, `${kind}: ${def.name}`, font(c.nameFontSize, { fontStyle: 'bold', color: done ? '#ffffff' : c.lockedColor })));
       const what = add(this.add.text(tx, 0, done ? `Zrobione: ${def.unlock.text}` : def.unlock.text,

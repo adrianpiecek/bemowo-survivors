@@ -1281,6 +1281,20 @@ Przegląd wszystkich ekranów w przeglądarce (telefon w pionie 375×812 i w poz
   - w konsoli tylko znane błędy 404.
 - **Czekają:** czarne pasy, podgląd mapy na karcie, drobne uwagi z przeglądu.
 
+### 69. Drobne poprawki z przeglądu UI (krok 93)
+
+- **Wiadomości o odblokowaniach na ekranie końca rundy** (nowa broń, pasywka, plan, mapa, poziom trudności, ewolucja) stoją nad panelem z wynikami, pod tytułem i planem. Wcześniej były pod przyciskami i łatwo je było przeoczyć.
+- **Statystyki** nie mają już nieaktualnej notki „…liczą się od wersji z tym oknem”.
+- **Bestiariusz** wyjaśnia pomarańczowe ramki: „Pomarańczowa ramka: boss.” obok liczby pokonanych rodzajów.
+- **Wyzwania:** plany mają ikonę kalendarza z siłowni (`gym_plan`), a mapy nową ikonę złożonej mapy z pinezką (`icon_map`, rysowaną w `BootScene`). Ikona pochodzi z danych, a gdy jej nie ma, z rodzaju wyzwania.
+- **Pauza** w rundzie nie ma suwaka „Wielkość menu”, bo w rundzie nie ma menu, na którym byłoby go widać. Zostaje w ustawieniach z menu.
+- **Ikona Tarczy Kapitana zostaje.** Przypomina monetę B, ale to rysunek autora (`captain_shield.png` z plikiem `.aseprite`). Zmienić ją można tylko w Aseprite.
+- **Sprawdzone w przeglądarce (pion):**
+  - wyzwania, strona 2 z ikonami;
+  - ekran końca rundy z dwiema wiadomościami nad panelem; test nic nie wysłał do bazy;
+  - bestiariusz, statystyki, pauza w rundzie;
+  - w konsoli tylko znane błędy 404.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

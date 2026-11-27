@@ -78,6 +78,26 @@ export default class GameOverScene extends Phaser.Scene {
       const p = this.add.text(cx, y, `Plan: ${r.plan.name}`, font(ps.gameOverFontSize, { color: ps.gameOverColor })).setOrigin(0.5, 0);
       y += p.height + go.gap;
     }
+    // Weapons and passives unlocked by this run (from now on they can drop as cards) and evolutions seen for the first
+    // time: above the panel, so they are seen before the buttons.
+    const lines = [], newPlans = this.newUnlocks.filter((d) => plans.includes(d)), newMaps = this.newUnlocks.filter((d) => maps.includes(d));
+    const newCards = this.newUnlocks.filter((d) => !plans.includes(d) && !maps.includes(d));
+    if (newCards.length) {
+      lines.push(`Odblokowane: ${newCards.map((d) => d.name).join(', ')}! ${newCards.length > 1 ? 'Mogą teraz wypaść jako karty.' : 'Może teraz wypaść jako karta.'}`);
+    }
+    if (newPlans.length) lines.push(`Nowy plan treningowy: ${newPlans.map((d) => d.name).join(', ')}!`);
+    if (newMaps.length) lines.push(`Nowa mapa: ${newMaps.map((d) => d.name).join(', ')}! Wybierzesz ją przed rundą.`);
+    if (this.newLevel) {
+      lines.push(`Nowy poziom trudności: ${mapById(r.map).name} ${this.newLevel} (+${Math.round(config.difficulty.proteinPct * (this.newLevel - 1) * 100)}% białka)!`);
+    }
+    if (this.newEvolutions.length) lines.push(`Nowa ewolucja: ${this.newEvolutions.map((e) => e.name).join(', ')}!`);
+    if (lines.length) {
+      const news = this.add.text(cx, y, lines.join('\n'), {
+        fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, fontStyle: 'bold', color: '#ffc400',
+        align: 'center', wordWrap: { width: this.scale.width - 2 * u.margin },
+      }).setOrigin(0.5, 0);
+      y += news.height + go.gap;
+    }
 
     // The panel: the run's numbers, then every weapon's damage, the best one first.
     const x0 = cx - go.panelWidth / 2, inner = go.panelWidth - go.padding * 2, bg = this.add.graphics(), top = y;
@@ -138,24 +158,6 @@ export default class GameOverScene extends Phaser.Scene {
       if (scene === 'MenuScene' && save.runsPlayed === 1) {
         this.tweens.add({ targets: btn, scale: u.gymPulse.scale, duration: u.gymPulse.ms, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
-    }
-    // Weapons and passives unlocked by this run (from now on they can drop as cards) and evolutions seen for the first time.
-    const lines = [], newPlans = this.newUnlocks.filter((d) => plans.includes(d)), newMaps = this.newUnlocks.filter((d) => maps.includes(d));
-    const newCards = this.newUnlocks.filter((d) => !plans.includes(d) && !maps.includes(d));
-    if (newCards.length) {
-      lines.push(`Odblokowane: ${newCards.map((d) => d.name).join(', ')}! ${newCards.length > 1 ? 'Mogą teraz wypaść jako karty.' : 'Może teraz wypaść jako karta.'}`);
-    }
-    if (newPlans.length) lines.push(`Nowy plan treningowy: ${newPlans.map((d) => d.name).join(', ')}!`);
-    if (newMaps.length) lines.push(`Nowa mapa: ${newMaps.map((d) => d.name).join(', ')}! Wybierzesz ją przed rundą.`);
-    if (this.newLevel) {
-      lines.push(`Nowy poziom trudności: ${mapById(r.map).name} ${this.newLevel} (+${Math.round(config.difficulty.proteinPct * (this.newLevel - 1) * 100)}% białka)!`);
-    }
-    if (this.newEvolutions.length) lines.push(`Nowa ewolucja: ${this.newEvolutions.map((e) => e.name).join(', ')}!`);
-    if (lines.length) {
-      this.add.text(cx, y + go.buttonsGap, lines.join('\n'), {
-        fontFamily: config.ui.font, fontSize: `${u.hudFontSize}px`, fontStyle: 'bold', color: '#ffc400',
-        align: 'center', wordWrap: { width: this.scale.width - 2 * u.margin },
-      }).setOrigin(0.5, 0);
     }
   }
 }

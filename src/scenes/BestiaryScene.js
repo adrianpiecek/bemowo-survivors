@@ -28,7 +28,7 @@ export default class BestiaryScene extends Phaser.Scene {
     const title = add(this.add.text(cx, y, 'Bestiariusz', font(c.titleFontSize, { fontStyle: 'bold', color: '#ffc400' })).setOrigin(0.5, 0));
     y += title.height + c.gap / 2;
     const known = enemies.filter((d) => save.bestiary[d.id]).length;
-    const intro = add(this.add.text(cx, y, `Pokonane rodzaje: ${known}/${enemies.length}`, font(c.textFontSize, { color: c.dimColor })).setOrigin(0.5, 0));
+    const intro = add(this.add.text(cx, y, `Pokonane rodzaje: ${known}/${enemies.length}. Pomarańczowa ramka: boss.`, font(c.textFontSize, { color: c.dimColor })).setOrigin(0.5, 0));
     y += intro.height + c.gap;
 
     enemies.forEach((d, i) => {
