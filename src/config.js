@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 104, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 105, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -341,7 +341,7 @@ export const config = {
   // (up to `cards` items to clone) if Bartek has two different items of one rarity; else a banner says what it needs.
   // A tree used for a clone is gone for the run.
   cloneTrees: { chance: 0.06, width: 96, height: 128, touchRadius: 60, cards: 3, titleY: 150, titleFontSize: 56, textFontSize: 22,
-    titleColor: '#18ffff', buttonBottom: 70, trunk: 0x6d4c41, crown: 0x00e5ff, crownDark: 0x00838f, glow: 0xff4081, sparkle: 0xffffff },
+    titleColor: '#18ffff', costColor: '#ff8a80', buttonBottom: 70, trunk: 0x6d4c41, crown: 0x00e5ff, crownDark: 0x00838f, glow: 0xff4081, sparkle: 0xffffff },
   worldChests: { chance: 0.35, basePrice: 5, growth: 1.3, touchRadius: 40, labelY: 52, labelFontSize: 20, labelIconSize: 20,
     labelGap: 4, labelDepth: 5, affordColor: '#ffffff', poorColor: '#ff5252' },
   // Items (data/items.js): small run-long gains from chests, no slots, no stack limit. An item chest rolls a rarity
@@ -753,6 +753,8 @@ export const config = {
   layouts: {
     landscape: {
       game: { width: 1280, height: 720 },
+      // Klon Bartek: the title and the price lines above the row of cards (they stand in the middle of the low screen).
+      cloneTrees: { titleY: 56, titleFontSize: 44, textFontSize: 18 },
       ui: {
         // Six rows of settings fit the low screen.
         settings: { padding: 16, titleFontSize: 40, labelFontSize: 20, rowHeight: 72, stepButton: 46, backHeight: 56, backFontSize: 26,

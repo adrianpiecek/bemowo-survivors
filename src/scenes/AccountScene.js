@@ -43,8 +43,9 @@ export default class AccountScene extends Phaser.Scene {
       color, align: 'center', wordWrap: { width: inner },
     })).setOrigin(0.5, 0));
     // free: works even while another action waits (Wróć, Wstecz), so a sign-in that never answers cannot lock the window.
-    const btn = (label, onClick, variant = 'secondary', free = false) => add(button(this, cx, y + a.buttonHeight / 2, label,
-      free ? onClick : () => this.run(onClick), { width: inner, height: a.buttonHeight, fontSize: a.buttonFontSize, variant }), a.buttonHeight);
+    // onRelease: a button that opens a window (ui.js button).
+    const btn = (label, onClick, variant = 'secondary', free = false, onRelease = false) => add(button(this, cx, y + a.buttonHeight / 2, label,
+      free ? onClick : () => this.run(onClick), { width: inner, height: a.buttonHeight, fontSize: a.buttonFontSize, variant, onRelease }), a.buttonHeight);
     const field = (key, type, placeholder, onEnter) => {
       objs.push(this.field(key, type, placeholder, cx, y + a.inputHeight / 2, onEnter));
       y += a.inputHeight + a.gap;
@@ -81,10 +82,10 @@ export default class AccountScene extends Phaser.Scene {
       text('Zaloguj się, żeby trzymać postęp w chmurze i grać na kilku urządzeniach.');
       text('Logując się, akceptujesz politykę prywatności. Pokazujemy tylko twój nick, nigdy e-mail.', a.dimColor, a.smallFontSize);
       btn('Zaloguj e-mailem', () => this.redraw({ mode: 'email' }), 'primary', true);
-      if (googleWorks) btn('Zaloguj przez Google', () => signInGoogle());
+      if (googleWorks) btn('Zaloguj przez Google', () => signInGoogle(), 'secondary', false, true);
       else text('Logowanie przez Google nie działa w grze uruchomionej z ekranu początkowego iPhone’a. Użyj e-maila albo otwórz grę w Safari.', a.dimColor, a.smallFontSize);
       shareStats();
-      btn('Polityka prywatności', privacy, 'secondary', true);
+      btn('Polityka prywatności', privacy, 'secondary', true, true);
     } else if (this.mode === 'delete') {
       text('Usunąć konto, nick, wyniki w tabelach i zapis w chmurze? Postęp na tym urządzeniu zostaje. Tego nie da się cofnąć.', a.errorColor);
       const del = async () => {
@@ -122,7 +123,7 @@ export default class AccountScene extends Phaser.Scene {
       btn('Wyloguj', () => signOut());
       btn('Usuń konto', () => this.redraw({ mode: 'delete' }), 'secondary', true);
       shareStats();
-      btn('Polityka prywatności', privacy, 'secondary', true);
+      btn('Polityka prywatności', privacy, 'secondary', true, true);
     }
     if (this.message) text(this.message, this.ok ? a.okColor : a.errorColor, a.smallFontSize);
     btn('Wróć', () => this.close(), 'secondary', true);

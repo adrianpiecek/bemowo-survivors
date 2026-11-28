@@ -1535,6 +1535,28 @@ Zamiast par z kroku 102 („Zombie / Binion” w jednym wierszu) każdy wygląd 
   - bestiariusz w pionie (3 strony) i w poziomie (2 strony): osobne wpisy, „Fort Bema.” w opisach, Wielki Gnom z podpisem o gnomach;
   - w konsoli tylko znane błędy 404.
 
+### 81. Klon Bartek: pasek przedmiotów i jasna cena, Prywatność na telefonie (krok 105)
+
+- **Błąd paska przedmiotów:** po klonowaniu ikona przedmiotu zabranego przez drzewo zostawała na pasku, a reszta przesuwała się w lewo, więc na jednym polu leżały dwie ikony. `UIScene.updateItemHud` usuwa teraz ikonę i licznik przedmiotu, którego Bartek już nie ma. Drzewo to jedyne miejsce, które zabiera przedmioty.
+- **Cena wyraźniej:**
+  - pod tytułem dwie linie: „Wybierz przedmiot: dostaniesz go jeszcze raz.” i, na czerwono (`cloneTrees.costColor`), „Cena: drzewo zabierze inny twój przedmiot tej samej rzadkości (napisany na karcie).”;
+  - na każdej karcie, na czerwono nad „Masz xN”, co drzewo może zabrać: „Zabierze: Skarbonka” albo „Zabierze 1 losowy z: Sterydy, Baton proteinowy, Skarpety frotte”.
+- **W poziomie** tytuł i linie ceny stoją wyżej (`layouts.landscape.cloneTrees`), bo karty w środku niskiego ekranu je zasłaniały (także wcześniej).
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk):**
+  - okno z siedmioma przedmiotami w pionie i w poziomie: linie ceny widać, na kartach właściwe listy;
+  - klon Skarbonki zabrał Paragon z Ropuchy: na pasku 5 ikon na 5 polach, Paragonu nie ma, Skarbonka x2;
+  - w konsoli tylko znane błędy 404.
+- **Prywatność na telefonie (dalej po kroku 103):** prawdziwa przyczyna to chwila otwarcia karty, a nie miejsce napisu. Telefony pozwalają stronie otworzyć nowe okno tylko z zakończonego dotknięcia (puszczenie palca, `touchend`), a gra otwierała politykę już przy dotknięciu ekranu (`touchstart`), więc przeglądarka blokowała okno.
+  - `privacyLink` otwiera politykę przy puszczeniu (po dotknięciu na nim).
+  - Przycisk (`button` w `src/systems/ui.js`) ma opcję `onRelease`: akcja przy puszczeniu zamiast przy dotknięciu. Mają ją „Polityka prywatności” i „Zaloguj przez Google” w Koncie (okno logowania Google blokowało się tak samo). Reszta przycisków działa jak dotąd, przy dotknięciu.
+  - `openPrivacy`: jeśli przeglądarka mimo to zablokuje kartę, polityka otwiera się w tej samej karcie (ma link „Wróć do gry”).
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk, bez logowania):**
+  - dotyk (zdarzenia dotyku na płótnie) na „Prywatność” w menu i na „Polityka prywatności” w Koncie: nic przy `touchstart`, karta otwiera się w `touchend`;
+  - kliknięcie myszą: karta otwiera się przy puszczeniu przycisku;
+  - zablokowana karta: polityka otwiera się w tej samej karcie;
+  - w konsoli tylko znane błędy 404.
+- **Nie sprawdzone:** na prawdziwym telefonie i logowanie przez Google na telefonie.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

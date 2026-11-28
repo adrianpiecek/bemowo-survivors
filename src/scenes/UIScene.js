@@ -278,6 +278,13 @@ export default class UIScene extends Phaser.Scene {
     if (sig === this.itemSig) return;
     this.itemSig = sig;
     const y = this.vh - m - 2 * (wh.size + wh.gap) - ih.size, g = this.itemSlots.clear();
+    // One taken away (the Klon Bartek tree): its icon goes, or the next item would be drawn over it.
+    for (const id of Object.keys(this.itemHud)) {
+      if (this.run.items[id]) continue;
+      this.itemHud[id].icon.destroy();
+      this.itemHud[id].count.destroy();
+      delete this.itemHud[id];
+    }
     owned.forEach(([id, n], i) => {
       const x = m + i * (ih.size + ih.gap);
       drawPanel(g, x, y, ih.size, ih.size);

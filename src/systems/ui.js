@@ -8,12 +8,22 @@ export const font = (size, extra = {}) => ({ fontFamily: config.ui.font, fontSiz
 export const touch = window.matchMedia('(pointer: coarse)').matches;
 // "Wróć [Esc]" with a keyboard, "Wróć" on touch; keyHint('', '[1]') is '[1]' or ''.
 // The privacy policy (privacy.html) in a new tab, and a small text that opens it (title screen, menu corner).
-export const openPrivacy = () => window.open('./privacy.html', '_blank', 'noopener');
+// The policy in a new tab; where the browser still blocks the tab, in this one (privacy.html links back to the game).
+export function openPrivacy() {
+  const url = './privacy.html', tab = window.open(url, '_blank');
+  if (tab) tab.opener = null;
+  else location.href = url;
+}
 export function privacyLink(scene, x, y, label, size, extra = {}) {
   const t = scene.add.text(x, y, label, font(size, { color: config.ui.privacyColor, ...extra })), p = config.ui.linkPad;
-  // The tap area reaches linkPad px past the small text, so a finger on a phone hits it.
+  // The tap area reaches linkPad px past the small text, so a finger on a phone hits it. It opens on the release:
+  // phones only let a page open a tab from a finished tap, not from the finger touching down.
+  let pressed = false;
   return t.setInteractive({ hitArea: new Phaser.Geom.Rectangle(-p, -p, t.width + 2 * p, t.height + 2 * p),
-    hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true }).on('pointerdown', openPrivacy);
+    hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true })
+    .on('pointerdown', () => { pressed = true; })
+    .on('pointerout', () => { pressed = false; })
+    .on('pointerup', () => { if (pressed) openPrivacy(); pressed = false; });
 }
 
 export const keyHint = (label, key) => (touch ? label : [label, key].filter(Boolean).join(' '));
@@ -77,14 +87,16 @@ export function pager(scene, cx, y, page, pages, turn, c) {
 
 // Button: a container at (x, y) (its middle) with a rounded face, a shadow and a label.
 // variant: 'primary' (green, the main action), 'secondary' (dark, the rest: Wróć, side screens) or 'disabled' (grey, not clickable). Hover lightens, a press squashes it.
-// opts: { width, height, fontSize, variant }. The container gets setLabel(text) and setVariant(variant).
+// opts: { width, height, fontSize, variant, onRelease }. onRelease: onClick on the finger's release instead of the press,
+// for a button that opens a window (the privacy page, Google's sign-in): phones block windows opened on the press.
+// The container gets setLabel(text) and setVariant(variant).
 export function button(scene, x, y, label, onClick, opts = {}) {
   const b = config.ui.button, size = opts.fontSize ?? b.fontSize;
   const text = scene.add.text(0, 0, label, font(size, { fontStyle: 'bold', align: 'center' })).setOrigin(0.5); // a label may have two lines
   const w = opts.width ?? text.width + b.padX * 2, h = opts.height ?? text.height + b.padY * 2;
   const g = scene.add.graphics();
   const c = scene.add.container(x, y, [g, text]).setSize(w, h);
-  let variant = opts.variant ?? 'primary', hover = false;
+  let variant = opts.variant ?? 'primary', hover = false, pressed = false;
   const look = () => (variant === 'primary' ? b : b[variant]);
   const draw = () => {
     const l = look();
@@ -97,11 +109,16 @@ export function button(scene, x, y, label, onClick, opts = {}) {
   };
   c.setInteractive({ useHandCursor: true })
     .on('pointerover', () => { hover = variant !== 'disabled'; draw(); })
-    .on('pointerout', () => { hover = false; draw(); })
+    .on('pointerout', () => { hover = pressed = false; draw(); })
     .on('pointerdown', () => {
       if (variant === 'disabled') return;
       scene.tweens.add({ targets: c, scaleX: b.pressScale, scaleY: b.pressScale, duration: b.pressMs, yoyo: true });
-      onClick();
+      if (opts.onRelease) pressed = true;
+      else onClick();
+    })
+    .on('pointerup', () => {
+      if (pressed && variant !== 'disabled') onClick();
+      pressed = false;
     });
   c.setLabel = (s) => { text.setText(s); return c; };
   c.setVariant = (v) => {
