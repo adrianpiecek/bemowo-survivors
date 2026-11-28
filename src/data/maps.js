@@ -19,7 +19,7 @@ export const maps = [
     looks: { zombie: 'binion', uncanny: 'purpleBuy', joker: 'klockowyB', homelander: 'kapitanBemowo', goblin: 'gnom', sportakus: 'bartcraft' },
     names: {
       bigZombie: 'Wielki Binion', bigUncanny: 'Wielki Purple Buy', bigGoblin: 'Wielki Gnom',
-      bigSportakus: 'Wielki Bartcraft', bigJoker: 'Wielki Klockowy B', bigHomelander: 'Wielki Kapitan Bemowo',
+      bigSportakus: 'Wielki Bartcraft', bigJoker: 'Wielki Klockowy Bartek', bigHomelander: 'Wielki Kapitan Bemowo',
     },
     description: 'Park przy forcie: alejki, drzewa i fosa, przez którą przejdziesz tylko mostem.',
     unlock: { text: 'Wygraj rundę na Jelonkach', check: (run, won) => won && run.map === 'jelonki' },

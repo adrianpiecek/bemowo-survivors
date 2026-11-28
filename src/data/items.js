@@ -59,7 +59,7 @@ export const items = [
     scale: { source: (run) => run.bCoinsTotal, every: c.piggy.everyBCoins, max: c.piggy.maxSteps, apply(pl, n) { addShare(pl, 'damageMult', c.piggy.damagePct * n); } },
   },
   {
-    id: 'receipt', name: 'Paragon z Żabki', icon: 'item_receipt', rarity: 'rare',
+    id: 'receipt', name: 'Paragon z Ropuchy', icon: 'item_receipt', rarity: 'rare',
     description: `+${pct(c.receipt.speedPct)} szybkości chodzenia za każdą otwartą skrzynię${cap(c.receipt.speedPct, c.receipt.maxSteps)}`,
     apply() {},
     scale: { source: (run) => run.chestsTotal, every: 1, max: c.receipt.maxSteps, apply(pl, n) { addShare(pl, 'speed', c.receipt.speedPct * n); } },

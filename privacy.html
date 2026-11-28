@@ -17,16 +17,17 @@
 <body>
 <main>
   <h1>Polityka prywatności</h1>
-  <p class="date">Bemowo Survivors, wersja z 27 listopada 2026</p>
+  <p class="date">Bemowo Survivors, wersja z 28 listopada 2026</p>
 
   <p>Grać można bez konta. Postęp gry leży wtedy w pamięci przeglądarki (localStorage) i nigdzie go nie wysyłamy.
-    Jedyne, co gra wysyła bez konta, to anonimowe statystyki rund (opisane niżej), które możesz wyłączyć.
-    Reszta tej polityki opisuje, co się dzieje, gdy zalogujesz się do konta w grze.</p>
+    Bez konta gra wysyła tylko anonimowe statystyki rund (opisane niżej), które możesz wyłączyć. Jak każda strona
+    internetowa, gra przy łączeniu się z serwerami przekazuje im techniczne dane połączenia (opisane w punkcie
+    „Hosting i dane techniczne”). Reszta tej polityki opisuje, co się dzieje, gdy zalogujesz się do konta w grze.</p>
 
   <h2>Kto jest administratorem danych</h2>
-  <p>Autor gry, właściciel repozytorium
-    <a href="https://github.com/adrianpiecek/bemowo-survivors">github.com/adrianpiecek/bemowo-survivors</a>.
-    Kontakt w sprawie danych: zgłoszenie (issue) w tym repozytorium.</p>
+  <p>Autor gry Bemowo Survivors. Kontakt we wszystkich sprawach dotyczących danych i gry:
+    <a href="mailto:bemowo.survivors@gmail.com">bemowo.survivors@gmail.com</a>.
+    Kod gry jest publiczny: <a href="https://github.com/adrianpiecek/bemowo-survivors">github.com/adrianpiecek/bemowo-survivors</a>.</p>
 
   <h2>Jakie dane zbieramy i po co</h2>
   <ul>
@@ -37,39 +38,62 @@
     <li><strong>Nick</strong>, który wybierasz w grze. Mogą go widzieć inni gracze.</li>
     <li><strong>Najlepszy wynik</strong> do publicznej tabeli wyników (<em>Menu → Wyniki</em>): nick, wynik, liczba zabitych
       wrogów, mapa, poziom trudności, osiągnięty etap, czas rundy i dogrywki oraz data. Widzi go każdy, także bez konta.
-      Wysyłamy go tylko, gdy jesteś zalogowany i pobijesz swój rekord.</li>
+      Wysyłamy go tylko, gdy jesteś zalogowany, masz nick i pobijesz swój rekord.</li>
     <li><strong>Postęp gry</strong>: białko, ulepszenia siłowni, odblokowania, statystyki rund i podobne dane z gry.
-      Służą do przenoszenia postępu między urządzeniami.</li>
+      Trafia do chmury zaraz po zalogowaniu i służy do przenoszenia postępu między urządzeniami.</li>
   </ul>
+  <p>Podstawa prawna dla konta: wykonanie usługi, o którą prosisz, zakładając konto (art. 6 ust. 1 lit. b RODO).
+    Nie zbieramy lokalizacji, kontaktów ani danych o urządzeniu, nie profilujemy i nie pokazujemy reklam.
+    Gra nie ma płatności, subskrypcji ani okresów próbnych.</p>
+
   <h2>Anonimowe statystyki rund</h2>
-  <p>Po każdej rundzie gra wysyła jej podsumowanie: mapę, poziom trudności, plan treningowy, czas, etap, poziom, liczbę
-    zabitych wrogów, wynik, zdobyte białko, otrzymane obrażenia, bronie, przedmioty i ulepszenia z rundy, liczbę
-    rozegranych rund, numer wersji gry, orientację ekranu i to, czy ekran jest dotykowy, oraz datę. Nie wysyłamy konta,
-    nicku, adresu e-mail ani żadnego identyfikatora urządzenia, więc wpisów nie da się powiązać z tobą ani ze sobą
-    nawzajem. Statystyki służą tylko do balansowania i rozwoju gry, nikt poza autorem ich nie widzi.
-    Wyłączysz je w <em>Menu → Konto → Anonimowe statystyki rund</em>, także bez logowania.
+  <p>Po każdej rundzie, także pierwszej i także bez konta, gra wysyła jej podsumowanie: mapę, poziom trudności, plan
+    treningowy, czas, etap, poziom, liczbę zabitych wrogów, wynik, zdobyte białko, otrzymane obrażenia, bronie, przedmioty
+    i ulepszenia z rundy, liczbę rozegranych rund, numer wersji gry, orientację ekranu i to, czy ekran jest dotykowy, oraz
+    datę. Nie wysyłamy konta, nicku, adresu e-mail ani żadnego identyfikatora urządzenia, a autor nie widzi, z jakiego
+    adresu IP przyszedł wpis, więc wpisów nie da się powiązać z tobą ani ze sobą nawzajem. Statystyki służą tylko do
+    balansowania i rozwoju gry, nikt poza autorem ich nie widzi. Gra mówi o nich na ekranie startowym, zanim zaczniesz
+    pierwszą rundę. Wyłączysz je w <em>Menu → Konto → Anonimowe statystyki rund</em>, także bez logowania.
     Podstawa prawna: prawnie uzasadniony interes autora, czyli ulepszanie gry (art. 6 ust. 1 lit. f RODO).</p>
 
-  <p>Podstawa prawna dla konta: wykonanie usługi, o którą prosisz, zakładając konto (art. 6 ust. 1 lit. b RODO).
-    Nie zbieramy lokalizacji, kontaktów ani danych o urządzeniu, nie profilujemy i nie pokazujemy reklam.</p>
+  <h2>Hosting i dane techniczne</h2>
+  <ul>
+    <li><strong>GitHub Pages</strong> (GitHub, Inc.) udostępnia pliki gry. Jak każdy serwer WWW zapisuje w swoich logach
+      adres IP i dane przeglądarki osób, które otwierają stronę, w celach bezpieczeństwa i działania usługi. Zasady:
+      <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">polityka prywatności GitHub</a>.</li>
+    <li><strong>Google Firebase</strong>: chwilę po uruchomieniu gra pobiera bibliotekę Firebase z serwera Google
+      (gstatic.com), a potem łączy się z Firebase przy wysyłaniu statystyk rund i przy logowaniu. Google otrzymuje przy tym
+      adres IP i dane przeglądarki, potrzebne do obsłużenia połączenia i ochrony przed nadużyciami.</li>
+  </ul>
+  <p>Autor gry nie ma dostępu do tych logów i nie używa ich. Podstawa prawna: prawnie uzasadniony interes, czyli
+    działanie i bezpieczeństwo gry (art. 6 ust. 1 lit. f RODO).</p>
 
   <h2>Gdzie są przechowywane</h2>
   <p>W usługach Google Firebase (Google Ireland Ltd. i Google LLC jako podmiot przetwarzający). Postęp, nick, wynik i statystyki rund leżą
-    w bazie Firestore w Warszawie (region europe-central2). Dane logowania mogą być przetwarzane także w USA,
-    na podstawie EU-U.S. Data Privacy Framework i standardowych klauzul umownych.</p>
+    w bazie Firestore w Warszawie (region europe-central2). Dane logowania oraz dane techniczne u Google i GitHub mogą być
+    przetwarzane także w USA, na podstawie EU-U.S. Data Privacy Framework i standardowych klauzul umownych.</p>
 
   <h2>Pamięć przeglądarki</h2>
   <p>Gra używa pamięci przeglądarki (localStorage i IndexedDB) do zapisu postępu, ustawień i sesji logowania.
-    Nie używamy ciasteczek reklamowych ani analitycznych.</p>
+    To jest niezbędne do działania gry. Nie używamy ciasteczek reklamowych ani analitycznych.</p>
 
   <h2>Jak długo</h2>
   <p>Anonimowe statystyki rund przechowujemy, dopóki są przydatne do rozwoju gry; nie da się wskazać, które są twoje.
-    Dane konta: do usunięcia konta. Konto, nick, wynik w tabeli i zapis w chmurze usuwasz sam w grze: <em>Menu → Konto → Usuń konto</em>.
-    Postęp zapisany na twoim urządzeniu zostaje.</p>
+    Dane konta: do usunięcia konta. Konto, nick, wynik w tabeli i zapis w chmurze usuwasz sam w grze:
+    <em>Menu → Konto → Usuń konto</em> (także zanim wybierzesz nick). Usunięcie jest natychmiastowe i ostateczne.
+    Postęp zapisany na twoim urządzeniu zostaje; usuniesz go, czyszcząc dane tej strony w przeglądarce.
+    Jeśli nie możesz się zalogować, napisz na adres podany wyżej, a usuniemy konto za ciebie.</p>
+
+  <h2>Nicki i zgłoszenia</h2>
+  <p>Nick nie może być obraźliwy, wulgarny ani podszywać się pod kogoś. Jeśli widzisz w tabeli wyników nick, który łamie
+    te zasady albo prawo, napisz na <a href="mailto:bemowo.survivors@gmail.com">bemowo.survivors@gmail.com</a> i podaj
+    nick. Taki nick i wynik usuwamy.</p>
 
   <h2>Twoje prawa</h2>
   <p>Masz prawo dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia przetwarzania i przeniesienia,
-    a także prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych (uodo.gov.pl).</p>
+    a także prawo sprzeciwu wobec przetwarzania na podstawie prawnie uzasadnionego interesu. Napisz na adres podany
+    wyżej; odpowiemy w ciągu miesiąca. Masz też prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych
+    (uodo.gov.pl).</p>
 
   <h2>Zmiany</h2>
   <p>Gdy gra zacznie zbierać nowe dane, opiszemy to tutaj przed wprowadzeniem zmiany.</p>

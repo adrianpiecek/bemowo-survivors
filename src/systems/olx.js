@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 
-// The "Ogłoszenie z OLX" pickup: an ad card with a pigeon photo, then a flock that clears the screen.
+// The "Ogłoszenie drobne" pickup (id olx): an ad card with a pigeon photo, then a flock that clears the screen.
 // Rule: the big red slogan is only ever drawn on this card, right under the pigeon photo.
 
 // Pauses GameScene and shows the ad on the UIScene layer, whose clock keeps running. Calls onDone after cardMs, or

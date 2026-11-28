@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
 import { setOrientation, extraHeight } from '../systems/layout.js';
 import { playSfx, playMusic } from '../systems/audio.js';
-import { font, button } from '../systems/ui.js';
+import { font, button, privacyLink } from '../systems/ui.js';
 
 // Title with the intro. Browsers keep audio locked until the player does something, so the intro only starts
 // after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one, the music
@@ -25,8 +25,10 @@ export default class TitleScene extends Phaser.Scene {
       return;
     }
     const prompt = this.prompt(width / 2, height / 2, 'Kliknij, aby zacząć');
+    this.addPrivacy();
     this.onFirstInput(() => {
       prompt.destroy();
+      this.privacy.destroy();
       this.intro();
     });
   }
@@ -49,6 +51,15 @@ export default class TitleScene extends Phaser.Scene {
         }
       }, { width: t.orientWidth, fontSize: t.promptFontSize });
     });
+    this.addPrivacy();
+  }
+
+  // Before the first run sends anything: what goes out and the link to the policy (a click on it does not start the intro).
+  addPrivacy() {
+    const t = config.ui.title, { width, height } = this.scale;
+    this.privacy = privacyLink(this, width / 2, height - t.privacyBottom,
+      'Po każdej rundzie gra wysyła anonimowe statystyki. Wyłączysz je w Menu → Konto.\nPolityka prywatności', t.privacyFontSize,
+      { align: 'center', wordWrap: { width: width - 2 * config.ui.margin } }).setOrigin(0.5, 1);
   }
 
   // Calls fn once, on whichever comes first: a click/tap or a key.
@@ -59,7 +70,7 @@ export default class TitleScene extends Phaser.Scene {
       done = true;
       fn();
     };
-    this.input.once('pointerdown', once);
+    this.input.on('pointerdown', (pointer, over) => { if (!over.includes(this.privacy)) once(); });
     this.input.keyboard.once('keydown', once);
   }
 

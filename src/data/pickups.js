@@ -36,17 +36,17 @@ export const stagePortal = {
 export const pickups = [
   {
     id: 'olx',
-    name: 'Ogłoszenie z OLX',
-    bannerText: 'OGŁOSZENIE Z OLX',
+    name: 'Ogłoszenie drobne',
+    bannerText: 'OGŁOSZENIE DROBNE',
     dropChance: o.dropChance,
     cooldownSec: o.cooldownSec,
     apply(scene) { showOlxAd(scene, () => pigeonStrike(scene)); },
   },
   {
     id: 'photoshop',
-    name: 'Photoshop',
+    name: 'Retusz',
     bannerText: 'MAŁY B',
-    bannerSubtext: `Nie każdy w Gigantach jest gigantem.\nMniejszy i o ${Math.round(ps.speedPct * 100)}% szybszy, ale o ${Math.round(-ps.damagePct * 100)}% słabszy przez ${ps.durationSec} s`,
+    bannerSubtext: `Mały, ale wariat.\nMniejszy i o ${Math.round(ps.speedPct * 100)}% szybszy, ale o ${Math.round(-ps.damagePct * 100)}% słabszy przez ${ps.durationSec} s`,
     dropChance: ps.dropChance,
     cooldownSec: ps.cooldownSec,
     effect: 'smallB',

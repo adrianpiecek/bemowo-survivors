@@ -7,6 +7,11 @@ export const font = (size, extra = {}) => ({ fontFamily: config.ui.font, fontSiz
 // Phones and tablets (a coarse main pointer) get no keyboard hints: no keys to press, they only clutter the screen.
 export const touch = window.matchMedia('(pointer: coarse)').matches;
 // "Wróć [Esc]" with a keyboard, "Wróć" on touch; keyHint('', '[1]') is '[1]' or ''.
+// The privacy policy (privacy.html) in a new tab, and a small text that opens it (title screen, menu corner).
+export const openPrivacy = () => window.open('./privacy.html', '_blank', 'noopener');
+export const privacyLink = (scene, x, y, label, size, extra = {}) => scene.add.text(x, y, label, font(size, { color: config.ui.privacyColor, ...extra }))
+  .setInteractive({ useHandCursor: true }).on('pointerdown', openPrivacy);
+
 export const keyHint = (label, key) => (touch ? label : [label, key].filter(Boolean).join(' '));
 
 // Dark veil over the screen under a window or the cards, three screens wide around the middle so it still covers all

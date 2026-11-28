@@ -17,7 +17,7 @@ const c = config.events;
 // ShopScene. It stays until something is bought there (ShopScene ends the promotion) or the promotion is over; walked out
 // of without buying, it opens again only once Bartek has walked away (GameScene clears waitLeave).
 export const zabkaShop = {
-  id: 'zabka', name: 'Żabka', icon: 'zabka_shop', steady: true, arrowFirst: true, pulse: c.zabka.pulse,
+  id: 'zabka', name: 'Ropucha', icon: 'zabka_shop', steady: true, arrowFirst: true, pulse: c.zabka.pulse,
   apply(scene, p) {
     p.enableBody(false, p.x, p.y, true, true);
     p.waitLeave = true;
@@ -76,7 +76,7 @@ export const events = [
     },
   },
   {
-    id: 'zabka', name: 'Promocja w Żabce', durationSec: c.zabka.durationSec,
+    id: 'zabka', name: 'Promocja w Ropusze', durationSec: c.zabka.durationSec,
     description: `Na mapie stoi sklep: karty za monety białka z tej rundy, przez ${c.zabka.durationSec} s`,
     start(scene) {
       const { x, y } = around(scene, c.zabka.minDist, c.zabka.maxDist);
@@ -137,7 +137,7 @@ export const events = [
     },
   },
   {
-    id: 'nightskating', name: 'Nightskating', durationSec: c.nightskating.durationSec,
+    id: 'nightskating', name: 'Nocne rolki', durationSec: c.nightskating.durationSec,
     description: `Przez ${c.nightskating.durationSec} s zombie na rolkach przejeżdżają przez osiedle. Zejdź im z drogi!`,
     update(scene, delta, ev) {
       every(ev, delta, c.nightskating.everyMs, () => skaterRow(scene));

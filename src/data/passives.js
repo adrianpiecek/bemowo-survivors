@@ -21,7 +21,7 @@ export const passives = [
     apply(pl, level, m) { addShare(pl, 'damageMult', c.creatine.damagePct * m); },
   },
   {
-    id: 'coffee', name: 'Kawa z Żabki', icon: 'passive_coffee', maxLevel: c.coffee.maxLevel, unlock: null,
+    id: 'coffee', name: 'Kawa z Ropuchy', icon: 'passive_coffee', maxLevel: c.coffee.maxLevel, unlock: null,
     description: (level, m) => `-${pct(c.coffee.cooldownPct * m)} czasu odnowienia wszystkich broni`,
     apply(pl, level, m) { pl.cooldownMult *= 1 - c.coffee.cooldownPct * m; },
   },
@@ -45,7 +45,7 @@ export const passives = [
     apply(pl, level, m) { addShare(pl, 'area', c.dumbbells.areaPct * m); },
   },
   {
-    id: 'ticket', name: 'Bilet miesięczny ZTM', icon: 'passive_ticket', maxLevel: c.ticket.maxLevel, unlock: null,
+    id: 'ticket', name: 'Bilet miesięczny', icon: 'passive_ticket', maxLevel: c.ticket.maxLevel, unlock: null,
     description: (level, m) => `+${count(c.ticket.amount, m)} do liczby pocisków, chmur, promieni, tarcz i pszczół`,
     apply(pl, level, m) { pl.amount += count(c.ticket.amount, m); },
   },
@@ -79,12 +79,12 @@ export const passives = [
     apply(pl, level, m) { addShare(pl, 'growth', c.notebook.xpPct * m); },
   },
   {
-    id: 'goggins', name: 'Książka Davida Gogginsa', icon: 'passive_goggins', maxLevel: c.goggins.maxLevel, unlock: null,
+    id: 'goggins', name: 'Poradnik twardziela', icon: 'passive_goggins', maxLevel: c.goggins.maxLevel, unlock: null,
     description: (level, m) => `+${pct(c.goggins.critChance * m)} szansy na trafienie krytyczne`,
     apply(pl, level, m) { pl.critChance += c.goggins.critChance * m; },
   },
   {
-    id: 'limp', name: 'Płyta Limp Bizkit', icon: 'passive_limp', maxLevel: c.limp.maxLevel, unlock: null,
+    id: 'limp', name: 'Płyta z nu metalem', icon: 'passive_limp', maxLevel: c.limp.maxLevel, unlock: null,
     description: (level, m) => `+${pct(c.limp.critMult * m)} obrażeń krytycznych`,
     apply(pl, level, m) { pl.critMult += c.limp.critMult * m; },
   },

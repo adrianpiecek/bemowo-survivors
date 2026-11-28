@@ -151,7 +151,7 @@ export const weapons = [
     levels: gz.levels,
     maxLevel: gz.levels.length + 1,
     unlock: {
-      text: `„Dlaczego taki poważny?”: zabij ${gz.unlockJokers} Jokerów w jednej rundzie`,
+      text: `„Komu do śmiechu?”: zabij ${gz.unlockJokers} Klaunów w jednej rundzie`,
       check: (run) => (run.killsByType.joker ?? 0) >= gz.unlockJokers,
     },
     evolution: { passive: 'gymPass', id: 'smog', name: 'Smog nad Bemowem', icon: 'weapon_smog',
@@ -204,10 +204,10 @@ export const weapons = [
     levels: lz.levels,
     maxLevel: lz.levels.length + 1,
     unlock: {
-      text: '„Wzrok, który zabija”: wygraj rundę, pokonując Wielkiego Homelandera',
+      text: '„Wzrok, który zabija”: wygraj rundę, pokonując Wielkiego Super Bartka',
       check: (run, won) => won && run.bossesKilled.includes(lz.unlockBoss),
     },
-    evolution: { passive: 'dumbbells', id: 'homelanderGaze', name: 'Wzrok Homelandera', icon: 'weapon_gaze',
+    evolution: { passive: 'dumbbells', id: 'homelanderGaze', name: 'Wzrok Super Bartka', icon: 'weapon_gaze',
       description: 'Promień świeci bez przerwy i sam obraca się za celem.', evolve(scene, w) { w.tickMs = 0; } },
     description(level, m) {
       if (level === 1) return 'Promień z oczu Bartka przepala wszystkich wrogów na linii.';
@@ -527,7 +527,7 @@ export const weapons = [
     levels: sw.levels,
     maxLevel: sw.levels.length + 1,
     unlock: {
-      text: '„Pojedynek”: pokonaj Wielkiego Sportakusa',
+      text: '„Pojedynek”: pokonaj Wielkiego Sportowca',
       check: (run) => run.bossesKilled.includes(sw.unlockBoss),
     },
     evolution: { passive: 'limp', id: 'senpaiBlade', name: 'Ostrze Senpaia', icon: 'weapon_sword_evo',

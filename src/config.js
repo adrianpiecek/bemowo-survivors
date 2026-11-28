@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 98, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 99, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -170,9 +170,9 @@ export const config = {
       bigZombie: { base: 'zombie', name: 'Wielki Zombie', scale: 2.5, speedMult: 0.8, damageMult: 2 },
       bigUncanny: { base: 'runner', name: 'Wielki Uncanny', scale: 2.6, speedMult: 0.6, damageMult: 2 },
       bigGoblin: { base: 'goblin', name: 'Wielki Goblin', scale: 2.5, speedMult: 0.7, damageMult: 2 },
-      bigSportakus: { base: 'sportakus', name: 'Wielki Sportakus', scale: 2.2, speedMult: 1, damageMult: 2 },
-      bigJoker: { base: 'joker', name: 'Wielki Joker', scale: 2.2, speedMult: 0.9, damageMult: 2 },
-      bigHomelander: { base: 'homelander', name: 'Wielki Homelander', scale: 2, speedMult: 0.9, damageMult: 2 },
+      bigSportakus: { base: 'sportakus', name: 'Wielki Sportowiec', scale: 2.2, speedMult: 1, damageMult: 2 },
+      bigJoker: { base: 'joker', name: 'Wielki Klaun', scale: 2.2, speedMult: 0.9, damageMult: 2 },
+      bigHomelander: { base: 'homelander', name: 'Wielki Super Bartek', scale: 2, speedMult: 0.9, damageMult: 2 },
     },
     // Boss powers (data/bossPowers.js): every everySec, warned attacks (systems/telegraph.js) on a red area that fills up
     // over warnMs, then strikes for `damage` (grows with the run like a touch; armor takes off its share). range: only
@@ -489,7 +489,7 @@ export const config = {
     yellowColor: 0xffd400, yellowAlpha: 0.25,
     definitions: [ // shown in the gym under Bartek's bubble
       'Bartkowanie (czas.): czynność, której nikt nie widział, ale wszyscy o niej słyszeli.',
-      'Bartkowanie: robienie przysiadów w kolejce w Żabce.',
+      'Bartkowanie: robienie przysiadów w kolejce w Ropusze.',
       'Bartkowanie: tłumaczenie zombie przepisów ruchu drogowego.',
       'Bartkowanie: noszenie żółtego swetra w lipcu.',
       'Bartkowanie: przegrywanie z klapą bagażnika, z godnością.',
@@ -650,6 +650,7 @@ export const config = {
     itemHud: { size: 36, iconSize: 30, gap: 4, fontSize: 16 },
     weaponHud: { size: 52, iconSize: 40, gap: 8, fontSize: 15, badgeRadius: 11, emptyAlpha: 0.35, readyColor: 0xffc400, readyWidth: 3, readyPulseMs: 500 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
+    privacyColor: '#9e9e9e', // the privacy link's text (title screen, menu corner)
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: '"NotJam", Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 520, survivorsY: 660, dropMs: 450, gapMs: 600,
       shakeMs: 250, shakeIntensity: 0.02, blinkMs: 600,
@@ -657,7 +658,9 @@ export const config = {
       // intro skips it all.
       promptGapY: 200, skipDelayMs: 250, pulseScale: 1.08, promptStroke: 6,
       // First launch: "Jak trzymasz ekran?" over two buttons orientWidth px wide, orientGap apart, orientGapY under it.
-      orientFontSize: 40, orientWidth: 260, orientGap: 30, orientGapY: 90 },
+      orientFontSize: 40, orientWidth: 260, orientGap: 30, orientGapY: 90,
+      // Under the start prompt and the orientation question: the stats notice and the privacy link, privacyBottom px up.
+      privacyFontSize: 22, privacyBottom: 40 },
     // y: under the HUD panel and the three stat pills (portrait: the B coin pill ends at 200); the effect rows go under it
     bossBar: { y: 212, width: 600, height: 24, fontSize: 18, color: 0xd03030 },
     // "Etap 2/3" under the stats column, right-aligned; red in overtime, as the clock then.
@@ -679,7 +682,8 @@ export const config = {
     // bartekHeight: Bartek's height there (0: the gym's).
     menu: { titleY: 120, titleFontSize: 60, proteinGap: 18, top: 360, columnX: 0.5, width: 600, gap: 18, goHeight: 120, goFontSize: 46,
       height: 96, fontSize: 34, betsFontSize: 28, smallHeight: 88, smallFontSize: 28, iconSize: 44, iconPad: 18, hintFontSize: 16,
-      quoteSide: false, quoteLeft: 0, quoteGap: 40, bartekHeight: 0, bottom: 40, versionFontSize: 15, versionMargin: 10, versionColor: '#757575' },
+      quoteSide: false, quoteLeft: 0, quoteGap: 40, bartekHeight: 0, bottom: 40, versionFontSize: 15, versionMargin: 10, versionColor: '#757575',
+      privacyFontSize: 22 }, // "Prywatność" in the bottom left corner, versionMargin from the edges
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.

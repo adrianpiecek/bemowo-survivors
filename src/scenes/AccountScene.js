@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { save, writeSave } from '../state.js';
-import { font, drawPanel, button, dim } from '../systems/ui.js';
+import { font, drawPanel, button, dim, openPrivacy } from '../systems/ui.js';
 import {
   online, onOnlineChange, initOnline, retryOnline, googleWorks, signInGoogle, signInEmail, registerEmail, resetPassword,
   usesPassword, signOut, setNick, nickError, resolveConflict, deleteAccount,
@@ -49,7 +49,7 @@ export default class AccountScene extends Phaser.Scene {
       objs.push(this.field(key, type, placeholder, cx, y + a.inputHeight / 2, onEnter));
       y += a.inputHeight + a.gap;
     };
-    const privacy = () => window.open('./privacy.html', '_blank', 'noopener');
+    const privacy = openPrivacy;
     // Anonymous run stats (online.js sendRunStats): this device's choice, with or without an account.
     const shareStats = () => btn(`Anonimowe statystyki rund: ${save.shareStats ? 'wł.' : 'wył.'}`, () => {
       save.shareStats = !save.shareStats;
@@ -85,14 +85,6 @@ export default class AccountScene extends Phaser.Scene {
       else text('Logowanie przez Google nie działa w grze uruchomionej z ekranu początkowego iPhone’a. Użyj e-maila albo otwórz grę w Safari.', a.dimColor, a.smallFontSize);
       shareStats();
       btn('Polityka prywatności', privacy, 'secondary', true);
-    } else if (!online.nick || this.mode === 'nick') {
-      text(`Wybierz nick: ${config.online.nickMin}-${config.online.nickMax} znaków, litery, cyfry i _. Widzą go inni gracze.`);
-      field('nick', 'text', 'nick', () => this.saveNick());
-      this.fields.nick.maxLength = config.online.nickMax;
-      if (!this.fields.nick.value) this.fields.nick.value = online.nick ?? '';
-      btn('Zapisz nick', () => this.saveNick(), 'primary', true);
-      if (online.nick) btn('Anuluj', () => this.redraw({ mode: null }), 'secondary', true);
-      else btn('Wyloguj', () => signOut());
     } else if (this.mode === 'delete') {
       text('Usunąć konto, nick, wynik w tabeli i zapis w chmurze? Postęp na tym urządzeniu zostaje. Tego nie da się cofnąć.', a.errorColor);
       const del = async () => {
@@ -103,6 +95,17 @@ export default class AccountScene extends Phaser.Scene {
       if (usesPassword()) field('password', 'password', 'hasło, by potwierdzić', () => this.run(del));
       btn('Tak, usuń konto', del);
       btn('Anuluj', () => this.redraw({ mode: null }), 'primary', true);
+    } else if (!online.nick || this.mode === 'nick') {
+      text(`Wybierz nick: ${config.online.nickMin}-${config.online.nickMax} znaków, litery, cyfry i _. Widzą go inni gracze.`);
+      field('nick', 'text', 'nick', () => this.saveNick());
+      this.fields.nick.maxLength = config.online.nickMax;
+      if (!this.fields.nick.value) this.fields.nick.value = online.nick ?? '';
+      btn('Zapisz nick', () => this.saveNick(), 'primary', true);
+      if (online.nick) btn('Anuluj', () => this.redraw({ mode: null }), 'secondary', true);
+      else {
+        btn('Wyloguj', () => signOut());
+        btn('Usuń konto', () => this.redraw({ mode: 'delete' }), 'secondary', true); // its cloud save is already up
+      }
     } else {
       text(`Zalogowano jako ${online.nick}`, '#ffffff', a.buttonFontSize);
       const c = online.conflict;

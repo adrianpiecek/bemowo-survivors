@@ -19,7 +19,7 @@ export default class ShopScene extends Phaser.Scene {
   create() {
     const u = config.ui, c = u.card, sh = u.shop, db = u.drawButtons, z = config.events.zabka, { width, height } = this.scale;
     dim(this);
-    this.add.text(width / 2, u.chest.titleY, 'PROMOCJA W ŻABCE', font(sh.titleFontSize, {
+    this.add.text(width / 2, u.chest.titleY, 'PROMOCJA W ROPUSZE', font(sh.titleFontSize, {
       fontStyle: 'bold', color: sh.titleColor, stroke: '#000000', strokeThickness: u.chest.strokeThickness,
     })).setOrigin(0.5);
 

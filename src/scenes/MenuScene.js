@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { save } from '../state.js';
 import { playMusic } from '../systems/audio.js';
-import { font, panel, drawPanel, button, touch } from '../systems/ui.js';
+import { font, panel, drawPanel, button, touch, privacyLink } from '../systems/ui.js';
 import { openSettings } from './SettingsScene.js';
 import { startRun } from './PlanScene.js';
 import { betsOpen, betSum } from '../data/bets.js';
@@ -73,6 +73,7 @@ export default class MenuScene extends Phaser.Scene {
     // Which build is on this device (GitHub Pages and the phone cache it): bottom right corner.
     const vx = width - mn.versionMargin, vy = height - mn.versionMargin; // 'corner': kept there at any Wielkość menu
     this.add.text(vx, vy, `v0.${config.version}`, font(mn.versionFontSize, { color: mn.versionColor })).setOrigin(1, 1).setData('corner', [vx, vy]);
+    privacyLink(this, mn.versionMargin, vy, 'Prywatność', mn.privacyFontSize).setOrigin(0, 1).setData('corner', [mn.versionMargin, vy]);
     centerLayout(this); // a taller phone: the whole menu in the middle
     this.input.keyboard.once('keydown-ENTER', () => startRun(this));
     this.input.keyboard.on('keydown-ESC', () => openSettings(this));

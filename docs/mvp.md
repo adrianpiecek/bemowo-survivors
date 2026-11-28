@@ -1397,6 +1397,43 @@ Poziom zostaje bez zmian: zmienione klucze mają w `layouts.landscape` swoje sta
   - na Jelonkach jest „Wielki Homelander”;
   - w konsoli tylko znane błędy 404.
 
+### 75. Prywatność, usuwanie konta i neutralne nazwy (krok 99)
+
+Po przeglądzie zgodności (polityka prywatności, ujawnianie zbierania danych, usuwanie danych, publiczne zasoby, opinie, rezygnacja, okresy próbne, czat). Płatności, subskrypcji, okresów próbnych, opinii ani czatu w grze nie ma. Baza sprawdzona na żywo (tylko odczyt): bucket Storage nie istnieje, `runs`, `saves`, `users` i `nicks` odrzucają odczyt bez logowania, klucz API przyjmuje tylko strony z listy (Referer). Bartek zgodził się na użycie swojego wizerunku.
+
+- **Usuwanie konta bez nicku.** Zapis w chmurze trafia do bazy zaraz po zalogowaniu, ale ekran wyboru nicku nie miał „Usuń konto”. Teraz ma (pod „Wyloguj”), a potwierdzenie usuwania działa także bez nicku (`AccountScene`: gałąź `delete` przed gałęzią nicku).
+- **Polityka prywatności** (`privacy.html`, wersja z 28 listopada 2026):
+  - kontakt: `bemowo.survivors@gmail.com` (zamiast zgłoszeń na GitHubie);
+  - hosting GitHub Pages i Google Firebase: adres IP i dane przeglądarki przy połączeniu;
+  - statystyki rund lecą od pierwszej rundy, a gra mówi o nich na ekranie startowym;
+  - usunięcie konta e-mailem, gdy nie da się zalogować; prawo sprzeciwu; odpowiedź w ciągu miesiąca;
+  - zasady nicków i zgłaszanie obraźliwych nicków e-mailem;
+  - brak płatności, subskrypcji i okresów próbnych.
+- **Link do polityki widać przed pierwszą rundą.** Na ekranie „Kliknij, aby zacząć” i przy pytaniu o orientację na dole jest szary napis „Po każdej rundzie gra wysyła anonimowe statystyki. Wyłączysz je w Menu → Konto.” i „Polityka prywatności”. Kliknięcie w niego otwiera politykę i nie startuje intro. W menu głównym w lewym dolnym rogu jest „Prywatność”. Wspólne `openPrivacy` i `privacyLink` w `systems/ui.js`, liczby w `config.ui.privacyColor`, `ui.title.privacyFontSize`/`privacyBottom`, `ui.menu.privacyFontSize`.
+- **Neutralne nazwy zamiast marek i cudzych postaci** (tylko teksty; id w kodzie, zapisie i statystykach bez zmian, więc postęp i bestiariusz zostają):
+
+| Było | Jest |
+|---|---|
+| Joker, Wielki Joker | Klaun, Wielki Klaun |
+| Homelander, Wielki Homelander, Wzrok Homelandera | Super Bartek, Wielki Super Bartek, Wzrok Super Bartka |
+| Sportakus, Wielki Sportakus | Sportowiec, Wielki Sportowiec |
+| Żabka, Promocja w Żabce, Kawa z Żabki, Paragon z Żabki | Ropucha, Promocja w Ropusze, Kawa z Ropuchy, Paragon z Ropuchy |
+| Ogłoszenie z OLX | Ogłoszenie drobne |
+| Photoshop („Nie każdy w Gigantach jest gigantem.”) | Retusz („Mały, ale wariat.”) |
+| Książka Davida Gogginsa | Poradnik twardziela |
+| Płyta Limp Bizkit | Płyta z nu metalem |
+| Bilet miesięczny ZTM | Bilet miesięczny |
+| Nightskating (i w opisie Rolkarza) | Nocne rolki |
+| „Dlaczego taki poważny?” (wyzwanie Gazu) | „Komu do śmiechu?” |
+| Wielki Klockowy B (Fort Bema) | Wielki Klockowy Bartek |
+
+- **Sprawdzone w przeglądarce (pion):**
+  - napis o statystykach na ekranie startowym; klik w niego otwiera `privacy.html` i nie startuje intro, klik w przycisk startuje;
+  - „Prywatność” w rogu menu otwiera politykę;
+  - konto bez nicku (udawane w pamięci, bez łączenia z Firebase) ma „Usuń konto” i dochodzi do potwierdzenia;
+  - wszystkie nowe nazwy w danych, żadnej starej;
+  - w konsoli tylko znane błędy 404.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.
