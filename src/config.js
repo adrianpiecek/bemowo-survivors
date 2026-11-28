@@ -653,8 +653,9 @@ export const config = {
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: '"NotJam", Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 520, survivorsY: 660, dropMs: 450, gapMs: 600,
       shakeMs: 250, shakeIntensity: 0.02, blinkMs: 600,
-      // After the intro the menu comes by itself holdMs later; a tap or key from skipDelayMs into the intro goes there at once.
-      holdMs: 1200, skipDelayMs: 250, pulseScale: 1.08, promptStroke: 6,
+      // After the intro a pulsing prompt waits promptGapY under SURVIVORS for a tap or key; one from skipDelayMs into the
+      // intro skips it all.
+      promptGapY: 200, skipDelayMs: 250, pulseScale: 1.08, promptStroke: 6,
       // First launch: "Jak trzymasz ekran?" over two buttons orientWidth px wide, orientGap apart, orientGapY under it.
       orientFontSize: 40, orientWidth: 260, orientGap: 30, orientGapY: 90 },
     // y: under the HUD panel and the three stat pills (portrait: the B coin pill ends at 200); the effect rows go under it

@@ -6,7 +6,8 @@ import { font, button } from '../systems/ui.js';
 
 // Title with the intro. Browsers keep audio locked until the player does something, so the intro only starts
 // after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one, the music
-// starts and the menu comes by itself (straight into a run the very first time). A tap or key during it skips there.
+// starts and a prompt waits for a tap or key to go to the menu (straight into a run the very first time). A tap or key
+// during the intro skips there too.
 // The very first launch asks how the screen is held instead of the start button; that click starts the intro.
 export default class TitleScene extends Phaser.Scene {
   constructor() { super('TitleScene'); }
@@ -23,9 +24,7 @@ export default class TitleScene extends Phaser.Scene {
       this.intro();
       return;
     }
-    // A drawn button, pulsing; a click anywhere (or a key) counts, the button only shows where.
-    const prompt = button(this, width / 2, height / 2, 'Kliknij, aby zacząć', () => {}, { fontSize: t.promptFontSize });
-    this.tweens.add({ targets: prompt, scale: t.pulseScale, duration: t.blinkMs, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    const prompt = this.prompt(width / 2, height / 2, 'Kliknij, aby zacząć');
     this.onFirstInput(() => {
       prompt.destroy();
       this.intro();
@@ -99,8 +98,16 @@ export default class TitleScene extends Phaser.Scene {
   }
 
   ready() {
+    const t = config.ui.title;
     playMusic(this, 'boss');
-    this.time.delayedCall(config.ui.title.holdMs, () => this.leave());
+    if (!this.left) this.prompt(this.scale.width / 2, t.survivorsY + t.promptGapY + extraHeight(this), 'Kliknij, aby kontynuować');
+  }
+
+  // A drawn button, pulsing; a click anywhere (or a key) counts, the button only shows where.
+  prompt(x, y, label) {
+    const t = config.ui.title, b = button(this, x, y, label, () => {}, { fontSize: t.promptFontSize });
+    this.tweens.add({ targets: b, scale: t.pulseScale, duration: t.blinkMs, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    return b;
   }
 
   leave() {
