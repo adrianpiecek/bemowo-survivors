@@ -1479,6 +1479,30 @@ Po aktualizacji gry gracz od razu widzi, co się zmieniło.
   - nowy gracz (bez rund): wyjście z tytułu zapamiętuje 101;
   - w konsoli tylko znane błędy 404.
 
+### 78. Fort Bema do końca (krok 102)
+
+- **Nazwy zwykłych wrogów na mapie.** `names` w `src/data/maps.js` ma teraz też zwykłe typy (id wroga → nazwa na tej mapie). Na Forcie Bema:
+  - Zombie → Binion;
+  - Uncanny → Purple Buy;
+  - Klaun → Klockowy Bartek;
+  - Super Bartek → Kapitan Bemowo;
+  - Goblin → Gnom;
+  - Sportowiec → Bartcraft.
+
+  Rolkarz zostaje Rolkarzem (wygląda jak Binion).
+- **Bestiariusz pokazuje oba wyglądy.** Każdy wiersz ma dwa kwadraty na obrazki (`ui.bestiary.icons`): własny wygląd i wygląd z mapy, która go przebiera (`looks`). Nazwa to obie nazwy, np. „Zombie / Binion”, „Wielki Goblin / Wielki Gnom”. Za długa para nazw zmniejsza się, żeby zmieścić się obok licznika. Klapa ma jeden obrazek. Niepokonany wróg: dwa czarne kształty i „???”. Wstęp mówi „Drugi obrazek: Fort Bema.”. Opisy i podpisy mocy w bestiariuszu zostają zwykłe, bo dotyczą typu.
+- **Podpisy mocy bossów zależą od mapy.** Wpis mapy ma opcjonalne `hints`: id bossa → podpis jego mocy na tej mapie. `bossHint(id, mapa)` z `src/data/bossPowers.js` zwraca podpis mapy albo zwykły; używa go baner „UWAGA: …”. Na Forcie Bema:
+  - Wielki Binion: „Woła hordę: wokół niego wstają biniony”;
+  - Wielki Gnom: „Rzuca beczkami pełnymi gnomów”;
+  - Wielki Klockowy Bartek: „Rozrzuca wybuchające klocki”.
+
+  Reszta podpisów pasuje do obu map.
+- **Co nowego:** nowy wpis „Bestiariusz z Fortu Bema” (102). Gracz z 101 zobaczy tylko ten wpis.
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk):**
+  - bestiariusz w pionie (2 strony) i w poziomie (1 strona): oba obrazki, obie nazwy, „Wielki Sportowiec / Wielki Bartcraft” mieści się obok licznika, niepokonany boss to dwa czarne kształty;
+  - runda na Forcie Bema: baner „UWAGA: WIELKI GNOM” z „Rzuca beczkami pełnymi gnomów” i „UWAGA: WIELKI BINION” z „…wstają biniony”; na Jelonkach stare podpisy;
+  - w konsoli tylko znane błędy 404.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

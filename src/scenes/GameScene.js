@@ -14,7 +14,7 @@ import { evolutionReady } from '../systems/cards.js';
 import { applyBets } from '../data/bets.js';
 import { updateEffects, isEffectActive } from '../systems/effects.js';
 import { updateLeaper } from '../systems/charge.js';
-import { bossPowers, updateBossPower } from '../data/bossPowers.js';
+import { bossHint, updateBossPower } from '../data/bossPowers.js';
 import { playVfx } from '../systems/vfx.js';
 import { createMap } from '../systems/map.js';
 import { playSfx, playMusic } from '../systems/audio.js';
@@ -419,7 +419,7 @@ export default class GameScene extends Phaser.Scene {
 
   announceBoss(def) {
     const m = this.run.map, name = def.partner ? `${enemyName(def, m)} i ${enemyName(def.partner, m)}` : enemyName(def, m);
-    this.scene.get('UIScene').showBanner(`UWAGA: ${name.toUpperCase()}`, bossPowers[def.id]?.hint ?? '', config.boss.bannerSec * 1000);
+    this.scene.get('UIScene').showBanner(`UWAGA: ${name.toUpperCase()}`, bossHint(def.id, m), config.boss.bannerSec * 1000);
     playSfx(this, 'boss');
     playMusic(this, 'boss');
   }

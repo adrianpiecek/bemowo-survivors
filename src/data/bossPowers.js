@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { enemies } from './enemies.js';
 import { strikeCircle, strikeLine } from '../systems/telegraph.js';
 import { playVfx } from '../systems/vfx.js';
+import { mapById } from './maps.js';
 
 // Boss powers, keyed by the boss id (config.boss.list). Every everySec (config.boss.powers[id]) the boss uses its power,
 // when ready?(scene, z) allows it; most are warned attacks from systems/telegraph.js. hint: under the boss's "UWAGA"
@@ -80,6 +81,9 @@ export const bossPowers = {
     },
   },
 };
+
+// The hint for this map: the map's own (Fort Bema's gnomes) or the power's.
+export const bossHint = (id, mapId) => mapById(mapId).hints?.[id] ?? bossPowers[id]?.hint ?? '';
 
 // Every frame for each boss on the map: counts up to its power and uses it.
 export function updateBossPower(scene, z, delta) {

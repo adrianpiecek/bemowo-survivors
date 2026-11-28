@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 101, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 102, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -702,9 +702,10 @@ export const config = {
       titleFontSize: 44, headFontSize: 22, nameFontSize: 20, textFontSize: 19, headColor: '#ffc400', dimColor: '#b0bec5',
       evoColor: '#ffc400', backWidth: 240, backHeight: 60, backFontSize: 26 },
     // Bestiariusz (BestiaryScene, the skull after the chart in the gym): one row per enemy type and boss in `columns`
-    // columns; bosses framed in bossColor. A type never killed shows as a black shape.
+    // columns; bosses framed in bossColor. A type never killed shows as a black shape. `icons`: icon squares in a row
+    // (its own look, then other maps' looks, data/maps.js).
     bestiary: { margin: 16, pagerHeight: 72, pagerButton: 96, pagerFontSize: 28, width: 700, columns: 1, columnGap: 0, padding: 18, inner: 10, gap: 12, titleFontSize: 48, textFontSize: 24,
-      rowHeight: 88, rowGap: 6, iconSize: 64, nameFontSize: 26, descFontSize: 22, dimColor: '#b0bec5', bossColor: 0xff7043,
+      rowHeight: 88, rowGap: 6, iconSize: 64, icons: 2, nameFontSize: 26, descFontSize: 22, dimColor: '#b0bec5', bossColor: 0xff7043,
       bossText: '#ffab91', backWidth: 300, backHeight: 84, backFontSize: 32},
     // Statystyki (StatsScene, the chart next to the cup in the gym): label and value rows in `columns` columns, every other
     // row lighter (stripeAlpha).
