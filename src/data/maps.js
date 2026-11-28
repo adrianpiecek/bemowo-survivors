@@ -21,7 +21,7 @@ export const maps = [
     names: {
       zombie: 'Binion', skater: 'Binion na rolkach', runner: 'Purple Buy', joker: 'Klockowy Bartek', homelander: 'Kapitan Bemowo', goblin: 'Gnom', sportakus: 'Bartcraft',
       bigZombie: 'Wielki Binion', bigUncanny: 'Wielki Purple Buy', bigGoblin: 'Wielki Gnom',
-      bigSportakus: 'Wielki Bartcraft', bigJoker: 'Wielki Klockowy Bartek', bigHomelander: 'Wielki Kapitan Bemowo',
+      bigSportakus: 'Wielki Bartcraft', bigJoker: 'Wielki Klockowy Bartek', bigHomelander: 'Wielki Kapitan Bemowo', giant: 'Król Fortu',
     },
     hints: { bigZombie: 'Woła hordę: wokół niego wstają biniony', bigGoblin: 'Rzuca beczkami pełnymi gnomów', bigJoker: 'Rozrzuca wybuchające klocki' },
     description: 'Park przy forcie: alejki, drzewa i fosa, przez którą przejdziesz tylko mostem.',

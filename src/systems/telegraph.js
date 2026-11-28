@@ -27,6 +27,24 @@ export function strikeCircle(scene, x, y, radius, warnMs, damage, onLand) {
   });
 }
 
+// A ring from inner to outer px around (x, y). Its fill grows out from the middle, so it reads as a wave that strikes
+// when it reaches the ring.
+export function strikeRing(scene, x, y, inner, outer, warnMs, damage, onLand) {
+  const c = config.boss.powers;
+  const w = warnArea(scene, x, y, 0, (g, outline) => {
+    // One shape: around the outer edge, then back around the inner one (a thick stroke would show seams).
+    g.beginPath().arc(0, 0, outer, 0, Math.PI * 2).arc(0, 0, inner, Math.PI * 2, 0, true).closePath().fillPath();
+    if (outline) g.strokeCircle(0, 0, inner).strokeCircle(0, 0, outer);
+  }, { x: 0, y: 0 });
+  scene.tweens.add({ targets: w.fill, scale: 1, duration: warnMs });
+  scene.time.delayedCall(warnMs, () => {
+    w.done();
+    const d = Phaser.Math.Distance.Between(scene.player.x, scene.player.y, x, y);
+    if (d >= inner - c.playerRadius && d <= outer + c.playerRadius) scene.hurtPlayer(damage);
+    onLand?.();
+  });
+}
+
 // Only the warning: a lane `length` px long and `width` wide from (x, y) at `angle`, then onDone (Nightskating).
 export function warnLine(scene, x, y, angle, length, width, warnMs, onDone) {
   const rect = (g, outline) => { g.fillRect(0, -width / 2, length, width); if (outline) g.strokeRect(0, -width / 2, length, width); };

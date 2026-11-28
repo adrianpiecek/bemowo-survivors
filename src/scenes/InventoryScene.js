@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { items } from '../data/items.js';
 import { font, drawPanel, button, dim } from '../systems/ui.js';
+import { levelCap } from '../systems/cards.js';
 
 // Ekwipunek, from the pause screen: Bartek's weapons and passives with their levels, the items with how many, and his
 // stats from every source (config, gym, cards, items) as they are now. Wróć, Esc, Enter or I go back to the pause screen.
@@ -51,8 +52,8 @@ export default class InventoryScene extends Phaser.Scene {
 
     section(`Bronie ${run.weapons.length}/${pl.weaponSlots}`, run.weapons.map((w) => (w.evolved
       ? [w.def.evolution.icon, w.def.evolution.name, 'EWOLUCJA', c.evoColor]
-      : [w.def.icon, w.def.name, `poz. ${w.level}/${w.def.maxLevel}`])));
-    section(`Pasywki ${run.passives.length}/${pl.passiveSlots}`, run.passives.map((p) => [p.def.icon, p.def.name, `poz. ${p.level}/${p.def.maxLevel}`]));
+      : [w.def.icon, w.def.name, `poz. ${w.level}/${levelCap(run, w.def)}`])));
+    section(`Pasywki ${run.passives.length}/${pl.passiveSlots}`, run.passives.map((p) => [p.def.icon, p.def.name, `poz. ${p.level}/${levelCap(run, p.def)}`]));
     section('Przedmioty', items.filter((it) => run.items[it.id]).map((it) => [it.icon, it.name, `x${run.items[it.id]}  ${it.description}`]));
 
     // Stats in c.statColumns columns, label left and value right.

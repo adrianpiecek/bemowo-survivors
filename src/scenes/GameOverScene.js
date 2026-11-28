@@ -125,7 +125,7 @@ export default class GameOverScene extends Phaser.Scene {
     row('Czas', formatTime(r.elapsedMs));
     row('Poziom', `${r.level}`);
     row('Zabici', `${r.kills}`);
-    row('Bossowie', `${r.bossesKilled.length} / ${config.boss.slots.length * config.stages.count}`);
+    row('Bossowie', `${r.bossesKilled.length} / ${config.boss.slots.length * (config.stages.count - 1) + 1}`); // the last stage: Król Bemowa alone
     row('Etap', `${r.stage} / ${config.stages.count}${r.overtime ? `, dogrywka ${formatTime(r.overtimeMs)}` : ''}`);
     row('Wynik', Math.round(r.score).toLocaleString('pl-PL'), go.headerColor);
     // Wyniki: a new personal best goes to the leaderboard (signed in with a nick); its place shows on the Wynik row.

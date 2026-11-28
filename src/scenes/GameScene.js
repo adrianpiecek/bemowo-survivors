@@ -224,6 +224,9 @@ export default class GameScene extends Phaser.Scene {
     this.scene.launch('UIScene', { run: this.run });
     // scene.start('GameOverScene') only stops this scene, so take the HUD down with it.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scene.stop('UIScene'));
+    // config.debug.startStage: on to that stage as through its portals, a frame later (the HUD shows the banner).
+    const toStage = Math.min(config.debug.startStage ?? 1, config.stages.count);
+    if (toStage > 1) this.time.delayedCall(0, () => { while (this.run.stage < toStage) this.nextStage(); });
 
     const b = config.ui.bubble;
     this.bubble = this.add.text(0, 0, 'Muchacho!', {
@@ -557,7 +560,7 @@ export default class GameScene extends Phaser.Scene {
     run.events = [];
     this.scheduleEvents();
     playVfx(this, 'eventStart', this.player.x, this.player.y);
-    this.scene.get('UIScene').showBanner(`ETAP ${run.stage}`, 'Te same ulice, mocniejsi wrogowie');
+    this.scene.get('UIScene').showBanner(`ETAP ${run.stage}`, `Mocniejsi wrogowie. Bronie i pasywki: +${sc.extraLevels * (run.stage - 1)} poziomy ponad maks.`);
     if (!this.boss) playMusic(this, 'gameplay');
     return false;
   }
@@ -733,7 +736,12 @@ export default class GameScene extends Phaser.Scene {
 
   // This run's bosses: one from each slot's pool (config.boss.slots), none twice, not last run's line-up when the pools
   // allow another. The slot gives HP, minute, chest and protein. The scene object outlives runs, so it keeps lastBosses.
+  // The last stage is different: only Król Bemowa (config.boss.giant), right at its start, never paired.
   drawBosses() {
+    if (this.lastStage()) {
+      const g = config.boss.giant;
+      return [{ ...enemies.find((d) => d.id === 'giant'), appearsAtSec: g.atSec, chest: g.chest, protein: g.protein, hp: g.hp }];
+    }
     const slots = config.boss.slots;
     let ids;
     for (let tries = 0; tries < 20; tries++) {
@@ -1076,12 +1084,14 @@ export default class GameScene extends Phaser.Scene {
     z.knockReadyAt = 0;
     z.ramUntil = 0;
     z.powerMs = 0; // a boss's count to its power (data/bossPowers.js)
+    z.powerStep = 0; // Król Bemowa: which move of his order comes next
     z.touchMult = 1; // an endless overtime horde hits harder
     // Walkers get tougher as the run goes on, so late upgrades still meet resistance; the boss has its own HP.
     z.hp = def.isBoss ? def.hp : def.hp * (1 + config.spawn.hpPerMinutePct * this.run.elapsedMs / 60000) * this.run.enemyHpMult
       * (1 + this.run.pressure * config.dda.hpBonus);
     z.maxHp = z.hp; // what a vampire elite heals up to
     this.run.spawned++;
+    z.spawnId = this.run.spawned; // the boss bars keep the order the bosses came in
     if (def.behavior === 'line') {
       z.startX = x;
       z.startY = y;

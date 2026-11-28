@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { enemies } from './enemies.js';
-import { strikeCircle, strikeLine } from '../systems/telegraph.js';
+import { strikeCircle, strikeLine, strikeRing } from '../systems/telegraph.js';
 import { playVfx } from '../systems/vfx.js';
 import { mapById } from './maps.js';
 
@@ -79,6 +79,50 @@ export const bossPowers = {
         strikeLine(scene, z.x, z.y, a, c.length, c.width, c.warnMs, c.damage);
       }
     },
+  },
+};
+
+// Król Bemowa's moves (bossPowers.giant), numbers in config.boss.powers.giant. Each one asks Bartek to move somewhere:
+// into a ring that already struck, out of the next stone, between the beams, away from where the king lands.
+const giantMoves = {
+  quake(scene, z, c) {
+    const { x, y } = z;
+    playVfx(scene, 'stompWave', x, y);
+    for (let i = 0; i < c.rings; i++) {
+      const inner = c.firstRadius + i * c.width;
+      strikeRing(scene, x, y, inner, inner + c.width, c.warnMs + i * c.gapMs, c.damage);
+    }
+  },
+  rain(scene, z, c) {
+    for (let i = 0; i < c.stones; i++) {
+      scene.time.delayedCall(i * c.gapMs, () => {
+        if (!z.active) return;
+        const pl = scene.player, t = i === 0 ? { x: pl.x, y: pl.y } : at(pl.x, pl.y, Phaser.Math.FloatBetween(0, c.spread), Phaser.Math.FloatBetween(0, Math.PI * 2));
+        strikeCircle(scene, t.x, t.y, c.radius, c.warnMs, c.damage, () => playVfx(scene, 'smokePuff', t.x, t.y));
+      });
+    }
+  },
+  cross(scene, z, c) {
+    const aim = Phaser.Math.Angle.Between(z.x, z.y, scene.player.x, scene.player.y);
+    [0, Math.PI / 4].forEach((turn, wave) => scene.time.delayedCall(wave * c.gapMs, () => {
+      if (!z.active) return;
+      for (let k = 0; k < 4; k++) strikeLine(scene, z.x, z.y, aim + turn + (k * Math.PI) / 2, c.length, c.width, c.warnMs, c.damage);
+    }));
+  },
+  slam(scene, z, c) {
+    const { x, y } = scene.player;
+    strikeCircle(scene, x, y, c.radius, c.warnMs, c.damage, () => {
+      if (!z.active) return;
+      z.setPosition(x, y);
+      playVfx(scene, 'stompWave', x, y);
+    });
+  },
+};
+bossPowers.giant = {
+  hint: 'Fale wstrząsów, deszcz kostki brukowej, krzyż laserów i skok na Bartka',
+  use(scene, z) {
+    const c = p.giant, move = c.order[z.powerStep++ % c.order.length];
+    giantMoves[move](scene, z, c[move]);
   },
 };
 

@@ -23,6 +23,9 @@ const p = config.weapons.pistol, sh = config.weapons.shield, gz = config.weapons
 const sg = config.weapons.shotgun, ax = config.weapons.axe, st = config.weapons.staff, bw = config.weapons.bow;
 const nc = config.weapons.necro, sw = config.weapons.sword;
 const count = (n, mult) => Math.ceil(n * mult);
+// What reaching `level` adds: levels[level - 2]; past the list (the stages' extra levels, config.stages.extraLevels) the
+// last two bonuses take turns.
+const step = (list, level) => list[level - 2] ?? list[Math.max(0, list.length - 2 + ((level - list.length - 2) % 2))];
 // A size gain on a card as a share of the weapon's starting size: px mean nothing to the player.
 const share = (x, base) => `${Math.round((x / base) * 100)}%`;
 // Polish plural: 1 odbicie, 2-4 odbicia (not 12-14), 5+ odbić.
@@ -40,14 +43,14 @@ export const weapons = [
     evolution: { passive: 'ticket', id: 'uzi', name: 'Uzi z bazaru', icon: 'weapon_uzi',
       description: `Ciągła seria. Każdy pocisk przebija ${p.evolution.pierce} wroga.` },
     description: (level, m) => (level === 1 ? 'Strzela sam w najbliższych wrogów.'
-      : `+${count(p.levels[level - 2].bullets, m)} ${bulletsWord(count(p.levels[level - 2].bullets, m))} na strzał, w kolejne najbliższe zombie`),
+      : `+${count(step(p.levels, level).bullets, m)} ${bulletsWord(count(step(p.levels, level).bullets, m))} na strzał, w kolejne najbliższe zombie`),
     create(scene, w) {
       w.cooldownMs = 0;
       w.bullets = p.bulletsPerShot;
       w.aim = 0; // radians, toward the last target; the gun keeps pointing there
       w.gun = scene.add.image(0, 0, 'gun_pistol').setOrigin(...config.textures.gun.grip).setDepth(1.5);
     },
-    levelUp(scene, w, m) { w.bullets += count(p.levels[w.level - 2].bullets, m); },
+    levelUp(scene, w, m) { w.bullets += count(step(p.levels, w.level).bullets, m); },
     update(scene, w, delta) {
       const pl = scene.player;
       placeGun(w, pl, p.gun);
@@ -97,7 +100,7 @@ export const weapons = [
       description: `Dwie lufy: ${String(sg.evolution.pelletsMult).replace('.', ',')}x więcej śrutu, każda śrucina przebija ${sg.evolution.pierce} wroga.` },
     description(level, m) {
       if (level === 1) return 'Strzela z bliska wachlarzem śrutu w najbliższego wroga.';
-      const b = sg.levels[level - 2], n = count(b.pellets ?? 0, m);
+      const b = step(sg.levels, level), n = count(b.pellets ?? 0, m);
       return [n && `+${n} ${plural(n, 'śrucina', 'śruciny', 'śrucin')} na strzał`, b.damage && `+${Math.round(b.damage * m)} obrażeń śruciny`]
         .filter(Boolean).join(', ');
     },
@@ -107,7 +110,7 @@ export const weapons = [
       w.gun = scene.add.image(0, 0, 'shotgun').setOrigin(...t.grip).setScale(t.scale).setDepth(1.5);
     },
     levelUp(scene, w, m) {
-      const b = sg.levels[w.level - 2];
+      const b = step(sg.levels, w.level);
       w.damage += (b.damage ?? 0) * m;
       w.pellets += count(b.pellets ?? 0, m);
     },
@@ -160,7 +163,7 @@ export const weapons = [
       evolve(scene, w) { for (const c of w.pool.getChildren()) c.setActive(false).setVisible(false); } },
     description(level, m) {
       if (level === 1) return 'Chmura gazu spada na wrogów. Kto w środku, ten się śmieje i traci HP.';
-      const b = gz.levels[level - 2], n = count(b.clouds ?? 0, m);
+      const b = step(gz.levels, level), n = count(b.clouds ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'chmura', 'chmury', 'chmur')}`,
         b.radius && `+${share(b.radius * m, gz.radius)} wielkości chmury`, b.durationMs && `+${(b.durationMs * m / 1000).toFixed(1)} s działania`]
         .filter(Boolean).join(', ');
@@ -170,7 +173,7 @@ export const weapons = [
       w.pool = scene.add.group({ classType: Phaser.GameObjects.Image, defaultKey: 'gas_cloud', maxSize: config.pools.gas });
     },
     levelUp(scene, w, m) {
-      const b = gz.levels[w.level - 2];
+      const b = step(gz.levels, w.level);
       w.damage += (b.damage ?? 0) * m;
       w.clouds += count(b.clouds ?? 0, m);
       w.radius += (b.radius ?? 0) * m;
@@ -211,7 +214,7 @@ export const weapons = [
       description: 'Promień świeci bez przerwy i sam obraca się za celem.', evolve(scene, w) { w.tickMs = 0; } },
     description(level, m) {
       if (level === 1) return 'Promień z oczu Bartka przepala wszystkich wrogów na linii.';
-      const b = lz.levels[level - 2], n = count(b.beams ?? 0, m);
+      const b = step(lz.levels, level), n = count(b.beams ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'promień', 'promienie', 'promieni')}`,
         b.width && `+${share(b.width * m, lz.width)} szerokości`, b.range && `+${share(b.range * m, lz.range)} zasięgu`].filter(Boolean).join(', ');
     },
@@ -220,7 +223,7 @@ export const weapons = [
       w.g = scene.add.graphics().setDepth(1.55);
     },
     levelUp(scene, w, m) {
-      const b = lz.levels[w.level - 2];
+      const b = step(lz.levels, w.level);
       w.damage += (b.damage ?? 0) * m;
       w.beams += count(b.beams ?? 0, m);
       w.width += (b.width ?? 0) * m;
@@ -252,7 +255,7 @@ export const weapons = [
       description: `${bz.evolution.beesMult}x więcej pszczół, żądła ${String(bz.evolution.damageMult).replace('.', ',')}x mocniejsze. Kto zginie od żądła, czasem zostawia pierogi.` },
     description(level, m) {
       if (level === 1) return `Pszczoły są szczęśliwe.\n${bz.bees} pszczoły krążą wokół Bartka i żądlą wrogów.`;
-      const b = bz.levels[level - 2];
+      const b = step(bz.levels, level);
       if (b.damage) return `+${Math.round(b.damage * m)} obrażeń pszczół`;
       return `+${b.bees} pszczoła${m > 1 ? `, +${Math.round(bz.damage * bz.damagePct * (m - 1))} obrażeń pszczół` : ''}`;
     },
@@ -268,7 +271,7 @@ export const weapons = [
     },
     // Bees never multiply with rarity (too many bees); a rarer bee card gives extra damage instead.
     levelUp(scene, w, m) {
-      const b = bz.levels[w.level - 2];
+      const b = step(bz.levels, w.level);
       w.bees += b.bees ?? 0;
       w.damage += b.damage ? b.damage * m : (b.bees ? bz.damage * bz.damagePct * (m - 1) : 0);
     },
@@ -298,7 +301,7 @@ export const weapons = [
       } },
     description(level, m) {
       if (level === 1) return 'Leci do wroga, odbija się do kolejnych i wraca do Bartka.';
-      const b = sh.levels[level - 2];
+      const b = step(sh.levels, level);
       const n = (x) => count(x, m);
       return [b.bounces && `+${n(b.bounces)} ${plural(n(b.bounces), 'odbicie', 'odbicia', 'odbić')}`, b.damage && `+${Math.round(b.damage * m)} obrażeń`,
         b.shields && `+${n(b.shields)} ${plural(n(b.shields), 'tarcza', 'tarcze', 'tarcz')}`].filter(Boolean).join(', ');
@@ -310,7 +313,7 @@ export const weapons = [
       w.shields = [];
     },
     levelUp(scene, w, m) {
-      const b = sh.levels[w.level - 2];
+      const b = step(sh.levels, w.level);
       w.bounces += count(b.bounces ?? 0, m);
       w.damage += (b.damage ?? 0) * m;
       w.count += count(b.shields ?? 0, m);
@@ -331,7 +334,7 @@ export const weapons = [
       description: `${String(ax.evolution.axesMult).replace('.', ',')}x więcej toporów, kręcą się szybciej i dalej od Bartka.` },
     description(level, m) {
       if (level === 1) return 'Topór krąży wokół Bartka. Kiedy kogoś trafi, odbija się i leci w drugą stronę.';
-      const b = ax.levels[level - 2], n = count(b.axes ?? 0, m);
+      const b = step(ax.levels, level), n = count(b.axes ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'topór', 'topory', 'toporów')}`,
         b.radius && `+${share(b.radius * m, ax.radius)} promienia krążenia`].filter(Boolean).join(', ');
     },
@@ -348,7 +351,7 @@ export const weapons = [
       });
     },
     levelUp(scene, w, m) {
-      const b = ax.levels[w.level - 2];
+      const b = step(ax.levels, w.level);
       w.damage += (b.damage ?? 0) * m;
       w.axes += count(b.axes ?? 0, m);
       w.radius += (b.radius ?? 0) * m;
@@ -379,7 +382,7 @@ export const weapons = [
       description: st.evolution.chain === 1 ? 'Każdy piorun przeskakuje na kolejnego wroga.' : `Każdy piorun przeskakuje na ${st.evolution.chain} kolejnych wrogów.` },
     description(level, m) {
       if (level === 1) return 'Co chwilę piorun z nieba trafia najbliższego wroga.';
-      const b = st.levels[level - 2], n = count(b.bolts ?? 0, m);
+      const b = step(st.levels, level), n = count(b.bolts ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'piorun', 'pioruny', 'piorunów')}`,
         b.radius && `+${share(b.radius * m, st.radius)} promienia uderzenia`].filter(Boolean).join(', ');
     },
@@ -388,7 +391,7 @@ export const weapons = [
       w.g = scene.add.graphics().setDepth(1.55);
     },
     levelUp(scene, w, m) {
-      const b = st.levels[w.level - 2];
+      const b = step(st.levels, w.level);
       w.damage += (b.damage ?? 0) * m;
       w.bolts += count(b.bolts ?? 0, m);
       w.radius += (b.radius ?? 0) * m;
@@ -433,7 +436,7 @@ export const weapons = [
       description: 'Strzały przebijają wszystkich na swojej drodze i nie tracą obrażeń.' },
     description(level, m) {
       if (level === 1) return `Strzała przebija ${bw.pierce} wrogów, ale każdy zabiera jej część obrażeń.`;
-      const b = bw.levels[level - 2], n = count(b.arrows ?? 0, m), pi = count(b.pierce ?? 0, m);
+      const b = step(bw.levels, level), n = count(b.arrows ?? 0, m), pi = count(b.pierce ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'strzała', 'strzały', 'strzał')}`,
         pi && `strzała przebija +${pi} ${plural(pi, 'wroga', 'wrogów', 'wrogów')}`].filter(Boolean).join(', ');
     },
@@ -447,7 +450,7 @@ export const weapons = [
       scene.physics.add.overlap(w.pool, scene.enemies, (a, z) => arrowHit(scene, w, a, z));
     },
     levelUp(scene, w, m) {
-      const b = bw.levels[w.level - 2];
+      const b = step(bw.levels, w.level);
       w.damage += (b.damage ?? 0) * m;
       w.arrows += count(b.arrows ?? 0, m);
       w.pierce += count(b.pierce ?? 0, m);
@@ -490,7 +493,7 @@ export const weapons = [
       description: `${String(nc.evolution.minionsMult).replace('.', ',')}x więcej minionów. Już nie znikają.` },
     description(level, m) {
       if (level === 1) return `Przywołuje ${nc.minions} małych Bartków, które biegną bić wrogów.`;
-      const b = nc.levels[level - 2], n = count(b.minions ?? 0, m);
+      const b = step(nc.levels, level), n = count(b.minions ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'minion', 'miniony', 'minionów')}`,
         b.lifeMs && `+${(b.lifeMs * m / 1000).toFixed(1).replace('.', ',')} s życia minionów`].filter(Boolean).join(', ');
     },
@@ -499,7 +502,7 @@ export const weapons = [
       w.pool = scene.add.group({ classType: Phaser.GameObjects.Image, defaultKey: 'bartek', maxSize: config.pools.minions });
     },
     levelUp(scene, w, m) {
-      const b = nc.levels[w.level - 2];
+      const b = step(nc.levels, w.level);
       w.damage += (b.damage ?? 0) * m;
       w.minions += count(b.minions ?? 0, m);
       w.lifeMs += (b.lifeMs ?? 0) * m;
@@ -534,7 +537,7 @@ export const weapons = [
       description: `Każde cięcie to pełny obrót wokół Bartka, ${String(sw.evolution.damageMult).replace('.', ',')}x obrażeń.` },
     description(level, m) {
       if (level === 1) return 'Tnie łukiem przed Bartkiem wszystkich w zasięgu ostrza.';
-      const b = sw.levels[level - 2], n = count(b.slashes ?? 0, m);
+      const b = step(sw.levels, level), n = count(b.slashes ?? 0, m);
       return [b.damage && `+${Math.round(b.damage * m)} obrażeń`, n && `+${n} ${plural(n, 'cięcie', 'cięcia', 'cięć')} pod rząd`,
         b.reach && `+${share(b.reach * m, sw.reach)} zasięgu ostrza`, b.arcDeg && `+${Math.round(b.arcDeg * m)}° szerokości cięcia`]
         .filter(Boolean).join(', ');
@@ -544,7 +547,7 @@ export const weapons = [
       w.g = scene.add.graphics().setDepth(1.55);
     },
     levelUp(scene, w, m) {
-      const b = sw.levels[w.level - 2];
+      const b = step(sw.levels, w.level);
       w.damage += (b.damage ?? 0) * m;
       w.slashes += count(b.slashes ?? 0, m);
       w.reach += (b.reach ?? 0) * m;

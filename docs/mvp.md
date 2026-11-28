@@ -1603,6 +1603,32 @@ Po krokach 105–106 najlepsza runda na Jelonkach, trudność 1, skończyła si�
   - w konsoli tylko znane błędy 404.
 - **Nie sprawdzone:** czy po zmianach gra nie jest za łatwa. To trzeba wyczuć w kilku rundach, najlepiej też na trudności 3–5.
 
+### 84. Wyższy limit poziomów w etapach 2–3, Król Bemowa, paski bossów obok siebie (krok 108)
+
+Symulacja botem po kroku 107 (34 rundy na Jelonkach, trudność 1, bez siłowni; bot ucieka przed wrogami, zbiera kryształy, gdy jest spokojnie, nie unika mocy bossów): mediana śmierci bez siłowni ok. 5:00 (przed krokiem 107 4:16); start z pistoletem 9–10 min, ze strzelbą i Tarczą 4–5 min. Bez siłowni Bartek ma wszystkie bronie i pasywki na maksie pod koniec 1. etapu, a dalej dostaje tylko drobne karty.
+
+- **Limit poziomów rośnie z etapem** (`stages.extraLevels` 2, `levelCap(run, def)` w `src/systems/cards.js`): w etapie 2 każda broń i pasywka może wejść 2 poziomy ponad swój maks., w etapie 3 o 4 (pasywki 5 → 7 → 9, pistolet 4 → 6 → 8). Karty poziomów i ekwipunek liczą ten limit. Broń za listą swoich poziomów powtarza na zmianę dwa ostatnie bonusy (`step` w `src/data/weapons.js`), pasywki dokładają to samo co na każdym poziomie. Ewolucja dalej przy starym maks., odblokowanie z pasywkami na maks. (plan Unc) też.
+  - Baner etapu: „Mocniejsi wrogowie. Bronie i pasywki: +2 poziomy ponad maks.” (w etapie 3: +4).
+  - Bilet miesięczny też rośnie: do +6 pocisków w etapie 3. Jeśli za mocny, wyjątek to jedna liczba.
+- **Etap 3: Król Bemowa** (`boss.list.giant`, `boss.giant`): jedyny boss ostatniego etapu, wchodzi w 4. sekundzie (baner w 2.), bez zwykłych slotów i bez pary z planu Trening w parze. Wielki Super Bartek w skali 3,2 (wolniejszy, dotyk x2), 50 000 HP bez mnożnika etapu, skrzynia 3, 60 białka. Pokonany: mapa zaliczona i portal wyjścia (jak dotąd po ostatnim bossie); nie pokonany do końca czasu: dogrywka bez końca. Na Forcie Bema nazywa się Król Fortu. Koniec rundy liczy bossów do 9 (4 + 4 + 1).
+  - shortcut: HP to zgadywanka, nikt jeszcze nie doszedł do etapu 3; do strojenia po pierwszym takim teście.
+- **Moce Króla** (`boss.powers.giant`, `bossPowers.giant`): co 4,5 s następna z kolejki, w kółko:
+  - **fala wstrząsów:** 3 pierścienie wokół niego (60–390 px), każdy uderza 0,45 s po wewnętrznym; nowe `strikeRing` w `src/systems/telegraph.js` (wypełnienie rośnie od środka jak fala);
+  - **deszcz kostki brukowej:** 10 kół co 0,14 s, pierwsze tam, gdzie jest Bartek, reszta do 380 px wokół niego;
+  - **krzyż laserów:** 4 promienie w kształcie + (jeden w Bartka), 0,9 s później 4 w kształcie x;
+  - **skok:** duże koło (170 px) na Bartku, po 1,3 s Król tam ląduje.
+- **Paski HP bossów:** jeden pasek na każdego bossa na mapie, w kolejności przyjścia, obok siebie w jednym rzędzie o szerokości `bossBar.width` (odstęp `gap`); za długa nazwa zmniejsza się do paska (`namePad`). W pionie rząd stoi niżej (`bossBar.y` 246), pod napisem „Etap 1/3”, który wcześniej zasłaniał prawy koniec paska.
+- **Debug:** `debug.startStage` (np. 3) zaczyna każdą rundę od tego etapu, jak po przejściu portali.
+- **Co nowego:** wpis 108 „Król Bemowa”.
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk):**
+  - etap 3: w kolejce tylko Król Bemowa (4 s, 50 000 HP), baner „UWAGA: KRÓL BEMOWA” z podpisem mocy; pistolet w etapie 3 wchodzi do poz. 8, każdy poziom +1 pocisk;
+  - wszystkie cztery moce na zrzutach: pierścienie z pustym środkiem, deszcz kół wokół Bartka, krzyż + i x, koło skoku na Bartku;
+  - pokonany Król: mapa zaliczona, baner „MAPA ZALICZONA”, portal wyjścia;
+  - baner etapu 2 i 3 z +2 i +4 poziomami; na Forcie Bema „Król Fortu”;
+  - trzy paski naraz w pionie (pod „Etap 1/3”, dłuższa nazwa zmniejszona) i dwa w poziomie;
+  - w konsoli tylko znane błędy 404 (po przeładowaniu; pierwsze wczytanie ze starym `telegraph.js` w pamięci przeglądarki dało błąd importu, to samo znane ryzyko co w kroku 102).
+- **Nie sprawdzone:** czy Króla da się pokonać w prawdziwej rundzie i czy jego moce nie są za ostre.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

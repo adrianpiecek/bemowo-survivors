@@ -79,9 +79,9 @@ export default class UIScene extends Phaser.Scene {
     this.stageText = this.add.text(width - m, statTop + 3 * (st.height + st.gap) + sh.gap, '', font(sh.fontSize, { fontStyle: 'bold', ...outline }))
       .setOrigin(1, 0);
 
-    const bb = u.bossBar;
-    this.bossText = this.add.text(width / 2, bb.y + bb.height / 2, '', font(bb.fontSize, { fontStyle: 'bold', ...outline }))
-      .setOrigin(0.5).setVisible(false);
+    // One name per boss bar, made when that many bosses first stand at once (updateBossBars).
+    this.bossTexts = [];
+    this.bossText = () => this.add.text(0, 0, '', font(u.bossBar.fontSize, { fontStyle: 'bold', ...outline })).setOrigin(0.5);
 
     this.createJoystick();
     this.weaponSlots = this.add.graphics();
@@ -147,6 +147,21 @@ export default class UIScene extends Phaser.Scene {
     this.tweens.add({ targets: welcome, alpha: 0, delay: w.holdMs, duration: w.fadeMs, onComplete: () => welcome.destroy() });
   }
 
+  // Boss HP bars, top center under the clock: one per boss on the map, in the order they came, side by side in one row
+  // of bossBar.width (each as wide as the row allows). A name longer than its bar shrinks to fit.
+  updateBossBars() {
+    const bb = config.ui.bossBar, bosses = this.scene.get('GameScene').enemies.getChildren()
+      .filter((z) => z.active && z.stats.isBoss).sort((a, b) => a.spawnId - b.spawnId);
+    const n = bosses.length, w = (bb.width - bb.gap * (n - 1)) / n, x0 = (this.vw - bb.width) / 2;
+    bosses.forEach((boss, i) => {
+      const x = x0 + i * (w + bb.gap), t = this.bossTexts[i] ??= this.bossText();
+      t.setText(enemyName(boss.stats, this.run.map).toUpperCase()).setPosition(x + w / 2, bb.y + bb.height / 2).setVisible(true);
+      t.setScale(Math.min(1, (w - bb.namePad) / t.width));
+      drawBar(this.bars, x, bb.y, w, bb.height, boss.hp / boss.stats.hp, bb.color);
+    });
+    this.bossTexts.forEach((t, i) => t.setVisible(i < n));
+  }
+
   // Shared banner: fades in, stays, fades out. Runs on this scene's clock, so it keeps counting while GameScene is paused.
   // A new banner replaces the one on screen.
   showBanner(text, subtext = '', durationMs = config.ui.banner.durationMs) {
@@ -199,14 +214,7 @@ export default class UIScene extends Phaser.Scene {
     this.killsText.setText(r.kills);
     this.coinText.setText(r.coinProtein);
     this.bCoinText.setText(r.bCoins);
-    // Boss HP bar, top center under the clock, only while a boss is on the map.
-    const boss = this.scene.get('GameScene').boss, bb = config.ui.bossBar;
-    const bossOn = !!boss?.active && boss.stats.isBoss; // pooled: the same sprite may be a zombie later
-    this.bossText.setVisible(bossOn);
-    if (bossOn) {
-      this.bossText.setText(enemyName(boss.stats, this.run.map).toUpperCase());
-      drawBar(this.bars, (this.vw - bb.width) / 2, bb.y, bb.width, bb.height, boss.hp / boss.stats.hp, bb.color);
-    }
+    this.updateBossBars();
     this.tankButton.setVisible(full && r.tankMs <= 0);
     this.updateEffectHud();
     this.updateWeaponHud();

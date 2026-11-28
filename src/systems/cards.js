@@ -7,6 +7,10 @@ import { font, drawPanel, keyHint } from './ui.js';
 
 // Upgrade cards, shared by the level-up screen and the boss chest.
 
+// How far a weapon or passive can level in this stage: its maxLevel, plus config.stages.extraLevels for every stage
+// after the first, so stages 2 and 3 still have levels to take.
+export const levelCap = (run, def) => def.maxLevel + config.stages.extraLevels * (run.stage - 1);
+
 // A rarity tier from config.rarity for this card, drawn by weight; the weights of rarer tiers grow with the level
 // and with luck (Koniczyna z trawnika). Cards with `rarity: false` get none (null).
 export function rollRarity(up, run) {
@@ -57,7 +61,7 @@ export function evolutionCard(run) {
 function weaponCards(run) {
   const cards = [];
   for (const w of run.weapons) {
-    if (w.level >= w.def.maxLevel) continue;
+    if (w.level >= levelCap(run, w.def)) continue;
     const level = w.level + 1;
     cards.push({
       id: `weapon_${w.def.id}`, name: w.def.name, icon: w.def.icon, weight: w.def.weight ?? config.weapons.cardWeight, maxStack: Infinity, levelText: `Poziom ${w.level} → ${level}`,
@@ -87,7 +91,7 @@ export function passiveCards(run) {
     description: (m) => def.description(level, m),
     apply(player, scene, m) { scene.gainPassive(def, m); },
   });
-  const cards = run.passives.filter((p) => p.level < p.def.maxLevel).map((p) => card(p.def, p.level + 1, `Poziom ${p.level} → ${p.level + 1}`));
+  const cards = run.passives.filter((p) => p.level < levelCap(run, p.def)).map((p) => card(p.def, p.level + 1, `Poziom ${p.level} → ${p.level + 1}`));
   if (run.passives.length >= run.player.passiveSlots) return cards;
   for (const def of passives) {
     if (!run.passives.some((p) => p.def === def) && isUnlocked(def, run)) cards.push(card(def, 1, 'NOWA PASYWKA'));

@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 107, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 108, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   // maxHp 80 -> 100 and invulnMs 500 -> 700 in step 107: playtest runs on the easiest level ended at 1:35 and 5:21.
@@ -168,6 +168,9 @@ export const config = {
       { atSec: 390, hp: 3200, chest: 2, protein: 20, pool: ['bigJoker', 'bigSportakus', 'bigZombie'] },
       { atSec: 540, hp: 4800, chest: 3, protein: 30, pool: ['bigHomelander'] }, // the last one is always the same
     ],
+    // The last stage has no slots: Król Bemowa (list.giant) walks in at atSec, with this HP (no stage multiplier), chest and
+    // protein; beating him wins the map. shortcut: hp is a guess, no one has reached stage 3 in a playtest yet; tune after one.
+    giant: { atSec: 4, hp: 50000, chest: 3, protein: 60 },
     // The bosses: a bigger copy of a regular enemy type (base), with its behavior. speedMult and damageMult multiply the
     // base numbers, scale its size.
     list: {
@@ -177,6 +180,8 @@ export const config = {
       bigSportakus: { base: 'sportakus', name: 'Wielki Sportowiec', scale: 2.2, speedMult: 1, damageMult: 2 },
       bigJoker: { base: 'joker', name: 'Wielki Klaun', scale: 2.2, speedMult: 0.9, damageMult: 2 },
       bigHomelander: { base: 'homelander', name: 'Wielki Super Bartek', scale: 2, speedMult: 0.9, damageMult: 2 },
+      // The last stage's only boss (config.boss.giant), not in any slot's pool.
+      giant: { base: 'homelander', name: 'Król Bemowa', scale: 3.2, speedMult: 0.7, damageMult: 2 },
     },
     // Boss powers (data/bossPowers.js): every everySec, warned attacks (systems/telegraph.js) on a red area that fills up
     // over warnMs, then strikes for `damage` (grows with the run like a touch; armor takes off its share). range: only
@@ -191,6 +196,15 @@ export const config = {
       bigSportakus: { everySec: 5, range: 320, radius: 190, warnMs: 800, damage: 18 }, // a stomp around himself
       bigJoker: { everySec: 6, bombs: 3, radius: 75, spread: 170, warnMs: 1200, damage: 14 }, // cards on and around Bartek
       bigHomelander: { everySec: 5, beams: 3, spreadDeg: 25, length: 1100, width: 34, warnMs: 1000, damage: 22 }, // eye lasers
+      // Król Bemowa: every everySec the next move of `order`, round and round.
+      // quake: `rings` rings around him, each `width` px wide from firstRadius out, landing gapMs after the one inside it.
+      // rain: `stones` circles one after another every gapMs, the first on Bartek, the rest up to spread px around him.
+      // cross: four beams in a + (one at Bartek), then gapMs later four in an x. slam: a circle on Bartek, he lands in it.
+      giant: { everySec: 4.5, order: ['quake', 'rain', 'cross', 'slam'],
+        quake: { rings: 3, firstRadius: 60, width: 110, warnMs: 1100, gapMs: 450, damage: 24 },
+        rain: { stones: 10, radius: 70, spread: 380, warnMs: 1000, gapMs: 140, damage: 18 },
+        cross: { length: 1400, width: 46, warnMs: 1000, gapMs: 900, damage: 26 },
+        slam: { radius: 170, warnMs: 1300, damage: 30 } },
     },
   },
   // Elites (data/elites.js): every everySec the next walking enemy that spawns alone (no boss, pack or klapa) becomes an
@@ -387,7 +401,9 @@ export const config = {
   // overtime never ends: every horde's HP x endless.hpGrowth and touch damage x endless.damageGrowth over the one before
   // (the enemy cap holds the count), so a better build only lasts longer and the score has no ceiling.
   // Wynik: every kill adds scoreMult[stage - 1] x (1 + difficultyPct per difficulty level above 1).
-  stages: { count: 3, hpPct: 0.3, spawnPct: 0.3, bossHpMult: 2.5,
+  // extraLevels: from stage 2 on, every weapon and passive can go this many levels past its maxLevel per stage after the
+  // first (systems/cards.js levelCap); evolutions still come at maxLevel.
+  stages: { count: 3, hpPct: 0.3, spawnPct: 0.3, bossHpMult: 2.5, extraLevels: 2,
     portal: { sec: 10, dist: 260, tries: 24, clearance: 50, pulse: { scale: 1.15, ms: 700, vfx: 'portalGlow', everyMs: 700 } },
     overtime: { durationSec: 600, enemy: 'runner', everySec: 15, baseCount: 20, countPct: 0.25, hpPct: 0.35,
       endless: { hpGrowth: 1.12, damageGrowth: 1.08 } },
@@ -416,6 +432,7 @@ export const config = {
     offline: false, // true: Firebase is never loaded (Konto shows the no-connection state)
     forceSyncConflict: false, // true: a login with a save in the cloud always asks which save to keep
     portalKey: false, // true: the O key opens the stage's portal by Bartek (walk in: next stage; leave it: overtime)
+    startStage: null, // a stage number: every run starts there (2: +2 levels, 3: Król Bemowa at once)
     bossKey: false, // true: B, then a digit 1-4, calls that boss (in order of appearance) after its banner
     enemyKey: false, // true: the Y key brings a goblin pack and a Sportakus next to Bartek
     giveWeapon: null, // a weapon id or a list (e.g. ['gas', 'laser']): unlocked in the save and given at the start of every run
@@ -687,7 +704,9 @@ export const config = {
       // Under the start prompt and the orientation question: the stats notice and the privacy link, ui.safeEdge.bottom px up.
       privacyFontSize: 22 },
     // y: under the HUD panel and the three stat pills (portrait: the B coin pill ends at 200); the effect rows go under it
-    bossBar: { y: 212, width: 600, height: 24, fontSize: 18, color: 0xd03030 },
+    // Several bosses at once: one bar each, side by side in the same width, gap px apart; a name too long for its bar shrinks.
+    // y: under the right column's stage label (stageHud), which the row covered before step 108.
+    bossBar: { y: 246, width: 600, height: 24, fontSize: 18, color: 0xd03030, gap: 10, namePad: 8 },
     // "Etap 2/3" under the stats column, right-aligned; red in overtime, as the clock then.
     stageHud: { gap: 4, fontSize: 20, color: '#ffffff', overtimeColor: '#ff5252' },
     // Boss chest screen: cards spin through names every spinStepMs; the first stops after spinMs, each next stopGapMs later.
