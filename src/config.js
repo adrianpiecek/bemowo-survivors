@@ -2,10 +2,11 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 106, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 107, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
-  player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
+  // maxHp 80 -> 100 and invulnMs 500 -> 700 in step 107: playtest runs on the easiest level ended at 1:35 and 5:21.
+  player: { speed: 200, maxHp: 100, invulnMs: 700, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
   // Weapons (data/weapons.js). Bartek starts with one random weapon from `start` and carries up to startSlots (the gym's
   // Kabura adds more, at most 3 in all); new ones and levels come as cards.
   weapons: {
@@ -149,7 +150,8 @@ export const config = {
     // Walks; every leapEverySec, with Bartek within leapRange, stops, flashes for warnMs and leaps where he stood.
     sportakus: { speed: 70, hp: 40, contactDamage: 15, appearsAtSec: 240, spawnWeight: 0.06,
       leapEverySec: 3, leapRange: 450, warnMs: 700, flashMs: 100, flashColor: 0xff0000, leapSpeed: 650 },
-    klapa: { speed: 200, hp: 3, contactDamage: 30, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 }, // about 2x zombie speed
+    // Slower than Bartek (player.speed), so running away works; was 200 and 30 damage before step 107.
+    klapa: { speed: 170, hp: 3, contactDamage: 18, appearsAtSec: 240, spawnWeight: 0.05, spinDegPerSec: 540 },
     // A zombie on rollerblades: only the Nightskating event sends them (spawnWeight 0); rolls straight, leaning, no spin.
     skater: { speed: 460, hp: 8, contactDamage: 12, appearsAtSec: 0, spawnWeight: 0, spinDegPerSec: 0 },
   },
@@ -289,16 +291,18 @@ export const config = {
   // Spawn rate goes from startPerSec to endPerSec over the run along t^curvePow (above 1: calm start, pressure late).
   // Walking enemies' HP grows by hpPerMinutePct of their base HP for every minute of the run (not the boss).
   // Every enemy's touch (bosses too) hits harder by damagePerMinutePct of its base damage for every minute of the run.
-  spawn: { startPerSec: 1.2, endPerSec: 14, curvePow: 1.3, hpPerMinutePct: 0.4, damagePerMinutePct: 0.12, ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
-  // Hidden pressure (presja Bemowa), 0..max: every sampleSec it looks at the last windowSec. Easy (Bartek lost under calmPct
+  spawn: { startPerSec: 1.2, endPerSec: 14, curvePow: 1.3, hpPerMinutePct: 0.25, damagePerMinutePct: 0.08, // 0.4 and 0.12 before step 107
+    ringMinRadius: 800, ringMaxRadius: 820, maxEnemies: 250 },
+  // Hidden pressure (presja Bemowa), min..max: every sampleSec it looks at the last windowSec. Easy (Bartek lost under calmPct
   // of his max HP and fewer than calmCrowd enemies stood within crowdRadius on average): up by upPerMin a minute, but not
   // for graceSec after any card is taken, so an upgrade is felt first. Struggling (lost over hurtPct, HP under lowHpPct,
-  // or more than busyCrowd around): down by downPerMin. Never below 0 (the game as tuned), not before startSec.
+  // or more than busyCrowd around): down by downPerMin, down to min: below 0 the game is easier than tuned (fewer
+  // spawns, weaker walkers) for a player who struggles. Not before startSec.
   // Pressure p adds p * spawnBonus to the spawn rate and the waves, p * hpBonus to walking enemies' HP (not bosses),
-  // and the run's average pressure * proteinPct to its protein.
+  // and the run's average pressure * proteinPct to its protein (never less protein for an average below 0).
   dda: { sampleSec: 5, windowSec: 30, startSec: 60, graceSec: 20, crowdRadius: 300, calmCrowd: 8, busyCrowd: 30,
-    calmPct: 0.1, hurtPct: 0.3, lowHpPct: 0.35, upPerMin: 0.2, downPerMin: 0.1, max: 1, spawnBonus: 1, hpBonus: 0.4, proteinPct: 0.3 },
-  wave: { everySec: 45, baseCount: 8, perWave: 8 }, // a ring of extra enemies all around Bartek, bigger each time
+    calmPct: 0.1, hurtPct: 0.3, lowHpPct: 0.35, upPerMin: 0.2, downPerMin: 0.2, min: -0.5, max: 1, spawnBonus: 1, hpBonus: 0.4, proteinPct: 0.3 },
+  wave: { everySec: 60, baseCount: 8, perWave: 5 }, // a ring of extra enemies all around Bartek, bigger each time (45 s and +8 before step 107)
   // XP gems: each enemy type drops one kind (data/enemies.js), the kind sets the value.
   // XP to the next level: baseToLevel + perLevel * (level - 1) + perLevelSq * (level - 1)^2.
   // Drawn in BootScene, gemSize px: a polygon with `sides` corners (stretch: taller than wide), or `cut`: a cut gem
@@ -428,7 +432,7 @@ export const config = {
     betsUnlocked: false, // true: the gym shows Zakłady z Unc without a won run
     startWeapon: null, // a weapon id: every run starts with it instead of a random one from weapons.start
     startBCoins: null, // a number: every run starts with that many B coins (to open the chests on the map)
-    forcePressure: null, // a number 0..dda.max: the hidden pressure stays there all run (the balance overlay shows it)
+    forcePressure: null, // a number dda.min..dda.max: the hidden pressure stays there all run (the balance overlay shows it)
     gemKey: false, // true: the G key scatters 250 gems around Bartek (they merge) and one coin of each kind
     forceRarity: null, // a config.rarity id (e.g. 'legendary'): every card gets that rarity
   },

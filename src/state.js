@@ -121,7 +121,7 @@ export function newRun(gym = true) {
     noPickupHeal: false, // pickups that heal do not drop
     cardCount: config.ui.card.count, // cards on a level up
     // Hidden pressure (config.dda), GameScene.updatePressure:
-    pressure: 0, // 0..config.dda.max
+    pressure: 0, // config.dda.min..config.dda.max
     pressureMsSum: 0, // pressure x ms, for the run's average (the protein bonus)
     ddaSampleMs: 0, // time since the last sample
     ddaCrowdSum: 0, // enemies near Bartek summed over this sample's frames
@@ -171,7 +171,7 @@ export function proteinForRun(run, won) {
 
 // The protein bonus for the run's hidden pressure: its average over the run x config.dda.proteinPct, in whole percent.
 export function pressureBonus(run) {
-  return Math.floor((run.pressureMsSum / Math.max(1, run.elapsedMs)) * config.dda.proteinPct * 100) / 100;
+  return Math.max(0, Math.floor((run.pressureMsSum / Math.max(1, run.elapsedMs)) * config.dda.proteinPct * 100) / 100);
 }
 
 // Persistent progress in localStorage. Bump SAVE_VERSION and migrate in loadSave() when the schema changes.

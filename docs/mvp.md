@@ -1576,6 +1576,33 @@ Zamiast par z kroku 102 („Zombie / Binion” w jednym wierszu) każdy wygląd 
   - w konsoli tylko znane błędy 404.
 - **Nie sprawdzone:** szew pętli na słuch (karta przeglądarki była w tle).
 
+### 83. Łagodniejszy balans (krok 107)
+
+Po krokach 105–106 najlepsza runda na Jelonkach, trudność 1, skończyła się w 5:21 z 10:00, a Wyzwanie dnia (bez siłowni) w 1:35. Obie śmierci przyszły tuż po fali: w 1:30 druga fala (16 wrogów dookoła) i pierwsze stada goblinów naraz, od 4:00 klapy tak szybkie jak Bartek, w 5:00 super Bartki i podwójne elity, w 5:15 fala 56 wrogów. Same liczby w `config.js`, poza podłogą presji.
+
+| Co | Było | Jest |
+|---|---|---|
+| HP Bartka (`player.maxHp`) | 80 | 100 |
+| Nietykalność po trafieniu (`player.invulnMs`) | 500 ms | 700 ms |
+| Fale (`wave`) | co 45 s, +8 wrogów co falę | co 60 s, +5 wrogów co falę (pierwsza dalej 8) |
+| HP wrogów na minutę rundy (`spawn.hpPerMinutePct`) | +40% | +25% |
+| Obrażenia dotyku na minutę (`spawn.damagePerMinutePct`) | +12% | +8% |
+| Klapa (`enemies.klapa`) | szybkość 200 (jak Bartek), 30 obrażeń | 170 (da się uciec), 18 obrażeń |
+| Presja Bemowa (`dda`) | spada do 0, w dół 0,1 na minutę | spada do `min` −0,5, w dół 0,2 na minutę |
+
+- **Presja poniżej zera:** gdy Bartkowi idzie źle (te same warunki co dotąd: duża utrata HP, mało HP albo tłok), presja schodzi poniżej 0 i gra jest łatwiejsza niż ustawiona: przy −0,5 spawn i fale x0,5, HP chodzących wrogów x0,8. Gdy znowu idzie dobrze, rośnie jak dawniej.
+  - Premia białka za presję (`pressureBonus`) nigdy nie jest ujemna: słabsza runda nie dostaje mniej białka.
+  - Statystyki rund (`runs.pressure`) mogą teraz mieć wartości ujemne; reguły bazy ich nie sprawdzają.
+- **Wyniki:** rundy po tym kroku są łatwiejsze niż wcześniejsze w tabeli wyników (bez resetu tabeli).
+- **Co nowego:** wpis 107 „Bemowo łagodnieje”.
+- **Powitanie:** napis na start rundy w dwóch liniach, „Witamy na” i „Bemowie”, wyśrodkowany (`UIScene`).
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk):**
+  - nowa runda: Bartek 100/100 HP, liczby z tabeli w `config`;
+  - powitanie w dwóch wyśrodkowanych liniach na ekranie w pionie;
+  - udawane 6 minut ciągłych kłopotów od 1:00: presja −0,2, −0,4, potem stoi na −0,5; premia białka 0; po 8 spokojnych minutach wraca do 1;
+  - w konsoli tylko znane błędy 404.
+- **Nie sprawdzone:** czy po zmianach gra nie jest za łatwa. To trzeba wyczuć w kilku rundach, najlepiej też na trudności 3–5.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

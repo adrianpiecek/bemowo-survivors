@@ -141,8 +141,8 @@ export default class UIScene extends Phaser.Scene {
 
     const w = u.welcome;
     if (this.quiet) return;
-    const welcome = this.add.text(width / 2, height / 2, 'Witamy na Bemowie', font(w.fontSize, {
-      fontStyle: 'bold', stroke: '#000000', strokeThickness: u.banner.strokeThickness,
+    const welcome = this.add.text(width / 2, height / 2, 'Witamy na\nBemowie', font(w.fontSize, {
+      fontStyle: 'bold', align: 'center', stroke: '#000000', strokeThickness: u.banner.strokeThickness,
     })).setOrigin(0.5);
     this.tweens.add({ targets: welcome, alpha: 0, delay: w.holdMs, duration: w.fadeMs, onComplete: () => welcome.destroy() });
   }

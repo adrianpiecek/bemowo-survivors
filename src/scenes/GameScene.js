@@ -714,7 +714,7 @@ export default class GameScene extends Phaser.Scene {
     if (run.elapsedMs < d.startSec * 1000) return;
     const step = d.sampleSec / 60;
     if (hurt > d.hurtPct || pl.hp < pl.maxHp * d.lowHpPct || avgCrowd > d.busyCrowd) {
-      run.pressure = Math.max(0, run.pressure - d.downPerMin * step);
+      run.pressure = Math.max(d.min, run.pressure - d.downPerMin * step);
     } else if (hurt < d.calmPct && avgCrowd < d.calmCrowd && run.ddaGraceMs <= 0) {
       run.pressure = Math.min(d.max, run.pressure + d.upPerMin * step);
     }

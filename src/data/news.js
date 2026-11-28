@@ -6,4 +6,5 @@ export const news = [
   { version: 100, title: 'Wyzwanie dnia', text: 'Jedna runda dziennie, ta sama dla wszystkich i bez siłowni. Z kontem i nickiem trafisz do tabeli dnia.' },
   { version: 102, title: 'Bestiariusz z Fortu Bema', text: 'Bartkowie z Fortu Bema mają w bestiariuszu własne wpisy, a bossowie fortu zapowiadają się po swojemu (np. beczki pełne gnomów).' },
   { version: 106, title: 'Na grubą rybę', text: 'Nowa pasywka Pas mistrzowski i przedmioty Proca oraz Wypchany szczupak: więcej obrażeń elitom i bossom. Muzyka ładuje się szybciej.' },
+  { version: 107, title: 'Bemowo łagodnieje', text: 'Bartek ma 100 HP, fale przychodzą rzadziej i są mniejsze, wrogowie słabiej rosną w siłę, a klapa jest wolniejsza od Bartka. Gdy idzie ci źle, gra sama trochę odpuszcza.' },
 ];
