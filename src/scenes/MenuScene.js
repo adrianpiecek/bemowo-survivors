@@ -78,9 +78,9 @@ export default class MenuScene extends Phaser.Scene {
     } else if (y + mn.quoteGap + gs.bartekHeight <= height - mn.bottom) this.addQuote((width - quoteW) / 2, y + mn.quoteGap);
 
     // Which build is on this device (GitHub Pages and the phone cache it): bottom right corner.
-    const vx = width - mn.versionMargin, vy = height - mn.versionMargin; // 'corner': kept there at any Wielkość menu
+    const se = config.ui.safeEdge, vx = width - se.x, vy = height - se.bottom; // 'corner': kept there at any Wielkość menu
     this.add.text(vx, vy, `v0.${config.version}`, font(mn.versionFontSize, { color: mn.versionColor })).setOrigin(1, 1).setData('corner', [vx, vy]);
-    privacyLink(this, mn.versionMargin, vy, 'Prywatność', mn.privacyFontSize).setOrigin(0, 1).setData('corner', [mn.versionMargin, vy]);
+    privacyLink(this, se.x, vy, 'Prywatność', mn.privacyFontSize).setOrigin(0, 1).setData('corner', [se.x, vy]);
     centerLayout(this); // a taller phone: the whole menu in the middle
     this.input.keyboard.once('keydown-ENTER', () => startRun(this));
     this.input.keyboard.on('keydown-ESC', () => openSettings(this));

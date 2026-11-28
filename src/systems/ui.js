@@ -9,8 +9,12 @@ export const touch = window.matchMedia('(pointer: coarse)').matches;
 // "Wróć [Esc]" with a keyboard, "Wróć" on touch; keyHint('', '[1]') is '[1]' or ''.
 // The privacy policy (privacy.html) in a new tab, and a small text that opens it (title screen, menu corner).
 export const openPrivacy = () => window.open('./privacy.html', '_blank', 'noopener');
-export const privacyLink = (scene, x, y, label, size, extra = {}) => scene.add.text(x, y, label, font(size, { color: config.ui.privacyColor, ...extra }))
-  .setInteractive({ useHandCursor: true }).on('pointerdown', openPrivacy);
+export function privacyLink(scene, x, y, label, size, extra = {}) {
+  const t = scene.add.text(x, y, label, font(size, { color: config.ui.privacyColor, ...extra })), p = config.ui.linkPad;
+  // The tap area reaches linkPad px past the small text, so a finger on a phone hits it.
+  return t.setInteractive({ hitArea: new Phaser.Geom.Rectangle(-p, -p, t.width + 2 * p, t.height + 2 * p),
+    hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true }).on('pointerdown', openPrivacy);
+}
 
 export const keyHint = (label, key) => (touch ? label : [label, key].filter(Boolean).join(' '));
 

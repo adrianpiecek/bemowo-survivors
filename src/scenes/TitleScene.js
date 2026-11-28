@@ -58,7 +58,7 @@ export default class TitleScene extends Phaser.Scene {
   // Before the first run sends anything: what goes out and the link to the policy (a click on it does not start the intro).
   addPrivacy() {
     const t = config.ui.title, { width, height } = this.scale;
-    this.privacy = privacyLink(this, width / 2, height - t.privacyBottom,
+    this.privacy = privacyLink(this, width / 2, height - config.ui.safeEdge.bottom,
       'Po każdej rundzie gra wysyła anonimowe statystyki. Wyłączysz je w Menu → Konto.\nPolityka prywatności', t.privacyFontSize,
       { align: 'center', wordWrap: { width: width - 2 * config.ui.margin } }).setOrigin(0.5, 1);
   }

@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 102, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 103, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -508,6 +508,7 @@ export const config = {
   // masterVolume: every sound and the music (the settings sliders go on top); playtests found the game too loud at 1.
   audio: {
     masterVolume: 0.4,
+    sfxVolume: 0.7, // every sound effect (not the music) on top of its own volume: 30% quieter since step 103
     files: {
       clang: { file: './assets/sounds/title_hit.wav', volume: 0.8 },
       // shortcut: music is WAV (~10 MB together), slow on a phone's first load; convert to OGG/MP3 before deploy.
@@ -518,7 +519,7 @@ export const config = {
       levelUp: { file: './assets/sounds/level_up.wav', volume: 0.7 },
       pick: { file: './assets/sounds/pick.wav', volume: 0.4, minGapMs: 50 },
       playerDamage: { file: './assets/sounds/player_damage.wav', volume: 0.6 },
-      powerUp: { file: './assets/sounds/power_up.wav', volume: 0.7 },
+      powerUp: { file: './assets/sounds/power_up.wav', volume: 0.35 }, // half of 0.7 since step 103
       shotHit: { file: './assets/sounds/shot_hit.wav', volume: 0.3, minGapMs: 50 },
       muzzleShot: { file: './assets/muzzle-flash-pixel-fx-v1/sounds/fx-muzzle-shot.wav', volume: 1, minGapMs: 50 }, // mastered quiet
     },
@@ -659,6 +660,10 @@ export const config = {
     weaponHud: { size: 52, iconSize: 40, gap: 8, fontSize: 15, badgeRadius: 11, emptyAlpha: 0.35, readyColor: 0xffc400, readyWidth: 3, readyPulseMs: 500 },
     joystick: { radius: 70, knobRadius: 30, color: 0xffffff, baseAlpha: 0.25, knobAlpha: 0.5, deadZone: 0.15 },
     privacyColor: '#9e9e9e', // the privacy link's text (title screen, menu corner)
+    // Kept clear at the screen's bottom corners (px): a phone's rounded corners, its home bar and gesture area hide and
+    // swallow anything closer. The menu's Prywatność and version and the title's privacy notice sit inside it.
+    safeEdge: { x: 36, bottom: 64 },
+    linkPad: 20, // px around a small text link (Prywatność) that still count as a tap on it
     title: { promptFontSize: 32, logoFontSize: 140, fontFamily: '"NotJam", Impact, "Arial Black", sans-serif', strokeThickness: 10,
       bemowoColor: '#ffcc00', survivorsColor: '#d01818', bemowoY: 520, survivorsY: 660, dropMs: 450, gapMs: 600,
       shakeMs: 250, shakeIntensity: 0.02, blinkMs: 600,
@@ -667,8 +672,8 @@ export const config = {
       promptGapY: 200, skipDelayMs: 250, pulseScale: 1.08, promptStroke: 6,
       // First launch: "Jak trzymasz ekran?" over two buttons orientWidth px wide, orientGap apart, orientGapY under it.
       orientFontSize: 40, orientWidth: 260, orientGap: 30, orientGapY: 90,
-      // Under the start prompt and the orientation question: the stats notice and the privacy link, privacyBottom px up.
-      privacyFontSize: 22, privacyBottom: 40 },
+      // Under the start prompt and the orientation question: the stats notice and the privacy link, ui.safeEdge.bottom px up.
+      privacyFontSize: 22 },
     // y: under the HUD panel and the three stat pills (portrait: the B coin pill ends at 200); the effect rows go under it
     bossBar: { y: 212, width: 600, height: 24, fontSize: 18, color: 0xd03030 },
     // "Etap 2/3" under the stats column, right-aligned; red in overtime, as the clock then.
@@ -690,8 +695,8 @@ export const config = {
     // bartekHeight: Bartek's height there (0: the gym's).
     menu: { titleY: 120, titleFontSize: 60, proteinGap: 18, top: 360, columnX: 0.5, width: 600, gap: 18, goHeight: 120, goFontSize: 46,
       height: 96, fontSize: 34, betsFontSize: 28, smallHeight: 88, smallFontSize: 28, iconSize: 44, iconPad: 18, hintFontSize: 16,
-      quoteSide: false, quoteLeft: 0, quoteGap: 40, bartekHeight: 0, bottom: 40, versionFontSize: 15, versionMargin: 10, versionColor: '#757575',
-      dailyFontSize: 28, privacyFontSize: 22 }, // Siłownia and Wyzwanie dnia side by side at dailyFontSize; "Prywatność" in the bottom left corner, versionMargin from the edges
+      quoteSide: false, quoteLeft: 0, quoteGap: 40, bartekHeight: 0, bottom: 100, versionFontSize: 20, versionColor: '#757575',
+      dailyFontSize: 28, privacyFontSize: 22 }, // Siłownia and Wyzwanie dnia side by side at dailyFontSize; "Prywatność" bottom left and the version bottom right, ui.safeEdge in from the corners (`bottom` keeps the quote above them)
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.

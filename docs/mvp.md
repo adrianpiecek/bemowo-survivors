@@ -1503,6 +1503,24 @@ Po aktualizacji gry gracz od razu widzi, co się zmieniło.
   - runda na Forcie Bema: baner „UWAGA: WIELKI GNOM” z „Rzuca beczkami pełnymi gnomów” i „UWAGA: WIELKI BINION” z „…wstają biniony”; na Jelonkach stare podpisy;
   - w konsoli tylko znane błędy 404.
 
+### 79. Prywatność i wersja widoczne na telefonie, cichsze efekty (krok 103)
+
+Na telefonie „Prywatność” i numer wersji w rogach menu były za nisko: zaokrąglone rogi ekranu, pasek domowy i obszar gestów zasłaniały je i przechwytywały dotyk.
+
+- **Bezpieczny brzeg** `config.ui.safeEdge` (`x: 36`, `bottom: 64` px gry, na telefonie ok. 20 i 35 px ekranu): „Prywatność” i wersja w menu oraz informacja o statystykach na ekranie startowym stoją tyle od dolnej krawędzi i od boków. Zastępuje `menu.versionMargin` i `title.privacyBottom`.
+- **Większa wersja:** `menu.versionFontSize` 15 → 20.
+- **Cytat Bartka** w menu pojawia się tylko nad rogami (`menu.bottom` 40 → 100).
+- **Większe pole dotyku linku:** `privacyLink` (`src/systems/ui.js`) łapie dotyk `ui.linkPad` (20) px wokół tekstu.
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk):**
+  - 375×812: „Prywatność” i „v0.103” ok. 40 px nad dołem i 18 px od boków; ekran startowy też wyżej;
+  - dotknięcie kilka pikseli pod „Prywatność” otwiera politykę;
+  - 360×640: cytat Bartka dalej się mieści, nad rogami;
+  - 844×390 w poziomie: oba napisy w rogach obrazu gry;
+  - w konsoli tylko znane błędy 404.
+- **Cichsze efekty dźwiękowe:** `config.audio.sfxVolume` (0.7) mnoży głośność każdego efektu (nie muzyki), więc przy tych samych ustawieniach efekty są o 30% cichsze, także u graczy z zapisanym suwakiem. Dźwięk power up (znajdźka, czołg, zakup w siłowni) ma dodatkowo głośność 0.35 zamiast 0.7, razem 35% dawnej.
+- **Sprawdzone głośności:** power up 0.245, level up 0.49, zbieranie 0.28, uderzenie w tytule 0.56 (przy suwaku 100%, pod `masterVolume` 0.4).
+- **Nie sprawdzone:** na prawdziwym telefonie i na słuch.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

@@ -17,7 +17,7 @@ export function playSfx(scene, event) {
   const now = performance.now(); // real time: the gap is about what the ear hears
   if (a.minGapMs && now - (lastPlayedMs.get(key) ?? -Infinity) < a.minGapMs) return;
   lastPlayedMs.set(key, now);
-  scene.sound.play(key, { volume: a.volume * save.sfxVolume });
+  scene.sound.play(key, { volume: a.volume * config.audio.sfxVolume * save.sfxVolume });
 }
 
 let music = null; // { name, sounds } of the track playing now
@@ -50,7 +50,8 @@ export function stopMusic() {
   music = null;
 }
 
-// Settings screen: 'musicVolume' or 'sfxVolume' (0..1) times each file's own volume, remembered in the save.
+// Settings screen: 'musicVolume' or 'sfxVolume' (0..1) times each file's own volume (sound effects also times
+// config.audio.sfxVolume), remembered in the save.
 // The music playing now follows at once; sound effects take it from their next play.
 export function setVolume(kind, value) {
   save[kind] = Phaser.Math.Clamp(Math.round(value * 10) / 10, 0, 1); // whole tens of percent: no 0.30000000004
