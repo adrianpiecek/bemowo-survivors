@@ -100,12 +100,15 @@ export default class TitleScene extends Phaser.Scene {
   ready() {
     const t = config.ui.title;
     playMusic(this, 'boss');
-    if (!this.left) this.prompt(this.scale.width / 2, t.survivorsY + t.promptGapY + extraHeight(this), 'Kliknij, aby kontynuować');
+    if (!this.left) this.prompt(this.scale.width / 2, t.survivorsY + t.promptGapY + extraHeight(this), 'Kliknij, aby kontynuować', true);
   }
 
-  // A drawn button, pulsing; a click anywhere (or a key) counts, the button only shows where.
-  prompt(x, y, label) {
-    const t = config.ui.title, b = button(this, x, y, label, () => {}, { fontSize: t.promptFontSize });
+  // A drawn button (or plain white text), pulsing; a click anywhere (or a key) counts, the button only shows where.
+  prompt(x, y, label, plain = false) {
+    const t = config.ui.title;
+    const b = plain
+      ? this.add.text(x, y, label, font(t.promptFontSize, { stroke: '#000000', strokeThickness: t.promptStroke })).setOrigin(0.5)
+      : button(this, x, y, label, () => {}, { fontSize: t.promptFontSize });
     this.tweens.add({ targets: b, scale: t.pulseScale, duration: t.blinkMs, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     return b;
   }

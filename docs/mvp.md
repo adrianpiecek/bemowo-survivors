@@ -1373,7 +1373,7 @@ Poziom zostaje bez zmian: zmienione klucze mają w `layouts.landscape` swoje sta
   - Sportakus → `bartcraft`.
 
   Typ, statystyki, zachowanie, kryształ i wpis w bestiariuszu zostają te same, zmienia się tylko obrazek. Bossowie są zbudowani z typów bazowych, więc też dostają nowy wygląd (np. duży Binion). Klapa jest rysowana w kodzie i się nie zmienia. Jelonki są bez zmian.
-- **Intro czeka na kliknięcie.** Po ułożeniu napisów BEMOWO SURVIVORS pod nimi pulsuje „Kliknij, aby kontynuować” (`config.ui.title.promptGapY` pod SURVIVORS); menu przychodzi dopiero po kliknięciu lub klawiszu, a nie samo po `holdMs` (usunięte). Kliknięcie w trakcie intro dalej je pomija.
+- **Intro czeka na kliknięcie.** Po ułożeniu napisów BEMOWO SURVIVORS pod nimi pulsuje biały napis „Kliknij, aby kontynuować” (bez zielonego tła przycisku) (`config.ui.title.promptGapY` pod SURVIVORS); menu przychodzi dopiero po kliknięciu lub klawiszu, a nie samo po `holdMs` (usunięte). Kliknięcie w trakcie intro dalej je pomija.
 - **Rozmiary.** Bartkowie z Fortu Bema mają w `config.textures` te same `height` i `bodyRadius` co wróg, którego zastępują, oraz czarny kontur (`config.look.outline.sprites`).
 - **Sprawdzone w przeglądarce:**
   - na Forcie Bema każdy typ wroga i boss mają właściwy obrazek, rozmiar i ciało;
