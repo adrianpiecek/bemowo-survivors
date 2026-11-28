@@ -328,6 +328,7 @@ export default class GameScene extends Phaser.Scene {
     playVfx(this, vfx, x, y);
     const pl = this.run.player, crit = Math.random() < pl.critChance, cr = config.passives.boxing.rangeBartek * config.textures.bartek.height;
     if (pl.closeDamage > 0 && Phaser.Math.Distance.Squared(this.player.x, this.player.y, enemy.x, enemy.y) <= cr * cr) damage *= 1 + pl.closeDamage;
+    if (pl.bigDamage > 0 && (enemy.elite || enemy.stats.isBoss)) damage *= 1 + pl.bigDamage;
     if (crit) {
       damage *= pl.critMult;
       playVfx(this, 'critHit', x, y);

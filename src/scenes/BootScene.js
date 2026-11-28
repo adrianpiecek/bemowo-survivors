@@ -681,6 +681,17 @@ export default class BootScene extends Phaser.Scene {
     g.fillStyle(ic.slipper).fillEllipse(c, s * 0.46, s * 0.42, s * 0.78);
     g.fillStyle(ic.page).fillRoundedRect(s * 0.26, s * 0.18, s * 0.48, s * 0.22, s * 0.1).lineStyle(2, o).strokeRoundedRect(s * 0.26, s * 0.18, s * 0.48, s * 0.22, s * 0.1);
     done('slipper');
+    // Pas mistrzowski: a brown strap with holes and a big gold plate with a star.
+    g.fillStyle(ic.belt).fillRect(s * 0.04, s * 0.38, s * 0.92, s * 0.24).lineStyle(2, o).strokeRect(s * 0.04, s * 0.38, s * 0.92, s * 0.24);
+    g.fillStyle(ic.beltDark).fillCircle(s * 0.1, c, s * 0.03).fillCircle(s * 0.18, c, s * 0.03).fillCircle(s * 0.82, c, s * 0.03).fillCircle(s * 0.9, c, s * 0.03);
+    g.fillStyle(ic.medal).fillEllipse(c, c, s * 0.5, s * 0.6).lineStyle(2, o).strokeEllipse(c, c, s * 0.5, s * 0.6);
+    const star = [];
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + i * Math.PI / 5, r = s * (i % 2 ? 0.07 : 0.17);
+      star.push({ x: c + Math.cos(a) * r, y: c + Math.sin(a) * r });
+    }
+    g.fillStyle(ic.medalDark).fillPoints(star, true);
+    done('belt');
     this.drawItemIcons(g);
   }
 
@@ -773,5 +784,21 @@ export default class BootScene extends Phaser.Scene {
     g.lineBetween(s * 0.58, s * 0.36, s * 0.68, s * 0.47).lineBetween(s * 0.68, s * 0.47, s * 0.58, s * 0.58);
     g.lineBetween(s * 0.52, s * 0.32, s * 0.44, s * 0.62);
     done('textbook');
+    // Proca: a wooden Y fork, drawn twice for the outline, with a red band and a pouch.
+    const fork = [[{ x: c, y: s * 0.92 }, { x: c, y: s * 0.56 }, { x: s * 0.24, y: s * 0.14 }], [{ x: c, y: s * 0.56 }, { x: s * 0.76, y: s * 0.14 }]];
+    g.lineStyle(s * 0.15, o);
+    fork.forEach((f) => g.strokePoints(f));
+    g.lineStyle(s * 0.09, ic.slingshot);
+    fork.forEach((f) => g.strokePoints(f));
+    g.lineStyle(3, ic.slingshotBand).strokePoints([{ x: s * 0.24, y: s * 0.14 }, { x: c, y: s * 0.4 }, { x: s * 0.76, y: s * 0.14 }]);
+    g.fillStyle(ic.beltDark).fillEllipse(c, s * 0.4, s * 0.16, s * 0.1);
+    done('slingshot');
+    // Wypchany szczupak: a long green fish with a pointed snout and dark spots, on a wooden plaque.
+    g.fillStyle(ic.plaque).fillRoundedRect(s * 0.04, s * 0.2, s * 0.92, s * 0.6, s * 0.08).lineStyle(2, o).strokeRoundedRect(s * 0.04, s * 0.2, s * 0.92, s * 0.6, s * 0.08);
+    g.fillStyle(ic.pike).fillTriangle(s * 0.24, c, s * 0.1, s * 0.34, s * 0.1, s * 0.66).fillTriangle(s * 0.7, s * 0.43, s * 0.92, c, s * 0.7, s * 0.57);
+    g.fillEllipse(s * 0.46, c, s * 0.54, s * 0.24).lineStyle(2, o).strokeEllipse(s * 0.46, c, s * 0.54, s * 0.24);
+    g.fillStyle(ic.pikeDark).fillCircle(s * 0.34, s * 0.46, s * 0.03).fillCircle(s * 0.44, s * 0.45, s * 0.03).fillCircle(s * 0.54, s * 0.46, s * 0.03).fillCircle(s * 0.4, s * 0.55, s * 0.025);
+    g.fillStyle(o).fillCircle(s * 0.66, s * 0.47, s * 0.03);
+    done('pike');
   }
 }

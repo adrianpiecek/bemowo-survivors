@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 105, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 106, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -131,6 +131,8 @@ export const config = {
     spring: { speedPct: 0.15, maxLevel: 5 },
     // Kapeć mamy: +knockback per level to run.player.knockback (see config.knockback).
     slipper: { knockback: 80, maxLevel: 5 },
+    // Pas mistrzowski: +damagePct per level to hits on elites and bosses (run.player.bigDamage).
+    belt: { damagePct: 0.15, maxLevel: 5 },
   },
   // Odrzut (run.player.knockback, px/s; 0 at the start): a weapon hit sends a walking enemy (not a boss) away from Bartek
   // at that speed for ms, at most once per everyMs per enemy, so fast weapons do not pin a crowd in place.
@@ -358,6 +360,9 @@ export const config = {
     rubber: { knockback: 40 }, // Gumka recepturka: + run.player.knockback per copy
     // Podręcznik do informatyki (rare): +xpPct XP and +damagePct damage for every everyLevels of Bartek's level.
     textbook: { xpPct: 0.02, damagePct: 0.01, everyLevels: 5, maxSteps: 8 },
+    // Elites and bosses (run.player.bigDamage): Proca (common) +bigDamagePct per copy; Wypchany szczupak (rare)
+    // +bigDamagePct for every elite killed in the run, at most maxSteps elites.
+    slingshot: { bigDamagePct: 0.05 }, pike: { bigDamagePct: 0.02, maxSteps: 10 },
   },
   run: { durationSec: 600 }, // one stage (config.stages)
   // Konto (systems/online.js): the Firebase SDK from `sdk` (one pinned version), loaded startDelayMs after the game starts;
@@ -511,10 +516,12 @@ export const config = {
     sfxVolume: 0.7, // every sound effect (not the music) on top of its own volume: 30% quieter since step 103
     files: {
       clang: { file: './assets/sounds/title_hit.wav', volume: 0.8 },
-      // shortcut: music is WAV (~10 MB together), slow on a phone's first load; convert to OGG/MP3 before deploy.
-      musicGameplay: { file: './assets/music/gameplay.wav', volume: 0.35 },
-      musicGym: { file: './assets/music/gym.wav', volume: 0.35 },
-      musicBoss: { file: './assets/music/Boss.wav', volume: 0.4 },
+      musicGameplay: { file: './assets/music/gameplay.mp3', volume: 0.35 },
+      musicGym: { file: './assets/music/gym.mp3', volume: 0.35 },
+      // The boss track in two parts: the intro once, then only the main part in a loop.
+      // shortcut: MP3 pads the start and end with a few ms of silence, so the loop seam may click; OGG loops cleanly if it bothers.
+      musicBossIntro: { file: './assets/music/BossIntro.mp3', volume: 0.4 },
+      musicBossMain: { file: './assets/music/BossMain.mp3', volume: 0.4 },
       muchacho: { file: './assets/audio/muchacho.mp3', volume: 1 }, // optional
       levelUp: { file: './assets/sounds/level_up.wav', volume: 0.7 },
       pick: { file: './assets/sounds/pick.wav', volume: 0.4, minGapMs: 50 },
@@ -528,7 +535,7 @@ export const config = {
     music: {
       gameplay: { loop: 'musicGameplay' },
       gym: { loop: 'musicGym' },
-      boss: { loop: 'musicBoss' }, // also under the title once the logo has landed
+      boss: { intro: 'musicBossIntro', loop: 'musicBossMain' }, // also under the title once the logo has landed
     },
   },
   effects: { endFlashMs: 600 }, // Bartek blinks this long when a timed effect runs out
@@ -602,6 +609,7 @@ export const config = {
       plaster: 0xffcc80, plasterPad: 0xfff3e0, magnet: 0xd32f2f, piggy: 0xf48fb1, piggyDark: 0xc2185b, receipt: 0xfafafa,
       receiptInk: 0x616161, medal: 0xffc400, medalDark: 0xff8f00, ribbon: 0x1e88e5, ribbonDark: 0xd32f2f,
       book: 0x212121, bookPage: 0xfafafa, bookTitle: 0xffc400, disc: 0x263238, discShine: 0x90a4ae, discLabel: 0xd32f2f, boxingGlove: 0xd32f2f, boxingCuff: 0xfafafa, tracksuit: 0x1565c0, tracksuitStripe: 0xfafafa,
+      belt: 0x5d4037, beltDark: 0x3e2723, slingshot: 0x8d6e63, slingshotBand: 0xd32f2f, pike: 0x7cb342, pikeDark: 0x33691e, plaque: 0xa1887f,
       planRing: 0xd32f2f },
     // Top left HUD panel: HP (heart), XP (level badge), tank charge. Rows of rowHeight, bars barWidth x barHeight.
     hud: { width: 330, padding: 10, rowHeight: 30, iconSize: 26, barWidth: 270, barHeight: 22, barGap: 8, barFontSize: 18,

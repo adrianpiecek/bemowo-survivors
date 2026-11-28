@@ -53,6 +53,10 @@ export const items = [
     apply(pl, k = 1) { pl.knockback += c.rubber.knockback * k; },
   },
   {
+    id: 'slingshot', name: 'Proca', icon: 'item_slingshot', description: `+${pct(c.slingshot.bigDamagePct)} obrażeń elitom i bossom`,
+    apply(pl, k = 1) { pl.bigDamage += c.slingshot.bigDamagePct * k; },
+  },
+  {
     id: 'piggy', name: 'Skarbonka', icon: 'item_piggy', rarity: 'rare',
     description: `+${pct(c.piggy.damagePct)} obrażeń za każde ${c.piggy.everyBCoins} zebranych monet B${cap(c.piggy.damagePct, c.piggy.maxSteps)}`,
     apply() {},
@@ -73,6 +77,12 @@ export const items = [
       source: (run) => run.level, every: c.textbook.everyLevels, max: c.textbook.maxSteps,
       apply(pl, n) { addShare(pl, 'growth', c.textbook.xpPct * n); addShare(pl, 'damageMult', c.textbook.damagePct * n); },
     },
+  },
+  {
+    id: 'pike', name: 'Wypchany szczupak', icon: 'item_pike', rarity: 'rare',
+    description: `+${pct(c.pike.bigDamagePct)} obrażeń elitom i bossom za każdą pokonaną elitę${cap(c.pike.bigDamagePct, c.pike.maxSteps)}`,
+    apply() {},
+    scale: { source: (run) => run.elitesKilled, every: 1, max: c.pike.maxSteps, apply(pl, n) { pl.bigDamage += c.pike.bigDamagePct * n; } },
   },
   {
     id: 'tally', name: 'Zeszyt z kreskami', icon: 'item_tally', rarity: 'epic',

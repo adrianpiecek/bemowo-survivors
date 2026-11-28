@@ -114,6 +114,11 @@ export const passives = [
     apply(pl, level, m) { pl.knockback += c.slipper.knockback * m; },
   },
   {
+    id: 'belt', name: 'Pas mistrzowski', icon: 'passive_belt', maxLevel: c.belt.maxLevel, unlock: null,
+    description: (level, m) => `+${pct(c.belt.damagePct * m)} obrażeń elitom i bossom`,
+    apply(pl, level, m) { pl.bigDamage += c.belt.damagePct * m; },
+  },
+  {
     id: 'bag', name: 'Wór na kryształy', icon: 'passive_bag', maxLevel: c.bag.maxLevel, unlock: null,
     description: (level, m) => `+${pct(c.bag.magnetPct * m)} zasięgu przyciągania kryształów`,
     apply(pl, level, m) { addShare(pl, 'magnetRadius', c.bag.magnetPct * m); },

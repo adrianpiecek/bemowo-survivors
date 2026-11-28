@@ -1557,6 +1557,25 @@ Zamiast par z kroku 102 („Zombie / Binion” w jednym wierszu) każdy wygląd 
   - w konsoli tylko znane błędy 404.
 - **Nie sprawdzone:** na prawdziwym telefonie i logowanie przez Google na telefonie.
 
+### 82. Muzyka w MP3, boss bez intra w pętli, obrażenia elitom i bossom (krok 106)
+
+- **Muzyka w MP3:** `audio.files` wskazuje `gameplay.mp3`, `gym.mp3`, `BossIntro.mp3` i `BossMain.mp3` zamiast WAV. Gra ładuje około 1,9 MB muzyki zamiast 9,8 MB. Skrót „WAV za ciężki na telefon” jest zamknięty.
+- **Boss: intro raz, potem pętla:** utwór `music.boss` to `{ intro: 'musicBossIntro', loop: 'musicBossMain' }`. Krótkie intro (2 s) gra raz, a potem w kółko leci tylko główna część (32 s), bez intra. Część główna zaczyna się w tej samej chwili, w której kończy się intro (opóźnienie WebAudio, jak przy innych utworach z intrem). `Boss.mp3` (intro i główna część razem) nie jest ładowany.
+  - Skrót: MP3 dokleja na początku i końcu kilka milisekund ciszy, więc na szwie pętli może być słychać krótkie kliknięcie. Jeśli przeszkadza, pętlę można zapisać jako OGG.
+- **Nowa statystyka `bigDamage`** (`startingStats` w `src/state.js`): dodatkowy udział obrażeń elitom (`enemy.elite`) i bossom (`stats.isBoss`). `GameScene.hurtEnemy` mnoży trafienie przez `1 + bigDamage` po bonusie z bliska, przed krytykiem. Ekwipunek pokazuje wiersz „Obrażenia elitom i bossom”.
+- **Pasywka Pas mistrzowski** (`belt`, `passives.belt`): +15% obrażeń elitom i bossom na poziom, 5 poziomów, bez odblokowania. Ikona: brązowy pas ze złotą klamrą i gwiazdą.
+- **Przedmioty:**
+  - **Proca** (zwykły, `items.slingshot`): +5% obrażeń elitom i bossom za sztukę. Ikona: drewniana proca z czerwoną gumą.
+  - **Wypchany szczupak** (rzadki, `items.pike`): +2% obrażeń elitom i bossom za każdą elitę pokonaną w tej rundzie, maks. 20% (10 elit). Rośnie jak Skarbonka (`scale`, źródło `run.elitesKilled`). Ikona: zielony szczupak na drewnianej desce.
+- **Co nowego:** wpis 106 „Na grubą rybę”.
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk):**
+  - wszystkie cztery pliki MP3 ładują się; muzyka bossa: intro 2,08 s, a główna część startuje dokładnie po nim i ma `loop`;
+  - Pas mistrzowski poz. 1, Proca i Szczupak po 3 elitach: `bigDamage` 0,15 → 0,20 → 0,26, po 50 elitach 0,40 (szczupak stoi na 20%); oddanie Procy zabiera jej 5%;
+  - trafienie za 100 (bez krytyka, z daleka): zwykły wróg 100, elita 140, boss 140;
+  - ekwipunek: ikony pasywki i przedmiotów, wiersz „Obrażenia elitom i bossom” mieści się w pionie i w poziomie;
+  - w konsoli tylko znane błędy 404.
+- **Nie sprawdzone:** szew pętli na słuch (karta przeglądarki była w tle).
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.
