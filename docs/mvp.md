@@ -1462,6 +1462,23 @@ Jedna runda dziennie, te same warunki dla wszystkich, osobna tabela dnia. Dzień
   - w konsoli tylko znane błędy 404.
 - **Nie sprawdzone:** zapis do tabeli dnia z prawdziwym kontem (potrzebne nowe reguły i logowanie).
 
+### 77. Co nowego (krok 101)
+
+Po aktualizacji gry gracz od razu widzi, co się zmieniło.
+
+- **Nowości jako dane** (`src/data/news.js`): wpisy `{ version, title, text }`, gdzie `version` to krok, który je przyniósł. Teraz trzy: Fort Bema po swojemu (98), Prywatność (99), Wyzwanie dnia (100). Nowa nowość to nowy wpis, bez zmian w kodzie.
+- **Okno** `NewsScene` nad menu (rozmiary jak w Wynikach): „Co nowego”, „Wersja v0.101”, wpisy nowsze niż ostatnio widziane na tym urządzeniu, od najnowszego, najwyżej `ui.news.count` (3), i przycisk „OK”. OK, Esc albo Enter zamykają okno i zapamiętują wersję.
+- **Kiedy:** przy pierwszym wejściu do menu po uruchomieniu strony, jeśli są niewidziane wpisy. Raz na uruchomienie (powrót z innych okien do menu go nie pokazuje).
+- **Gdzie zapamiętane:** osobny klucz `bemowo-survivors-news` w pamięci przeglądarki, a nie w zapisie. To ustawienie urządzenia, nie idzie do chmury, a zamknięcie okna nie oznacza zapisu jako zmienionego (nie wywoła konfliktu przy synchronizacji). Zablokowana pamięć: okno pokaże się przy następnym uruchomieniu.
+- **Nowy gracz** nie widzi okna: pierwsze uruchomienie (bez rozegranych rund) od razu zapamiętuje bieżącą wersję. Gracz sprzed tej aktualizacji zobaczy trzy wpisy.
+- **Debug:** `debug.showNews` pokazuje okno przy każdym uruchomieniu, z najnowszymi wpisami, także widzianymi.
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk):**
+  - zapis z rundami, bez klucza: po tytule menu z oknem „Co nowego” i trzema wpisami, w pionie i w poziomie się mieści;
+  - OK i Enter zamykają okno, menu działa, klucz ma 101, zapis gry nie był zapisywany;
+  - po przeładowaniu okna już nie ma;
+  - nowy gracz (bez rund): wyjście z tytułu zapamiętuje 101;
+  - w konsoli tylko znane błędy 404.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

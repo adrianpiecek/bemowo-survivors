@@ -43,6 +43,7 @@ src/data/bets.js         Zakłady z Unc jako dane (od kroku 35)
 src/data/plans.js        plany treningowe jako dane (od kroku 33)
 src/data/bossPowers.js   moce bossów jako dane (od kroku 43)
 src/data/maps.js         mapy jako dane (od kroku 79)
+src/data/news.js         nowości do okna Co nowego jako dane (od kroku 101)
 src/systems/             wspólne mechaniki: efekty czasowe, orbita, efekty wizualne rysowane w kodzie (vfx.js) itp.
 src/systems/ui.js        wspólny wygląd UI: font, panele, paski, przyciski
 src/systems/online.js    (od kroku 85) Firebase: logowanie Google, nick, zapis w chmurze
@@ -67,6 +68,7 @@ src/scenes/BestiaryScene.js (od kroku 51, bestiariusz w siłowni)
 src/scenes/AccountScene.js (od kroku 85, okno Konto z menu)
 src/scenes/LeaderboardScene.js (od kroku 88, tabela wyników z menu)
 src/scenes/DailyScene.js (od kroku 100, Wyzwanie dnia z menu)
+src/scenes/NewsScene.js  (od kroku 101, okno Co nowego po aktualizacji)
 src/scenes/MapScene.js   (od kroku 79, wybór mapy przed planem)
 src/scenes/PlanScene.js  (od kroku 33, wybór planu przed rundą)
 src/scenes/TitleScene.js (od kroku 19)

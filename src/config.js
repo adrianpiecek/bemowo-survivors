@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 100, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 101, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -416,6 +416,7 @@ export const config = {
     forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
     dailyDay: null, // a day 'YYYY-MM-DD': Wyzwanie dnia is that day's (its draw only: the server keeps such a run off the table)
     dailyReplay: false, // true: Wyzwanie dnia can be started again on this device the same day
+    showNews: false, // true: Co nowego shows on every page load (the latest entries, even if seen)
     evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
     eventKey: false, // true: V, then a digit 1-9 (0 the tenth), starts that run event (data/events.js order)
@@ -718,6 +719,8 @@ export const config = {
       dimColor: '#b0bec5', errorColor: '#ff8a80', backWidth: 300, backHeight: 84, backFontSize: 32},
     // Wyzwanie dnia (DailyScene): the leaderboard's sizes, the day's table `count` rows long; `soonColor`: the time left.
     daily: { count: 10, soonColor: '#9ccc65' },
+    // Co nowego (NewsScene): the leaderboard's sizes, at most `count` news entries, `itemGap` px above each.
+    news: { count: 3, itemGap: 18 },
     stats: { width: 700, columns: 1, columnGap: 0, padding: 24, inner: 12, gap: 14, titleFontSize: 48, rowHeight: 52, fontSize: 26,
       stripeAlpha: 0.06, labelColor: '#b0bec5', backWidth: 300, backHeight: 84, backFontSize: 32},
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
@@ -766,6 +769,7 @@ export const config = {
           rowHeight: 58, rowGap: 5, iconSize: 44, nameFontSize: 17, descFontSize: 16, backHeight: 50,
           pagerHeight: 50, pagerButton: 70, pagerFontSize: 22, backWidth: 240, backFontSize: 26 },
         daily: { count: 5 },
+        news: { itemGap: 10 },
         leaderboard: { width: 900, count: 10, padding: 14, gap: 6, titleFontSize: 34, rowHeight: 34, fontSize: 18, detailFontSize: 16, textFontSize: 16,
           backHeight: 50, backFontSize: 22,
           backWidth: 280 },

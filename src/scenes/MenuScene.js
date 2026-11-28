@@ -8,6 +8,7 @@ import { betsOpen, betSum } from '../data/bets.js';
 import { online, onOnlineChange } from '../systems/online.js';
 import { centerLayout } from '../systems/layout.js';
 import { todayKey } from '../systems/daily.js';
+import { unseenNews } from './NewsScene.js';
 
 // The main menu between runs (after the title and after every run): the protein, one button per place, and Bartek with a
 // quote. The gym itself (GymScene) only sells upgrades now. Wyzwania, Statystyki, Bestiariusz and Zakłady z Unc open over
@@ -89,6 +90,11 @@ export default class MenuScene extends Phaser.Scene {
       if (`${online.nick}|${online.revision}` !== seen && this.scene.isActive()) this.scene.restart();
     });
     this.events.once('shutdown', off);
+    // After an update, the first menu of this page load: Co nowego over it (a frame later, once the menu runs).
+    if (!this.registry.get('newsShown') && unseenNews().length) {
+      this.registry.set('newsShown', true);
+      this.time.delayedCall(0, overlay('NewsScene'));
+    }
   }
 
   // Bartek with a speech bubble (a random quote) and a Bartkowanie definition under it, from (x0, top); one container.

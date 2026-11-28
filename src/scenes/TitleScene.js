@@ -3,6 +3,7 @@ import { save, writeSave } from '../state.js';
 import { setOrientation, extraHeight } from '../systems/layout.js';
 import { playSfx, playMusic } from '../systems/audio.js';
 import { font, button, privacyLink } from '../systems/ui.js';
+import { markNewsSeen } from './NewsScene.js';
 
 // Title with the intro. Browsers keep audio locked until the player does something, so the intro only starts
 // after a first click (or key): "BEMOWO" drops in with a clang, then "SURVIVORS" rises with a second one, the music
@@ -127,6 +128,7 @@ export default class TitleScene extends Phaser.Scene {
   leave() {
     if (this.left) return; // the timer and a tap can both come
     this.left = true;
+    if (!save.runsPlayed) markNewsSeen(); // a new player has nothing to catch up on
     this.scene.start(save.runsPlayed ? 'MenuScene' : 'GameScene');
   }
 }
