@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 96, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 97, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -280,7 +280,7 @@ export const config = {
   // pictures) get spriteWidth px on screen and the `shapes` (drawn chests and pickups) shapeWidth px, both drawn into a
   // copy of the texture in BootScene.
   look: { outline: { color: 0x101010, alpha: 0.9, gemWidth: 1.5, spriteWidth: 2.5, shapeWidth: 2.5,
-    sprites: ['zombie', 'uncanny', 'joker', 'homelander', 'goblin', 'sportakus'],
+    sprites: ['zombie', 'uncanny', 'joker', 'homelander', 'goblin', 'sportakus', 'bartcraft', 'binion', 'gnom', 'kapitanBemowo', 'klockowyB', 'purpleBuy'],
     shapes: ['chest', 'chest_locked', 'pickup', 'pickup_magnet', 'pickup_freeze', 'pickup_preworkout', 'pickup_bubble', 'pickup_pierogi'] },
     evolutionFlashMs: 400, heavyHitPct: 0.5, critFlashColor: 0xffc400, shadowAlpha: 0.35, shadowW: 0.75, shadowFlat: 0.3, shadowY: 0.5, shadowDepth: -0.5, bobDeg: 4, bobHz: 2.2, hitFlashMs: 60, hitFlashColor: 0xffffff },
   scar: { offsetX: 8, offsetY: -19, width: 12, height: 3, angle: -30, color: 0xd01818 }, // on Bartek's forehead, px at normal size
@@ -924,13 +924,13 @@ export const config = {
     // Cut out of the original photos (assets/bartki/zrodla, not loaded); a better cut can simply replace these files.
     goblin: { file: './assets/bartki/goblin.png', bartki: true, height: 52, bodyRadius: 19 },
     sportakus: { file: './assets/bartki/sportakus.png', bartki: true, height: 66, bodyRadius: 24 },
-    // Fort Bema's Barteks (assets/bartki/fort-bema): loaded, not used by any enemy yet.
-    bartcraft: { file: './assets/bartki/fort-bema/bartcraft.png', bartki: true },
-    binion: { file: './assets/bartki/fort-bema/binion.png', bartki: true },
-    gnom: { file: './assets/bartki/fort-bema/gnom.png', bartki: true },
-    kapitanBemowo: { file: './assets/bartki/fort-bema/kapitan-bemowo.png', bartki: true },
-    klockowyB: { file: './assets/bartki/fort-bema/klockowy-b.png', bartki: true },
-    purpleBuy: { file: './assets/bartki/fort-bema/purple-buy.png', bartki: true },
+    // Fort Bema's Barteks (assets/bartki/fort-bema): the map's walkers in place of the Jelonki ones (maps.js looks), same sizes.
+    bartcraft: { file: './assets/bartki/fort-bema/bartcraft.png', bartki: true, height: 66, bodyRadius: 24 },
+    binion: { file: './assets/bartki/fort-bema/binion.png', bartki: true, height: 56, bodyRadius: 22 },
+    gnom: { file: './assets/bartki/fort-bema/gnom.png', bartki: true, height: 52, bodyRadius: 19 },
+    kapitanBemowo: { file: './assets/bartki/fort-bema/kapitan-bemowo.png', bartki: true, height: 72, bodyRadius: 27 },
+    klockowyB: { file: './assets/bartki/fort-bema/klockowy-b.png', bartki: true, height: 64, bodyRadius: 24 },
+    purpleBuy: { file: './assets/bartki/fort-bema/purple-buy.png', bartki: true, height: 50, bodyRadius: 18 },
     // Żabka shop (event): a white wall, a striped green awning, a door and two windows.
     portal: { size: 84, rings: [0x4a148c, 0x8e24aa, 0xce93d8, 0x12002a], border: 0x000000 }, // outer to inner
     zabkaShop: { width: 88, height: 74, awningHeight: 20, stripes: 6, wall: 0xf5f5f5, awning: 0x2e7d32, stripe: 0xffffff,

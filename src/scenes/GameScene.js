@@ -7,7 +7,7 @@ import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
 import { elites } from '../data/elites.js';
-import { applyDifficulty } from '../data/maps.js';
+import { applyDifficulty, mapById } from '../data/maps.js';
 import { events } from '../data/events.js';
 import { font } from '../systems/ui.js';
 import { evolutionReady } from '../systems/cards.js';
@@ -1050,8 +1050,9 @@ export default class GameScene extends Phaser.Scene {
     if (!z) return;
     this.clearElite(z); // only ever left on a sprite that went away without dying
     // Pooled sprites can come back as any type, so set the look and body every spawn.
-    const t = config.textures[def.texture];
-    z.setTexture(def.texture).setAngle(0).setFlipX(false).clearTint();
+    const key = mapById(this.run.map).looks?.[def.texture] ?? def.texture; // Fort Bema has its own Barteks
+    const t = config.textures[key];
+    z.setTexture(key).setAngle(0).setFlipX(false).clearTint();
     z.flashMs = 0;
     z.bobPhase = Math.random() * Math.PI * 2; // walkers sway out of step
     const fit = t.height ? t.height / z.height : 1; // drawn textures already have their config height, so 1
