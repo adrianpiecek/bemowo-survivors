@@ -209,6 +209,13 @@ export function parseSave(d) {
   if (!isObject(d) || (d.version !== undefined && d.version !== SAVE_VERSION)) return s;
   if (Number.isFinite(d.protein) && d.protein >= 0) s.protein = d.protein;
   if (isObject(d.gym)) s.gym = d.gym;
+  // Levels over an upgrade's max (Kabura had 3 before step 96) go back as protein, at what they cost.
+  for (const up of gymUpgrades) {
+    const level = Math.floor(Number(s.gym[up.id]));
+    if (!(level > up.maxLevel)) continue;
+    for (let i = up.maxLevel; i < level; i++) s.protein += up.costs[i] ?? 0;
+    s.gym[up.id] = up.maxLevel;
+  }
   if (isObject(d.bets)) s.bets = d.bets; // levels are clamped where they are read (betLevel)
   if (isObject(d.difficulty)) s.difficulty = d.difficulty; // clamped where read (data/maps.js)
   if (isObject(d.bestiary)) for (const [k, v] of Object.entries(d.bestiary)) if (Number.isFinite(v) && v >= 0) s.bestiary[k] = v;

@@ -8,10 +8,8 @@ export default class BootScene extends Phaser.Scene {
   constructor() { super('BootScene'); }
 
   preload() {
-    // Bartek and the Bartek variants that are the enemies.
-    for (const key of ['bartek', 'zombie', 'uncanny', 'joker', 'homelander']) this.load.image(key, `./assets/${key}.png`);
-    for (const key of ['goblin', 'sportakus']) this.load.image(key, config.textures[key].file);
-    this.load.image('tank', './assets/czołg.png');
+    // Bartek, the Bartek variants that are the enemies, the tank and Fort Bema's Barteks (assets/bartki).
+    for (const [key, t] of Object.entries(config.textures)) if (t.bartki) this.load.image(key, t.file);
     this.load.image('captain_shield', config.textures.captainShield.file);
     this.load.image('shotgun', config.textures.shotgun.file);
     // May be missing: the OLX card falls back to the first pigeon frame.

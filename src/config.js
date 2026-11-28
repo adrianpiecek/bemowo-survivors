@@ -2,14 +2,14 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 95, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 96, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
   // Weapons (data/weapons.js). Bartek starts with one random weapon from `start` and carries up to startSlots (the gym's
-  // Kabura adds more); new ones and levels come as cards.
+  // Kabura adds more, at most 3 in all); new ones and levels come as cards.
   weapons: {
-    startSlots: 2, // step 78: was 3; the rest from the gym's Kabura
+    startSlots: 1, // step 96: was 2 (step 78: 3); the rest from the gym's Kabura
     // Draw weight of a weapon card, new or a level (passives and the rest weigh 1), so evolutions come before 8:00.
     cardWeight: 2,
     start: ['pistol', 'shotgun', 'shield'],
@@ -463,7 +463,9 @@ export const config = {
     glasses: { rangePct: 0.1, maxLevel: 5, costs: [30, 90, 220, 450, 800] },
     warmup: { durationSec: 60, speedPct: -0.2, damagePct: 0.3, maxLevel: 1, costs: [120] },
     plan: { rerolls: 1, banishes: 1, maxLevel: 5, costs: [50, 130, 260, 480, 800] }, // Plan dnia: more level-up rerolls and banishes
-    weaponSlot: { maxLevel: 3, costs: [150, 400, 1000] }, // Kabura: +1 weapon slot a level
+    // Kabura: +1 weapon slot a level, at most 2 (3 slots in all). The third cost is not for sale since step 96: a save with
+    // that level gets it back as protein (state.js parseSave).
+    weaponSlot: { maxLevel: 2, costs: [150, 400, 1000] },
     passiveSlot: { maxLevel: 2, costs: [300, 800] }, // Plecak: +1 passive slot a level
     // Half a level of the matching passive each (the passive's icon too): XP, regen, armor, luck, crit chance.
     tutoring: { xpPct: 0.05, maxLevel: 5, costs: [30, 80, 180, 350, 650] },
@@ -714,7 +716,8 @@ export const config = {
     gymScreen: { titleY: 28, titleFontSize: 56, top: 112, columns: 1, columnGap: 0, goRight: false, rowWidth: 700, rowHeight: 152, rowGap: 8, padding: 12, iconSize: 64,
       nameFontSize: 28, descFontSize: 24, descGap: 4, descColor: '#b0bec5', pipSize: 16, pipGap: 6, pipColor: 0xffc400, pipEmpty: 0x37474f,
       costGap: 24, costFontSize: 26, costIconSize: 28, shortFontSize: 22, shortColor: '#ff8a80', maxColor: '#ffc400',
-      buyWidth: 130, buyHeight: 76, buyFontSize: 28, popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
+      // Zwrot (refundHeight, under Kup with buttonGap between) only on a bought upgrade; gainColor: the "+cost" it floats up.
+      buyWidth: 130, buyHeight: 72, buyFontSize: 28, refundHeight: 48, refundFontSize: 24, buttonGap: 8, gainColor: '#9ccc65', popScale: 1.8, popMs: 350, floatPx: 40, floatMs: 900,
       protein: { width: 200, height: 50, fontSize: 28, iconSize: 32 },
       bartekHeight: 120, quoteFontSize: 24, quoteWidth: 460, quoteGap: 16, tail: 14, definitionColor: '#b0bec5', definitionFontSize: 22,
       sectionGap: 20, bottom: 24, goWidth: 400, goHeight: 88, goFontSize: 36,
@@ -763,7 +766,7 @@ export const config = {
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30, top: 96, rowHeight: 126, rowGap: 8, bartekHeight: 90,
           descFontSize: 17, shortFontSize: 16, quoteFontSize: 20, definitionFontSize: 18,
-          iconSize: 56, nameFontSize: 24, costFontSize: 22, costIconSize: 24, buyWidth: 140, buyHeight: 50, buyFontSize: 22, pagerHeight: 50, pagerButton: 70, pagerFontSize: 22, pagerGap: 12 },
+          iconSize: 56, nameFontSize: 24, costFontSize: 22, costIconSize: 24, buyWidth: 140, buyHeight: 50, buyFontSize: 22, refundHeight: 40, refundFontSize: 18, buttonGap: 6, pagerHeight: 50, pagerButton: 70, pagerFontSize: 22, pagerGap: 12 },
       },
     },
   },
@@ -911,15 +914,23 @@ export const config = {
   },
   // Texture sizes in px. Images: `height` is the on-screen height, width follows the image, bodyRadius is on-screen too.
   textures: {
-    bartek: { height: 80 },
+    // Every Bartek picture is in assets/bartki (BootScene loads each entry with `bartki: true` under its key).
+    bartek: { file: './assets/bartki/bartek.png', bartki: true, height: 80 },
     // Enemies are Bartek variants; a bigger one is a stronger one.
-    zombie: { height: 56, bodyRadius: 22 },
-    uncanny: { height: 50, bodyRadius: 18 },
-    joker: { height: 64, bodyRadius: 24 },
-    homelander: { height: 72, bodyRadius: 27 },
-    // Cut out of the original photos (goblin_bartek.png, sportakus.png); a better cut can simply replace these files.
-    goblin: { file: './assets/goblin_bartek_cut.png', height: 52, bodyRadius: 19 },
-    sportakus: { file: './assets/sportakus_cut.png', height: 66, bodyRadius: 24 },
+    zombie: { file: './assets/bartki/zombie.png', bartki: true, height: 56, bodyRadius: 22 },
+    uncanny: { file: './assets/bartki/uncanny.png', bartki: true, height: 50, bodyRadius: 18 },
+    joker: { file: './assets/bartki/joker.png', bartki: true, height: 64, bodyRadius: 24 },
+    homelander: { file: './assets/bartki/homelander.png', bartki: true, height: 72, bodyRadius: 27 },
+    // Cut out of the original photos (assets/bartki/zrodla, not loaded); a better cut can simply replace these files.
+    goblin: { file: './assets/bartki/goblin.png', bartki: true, height: 52, bodyRadius: 19 },
+    sportakus: { file: './assets/bartki/sportakus.png', bartki: true, height: 66, bodyRadius: 24 },
+    // Fort Bema's Barteks (assets/bartki/fort-bema): loaded, not used by any enemy yet.
+    bartcraft: { file: './assets/bartki/fort-bema/bartcraft.png', bartki: true },
+    binion: { file: './assets/bartki/fort-bema/binion.png', bartki: true },
+    gnom: { file: './assets/bartki/fort-bema/gnom.png', bartki: true },
+    kapitanBemowo: { file: './assets/bartki/fort-bema/kapitan-bemowo.png', bartki: true },
+    klockowyB: { file: './assets/bartki/fort-bema/klockowy-b.png', bartki: true },
+    purpleBuy: { file: './assets/bartki/fort-bema/purple-buy.png', bartki: true },
     // Żabka shop (event): a white wall, a striped green awning, a door and two windows.
     portal: { size: 84, rings: [0x4a148c, 0x8e24aa, 0xce93d8, 0x12002a], border: 0x000000 }, // outer to inner
     zabkaShop: { width: 88, height: 74, awningHeight: 20, stripes: 6, wall: 0xf5f5f5, awning: 0x2e7d32, stripe: 0xffffff,
@@ -964,7 +975,7 @@ export const config = {
     // Laughing gas cloud, size x size px, shown scaled to its radius: soft green and purple puffs.
     gasCloud: { size: 128, colors: [0x9ccc65, 0xba68c8, 0x7cb342, 0xce93d8], alpha: 0.28, puffs: 9,
       smogColors: [0x9e9e9e, 0x616161, 0xbdbdbd, 0x757575], smogAlpha: 0.38 }, // smog_cloud: the evolved gas, grey and thicker
-    tank: { height: 110, bodyRadius: 45 }, // czołg.png: Bartek in a tank, barrel to the left
+    tank: { file: './assets/bartki/czolg.png', bartki: true, height: 110, bodyRadius: 45 }, // Bartek in a tank, barrel to the left
     pigeon: { frames: 3, fps: 10, scale: 2, width: 48, height: 40, flipX: true }, // assets/Pigeons/pigeon1..3.png, 24x20 px, facing left; size after scale; flipX turns it to face the flight
   },
 };

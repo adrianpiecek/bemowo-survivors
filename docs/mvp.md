@@ -1345,6 +1345,23 @@ Poziom zostaje bez zmian: zmienione klucze mają w `layouts.landscape` swoje sta
   - pion w szerokim oknie ma 1280, poziom 1280×720;
   - w konsoli tylko znane błędy 404.
 
+### 72. Porządek w Bartkach, jeden slot broni na start, zwrot w siłowni (krok 96)
+
+- **Pliki Bartków** leżą w `assets/bartki/`:
+  - `bartek.png`, `zombie.png`, `uncanny.png`, `joker.png`, `homelander.png`, `goblin.png` (dawniej `goblin_bartek_cut.png`), `sportakus.png` (dawniej `sportakus_cut.png`), `czolg.png` (dawniej `czołg.png`);
+  - Bartkowie z Fortu Bema w `assets/bartki/fort-bema/`: `bartcraft`, `binion`, `gnom`, `kapitan-bemowo`, `klockowy-b`, `purple-buy`;
+  - oryginalne zdjęcia goblina i Sportakusa (po 1,2–1,3 MB) w `assets/bartki/zrodla/`, nieładowane.
+
+  Nazwy są małymi literami, bez spacji i polskich znaków. Każdy Bartek ma w `config.textures` ścieżkę `file` i `bartki: true`, a `BootScene` ładuje je jedną pętlą pod kluczem wpisu. Bartkowie z Fortu Bema są załadowani (klucze `bartcraft`, `binion`, `gnom`, `kapitanBemowo`, `klockowyB`, `purpleBuy`), ale żaden wróg ich jeszcze nie używa; to osobny krok. Ikonka strony w `index.html` i `privacy.html` wskazuje nową ścieżkę.
+- **Jeden slot broni na start.** `config.weapons.startSlots` 1 (było 2). Kabura w siłowni ma 2 poziomy (150 i 400 białka), więc razem najwyżej 3 sloty. Zapis z kupionym 3. poziomem Kabury dostaje przy wczytaniu poziom 2 i zwrot 1000 białka (`parseSave` w `state.js`; trzecia cena zostaje w `config.gym.weaponSlot.costs` tylko do tego zwrotu). To samo dzieje się z każdym ulepszeniem, które ma w zapisie więcej poziomów niż maksimum.
+- **Zwrot w siłowni.** Ulepszenie z kupionym poziomem ma pod „Kup” przycisk „Zwrot” (drugorzędny). Zwrot cofa ostatni poziom i oddaje całą jego cenę, a przy białku leci zielone „+cena”. Kilka zwrotów zeruje ulepszenie. Z debugowym `freeProtein` zwrot daje 0, bo zakup był darmowy.
+- **Sprawdzone w przeglądarce (pion):**
+  - wszystkie 14 obrazków Bartka się ładuje (także z Fortu Bema), ikonka strony jest z nowej ścieżki;
+  - zapis z Kaburą 3 i 100 białka po wczytaniu ma Kaburę 2 i 1100 białka;
+  - siłownia: Kabura pokazuje 2 kropki i „na start 1”. Kup za 150, Kup za 400, Zwrot: białko 2000 → 1850, Kabura poziom 1, zielone „+400”;
+  - runda bez Kabury ma 1 slot broni;
+  - w konsoli tylko znane błędy 404.
+
 
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 

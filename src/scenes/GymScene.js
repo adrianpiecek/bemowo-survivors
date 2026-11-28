@@ -6,6 +6,7 @@ import { font, panel, button, touch, pager } from '../systems/ui.js';
 
 // Between runs, from the main menu (MenuScene): spend protein on permanent upgrades. "Wróć", Esc or Enter go back to the menu.
 // A purchase restarts the scene with { bought, cost, page }, so the new pip pops and the cost floats up from the protein.
+// Zwrot under Kup (on a bought upgrade) takes its last level back for the full price: { refunded, gain, page }.
 // Rows that do not fit above the start button go on further pages ("<" ">" or the arrow keys).
 export default class GymScene extends Phaser.Scene {
   constructor() { super('GymScene'); }
@@ -85,15 +86,23 @@ export default class GymScene extends Phaser.Scene {
         }
       }
 
-      button(this, x0 + gs.rowWidth - gs.padding - gs.buyWidth / 2, mid, maxed ? 'Kupione' : 'Kup', () => this.buy(up), {
+      // Kup alone in the middle; with a level bought, Zwrot under it.
+      const bx = x0 + gs.rowWidth - gs.padding - gs.buyWidth / 2;
+      const buyY = level ? mid - (gs.buttonGap + gs.refundHeight) / 2 : mid;
+      button(this, bx, buyY, maxed ? 'Kupione' : 'Kup', () => this.buy(up), {
         width: gs.buyWidth, height: gs.buyHeight, fontSize: gs.buyFontSize, variant: canBuy ? 'primary' : 'disabled',
       });
+      if (level) {
+        button(this, bx, buyY + (gs.buyHeight + gs.buttonGap + gs.refundHeight) / 2, 'Zwrot', () => this.refund(up), {
+          width: gs.buyWidth, height: gs.refundHeight, fontSize: gs.refundFontSize, variant: 'secondary',
+        });
+      }
     });
 
-    // The last purchase's cost floats up from the protein and fades.
-    if (data.cost) {
-      const minus = this.add.text(proteinText.x, prY + pr.height, `-${data.cost}`, font(pr.fontSize, { fontStyle: 'bold', color: gs.shortColor, ...outline }))
-        .setOrigin(1, 0);
+    // The last purchase's cost (or a refund's gain) floats up from the protein and fades.
+    if (data.cost || data.gain) {
+      const minus = this.add.text(proteinText.x, prY + pr.height, data.cost ? `-${data.cost}` : `+${data.gain}`,
+        font(pr.fontSize, { fontStyle: 'bold', color: data.cost ? gs.shortColor : gs.gainColor, ...outline })).setOrigin(1, 0);
       this.tweens.add({ targets: minus, y: minus.y + gs.floatPx, alpha: 0, duration: gs.floatMs, onComplete: () => minus.destroy() });
     }
 
@@ -128,6 +137,18 @@ export default class GymScene extends Phaser.Scene {
     writeSave(save);
     playSfx(this, 'powerUp');
     this.scene.restart({ bought: up.id, cost, page: this.page }); // redraw levels, costs and protein
+  }
+
+  // Zwrot: the last bought level back, for what it cost (nothing with debug freeProtein, which bought it for free).
+  refund(up) {
+    const level = gymLevel(up);
+    if (!level) return;
+    const gain = config.debug.freeProtein ? 0 : up.costs[level - 1];
+    save.protein += gain;
+    save.gym[up.id] = level - 1;
+    writeSave(save);
+    playSfx(this, 'pick');
+    this.scene.restart({ refunded: up.id, gain, page: this.page });
   }
 
   turnPage(dir) {
