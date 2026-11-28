@@ -19,24 +19,29 @@ import { playVfx } from '../systems/vfx.js';
 import { createMap } from '../systems/map.js';
 import { playSfx, playMusic } from '../systems/audio.js';
 import { bartkowanie, doBartkowanie } from '../data/bartkowanie.js';
+import { dailySetup, applyDailyBet } from '../systems/daily.js';
 import { openSettings } from './SettingsScene.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
 
   // data.plan: the training plan id picked in PlanScene (none on the very first run).
+  // data.daily: Wyzwanie dnia's day (DailyScene), data.ranked: its run goes to the day's table.
   create(data = {}) {
-    this.run = newRun();
-    this.run.map = this.registry.get('map') ?? this.run.map; // MapScene's pick
+    const daily = data.daily ? { ...dailySetup(data.daily), ranked: !!data.ranked } : null;
+    this.run = newRun(!daily); // no gym in Wyzwanie dnia
+    this.run.daily = daily;
+    this.run.map = daily?.map ?? this.registry.get('map') ?? this.run.map; // the day's map or MapScene's pick
     // The plan goes after the gym (in newRun) and before any card of the run.
-    const plan = plans.find((p) => p.id === data.plan);
+    const plan = plans.find((p) => p.id === (daily?.plan ?? data.plan));
     if (plan) {
       this.run.plan = plan;
       plan.apply(this.run.player, this.run);
       this.run.player.hp = this.run.player.maxHp;
     }
-    applyBets(this.run); // Zakłady z Unc: enemies, spawn, bosses, pickups, cards
-    applyDifficulty(this.run, this.registry.get('difficulty') ?? 1); // the map's level from MapScene
+    if (daily) applyDailyBet(this.run); // the day's bet instead of the player's
+    else applyBets(this.run); // Zakłady z Unc: enemies, spawn, bosses, pickups, cards
+    applyDifficulty(this.run, daily?.difficulty ?? this.registry.get('difficulty') ?? 1); // the map's level from MapScene
     playMusic(this, 'gameplay');
     const { width, height } = this.scale;
     const cam = this.cameras.main;
@@ -77,7 +82,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.gems = this.physics.add.group({ defaultKey: 'gem_blue', maxSize: config.pools.gems });
     // One random starting weapon (debug.startWeapon picks it).
-    const startId = config.debug.startWeapon ?? Phaser.Utils.Array.GetRandom(config.weapons.start);
+    const startId = config.debug.startWeapon ?? daily?.weapon ?? Phaser.Utils.Array.GetRandom(config.weapons.start);
     this.addWeapon(weapons.find((d) => d.id === startId));
     const debugIds = [].concat(config.debug.giveWeapon ?? []);
     for (const debugWeapon of weapons.filter((d) => debugIds.includes(d.id) && d.id !== startId)) {
@@ -97,7 +102,8 @@ export default class GameScene extends Phaser.Scene {
     // A plan's starting passive: a set one, or a random unlocked one ('random').
     if (plan?.passive) {
       const open = passives.filter((d) => (!d.unlock || save.unlocks.includes(d.id)) && !this.run.passives.some((p) => p.def === d));
-      const def = plan.passive === 'random' ? Phaser.Utils.Array.GetRandom(open) : passives.find((d) => d.id === plan.passive);
+      const random = daily ? passives.find((d) => d.id === daily.passive) : Phaser.Utils.Array.GetRandom(open); // the day's for all
+      const def = plan.passive === 'random' ? random : passives.find((d) => d.id === plan.passive);
       if (def) this.gainPassive(def);
     }
     this.physics.add.overlap(this.player, this.gems, this.collectGem, null, this);
@@ -1034,7 +1040,8 @@ export default class GameScene extends Phaser.Scene {
 
   // Random type by spawnWeight among the ones whose appearsAtSec has passed.
   pickEnemyType() {
-    const open = enemies.filter((d) => d.spawnWeight > 0 && this.run.elapsedMs >= d.appearsAtSec * 1000); // bosses and skaters come otherwise
+    const at = (d) => this.run.daily?.appearsAt[d.id] ?? d.appearsAtSec; // Wyzwanie dnia mixes the arrival times
+    const open = enemies.filter((d) => d.spawnWeight > 0 && this.run.elapsedMs >= at(d) * 1000); // bosses and skaters come otherwise
     let roll = Math.random() * open.reduce((sum, d) => sum + d.spawnWeight, 0);
     return open.find((d) => (roll -= d.spawnWeight) < 0) ?? open[open.length - 1];
   }
@@ -1174,8 +1181,10 @@ export default class GameScene extends Phaser.Scene {
     const w = config.wave;
     if (Math.floor(run.stageMs / (w.everySec * 1000)) > run.wave) {
       const count = Math.round((w.baseCount + w.perWave * run.wave) * (1 + run.pressure * config.dda.spawnBonus));
+      // Wyzwanie dnia: each wave is one type, in the day's order.
+      const type = run.daily && enemies.find((d) => d.id === run.daily.waves[run.wave % run.daily.waves.length]);
       run.wave++;
-      for (let i = 0; i < count; i++) this.spawnEnemy();
+      for (let i = 0; i < count; i++) this.spawnEnemy(type || undefined);
     }
 
     const k = this.keys;

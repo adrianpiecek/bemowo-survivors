@@ -2,7 +2,8 @@ import { config } from './config.js';
 import { gymUpgrades } from './data/gym.js';
 
 // Run stats, always in this order: config, then gym, then in-run upgrades (applied later by LevelUpScene).
-function startingStats() {
+// gym false: Wyzwanie dnia, everyone starts from config alone.
+function startingStats(gym) {
   const stats = {
     maxHp: config.player.maxHp,
     speed: config.player.speed,
@@ -38,7 +39,7 @@ function startingStats() {
     skips: config.draw.skips,
     banishes: config.draw.banishes,
   };
-  for (const up of gymUpgrades) {
+  for (const up of gym ? gymUpgrades : []) {
     const level = gymLevel(up);
     if (level > 0) up.apply(stats, level);
   }
@@ -50,8 +51,8 @@ function startingStats() {
   return stats;
 }
 
-// Reset every run.
-export function newRun() {
+// Reset every run; gym false for Wyzwanie dnia.
+export function newRun(gym = true) {
   return {
     elapsedMs: 0, // the whole run; enemies' growth and unlocks go by it
     stageMs: 0, // the current stage (config.stages): bosses, events, waves, the spawn curve and the clock go by it
@@ -129,7 +130,7 @@ export function newRun() {
     ddaLast: null, // the last sample, for the balance overlay: { hurt, crowd }
     touchMove: { x: 0, y: 0 }, // joystick direction, length 0..1
     bubbleMs: 0, // time left on the "Muchacho!" bubble
-    player: startingStats(), // HP, movement and weapon stats; upgrades change them for this run only
+    player: startingStats(gym), // HP, movement and weapon stats; upgrades change them for this run only
     upgrades: {}, // upgrade id -> how many times taken
     banished: [], // card ids thrown out with Wywal: never drawn again this run
     evolutions: [], // evolution ids this run (save.evolutions gets the new ones at the end)
@@ -180,7 +181,8 @@ function freshSave() {
   return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, uiScale: 1, menuScale: 1, cameraZoom: 1, orientation: 'portrait', orientationSet: false, shareStats: true, evolutions: [], runsPlayed: 0, stats: freshStats(),
     bets: {}, // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
     difficulty: {}, // map id -> { max, picked }: difficulty levels open and picked (data/maps.js)
-    bestiary: {} }; // enemy type id -> kills over all runs (BestiaryScene)
+    bestiary: {}, // enemy type id -> kills over all runs (BestiaryScene)
+    daily: { day: '', score: null } }; // Wyzwanie dnia on this save: the day started (one run a day) and its score (null: unfinished)
 }
 
 // Totals over all runs, for the passives' and plans' unlocks and the Statystyki window. Added in GameOverScene.
@@ -220,6 +222,7 @@ export function parseSave(d) {
   if (isObject(d.difficulty)) s.difficulty = d.difficulty; // clamped where read (data/maps.js)
   if (isObject(d.bestiary)) for (const [k, v] of Object.entries(d.bestiary)) if (Number.isFinite(v) && v >= 0) s.bestiary[k] = v;
   if (Array.isArray(d.unlocks)) s.unlocks = d.unlocks;
+  if (isObject(d.daily) && typeof d.daily.day === 'string') s.daily = { day: d.daily.day, score: Number.isFinite(d.daily.score) ? d.daily.score : null };
   if (typeof d.muted === 'boolean') s.muted = d.muted;
   for (const k of ['musicVolume', 'sfxVolume']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], 0, 1);
   for (const k of ['uiScale', 'menuScale', 'cameraZoom']) if (Number.isFinite(d[k])) s[k] = Phaser.Math.Clamp(d[k], config.ui.settings[k].min, config.ui.settings[k].max);

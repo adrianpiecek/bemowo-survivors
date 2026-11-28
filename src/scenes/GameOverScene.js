@@ -9,7 +9,8 @@ import { startRun } from './PlanScene.js';
 import { unlockedByBets } from '../data/bets.js';
 import { button, font, drawPanel, drawBar } from '../systems/ui.js';
 import { playVfx } from '../systems/vfx.js';
-import { submitScore, sendRunStats } from '../systems/online.js';
+import { submitScore, submitDaily, sendRunStats } from '../systems/online.js';
+import { dayLabel } from '../systems/daily.js';
 import { centerLayout } from '../systems/layout.js';
 
 export default class GameOverScene extends Phaser.Scene {
@@ -47,7 +48,9 @@ export default class GameOverScene extends Phaser.Scene {
       save.unlocks.push(def.id);
       this.newUnlocks.push(def);
     }
-    this.newLevel = openNextLevel(this.run, this.won); // the map's next difficulty level
+    // The map's next difficulty level; not from Wyzwanie dnia, whose level was the day's, not picked.
+    this.newLevel = r.daily ? null : openNextLevel(this.run, this.won);
+    if (r.daily && save.daily.day === r.daily.day) save.daily.score = Math.round(r.score); // the day's run is done
     // Evolutions seen for the first time this run: kept in the save, named on this screen.
     this.newEvolutions = weapons.map((d) => d.evolution).filter((e) => e && r.evolutions.includes(e.id) && !save.evolutions.includes(e.id));
     for (const e of this.newEvolutions) save.evolutions.push(e.id);
@@ -78,6 +81,10 @@ export default class GameOverScene extends Phaser.Scene {
     if (r.plan) {
       const p = this.add.text(cx, y, `Plan: ${r.plan.name}`, font(ps.gameOverFontSize, { color: ps.gameOverColor })).setOrigin(0.5, 0);
       y += p.height + go.gap;
+    }
+    if (r.daily) {
+      const d = this.add.text(cx, y, `Wyzwanie dnia, ${dayLabel(r.daily.day)}`, font(ps.gameOverFontSize, { color: ps.gameOverColor })).setOrigin(0.5, 0);
+      y += d.height + go.gap;
     }
     // Weapons and passives unlocked by this run (from now on they can drop as cards) and evolutions seen for the first
     // time: above the panel, so they are seen before the buttons.
@@ -119,7 +126,9 @@ export default class GameOverScene extends Phaser.Scene {
     row('Wynik', Math.round(r.score).toLocaleString('pl-PL'), go.headerColor);
     // Wyniki: a new personal best goes to the leaderboard (signed in with a nick); its place shows on the Wynik row.
     const record = this.add.text(cx, y - go.rowHeight, '', font(go.fontSize, { fontStyle: 'bold', color: go.headerColor })).setOrigin(0.5, 0);
-    submitScore(r).then((res) => { if (res && record.active) record.setText(`Nowy rekord! ${res.rank}. miejsce`); });
+    // Wyzwanie dnia goes to the day's table only (its conditions are not the player's own).
+    if (r.daily) submitDaily(r).then((rank) => { if (rank && record.active) record.setText(`Wyzwanie dnia: ${rank}. miejsce`); });
+    else submitScore(r).then((res) => { if (res && record.active) record.setText(`Nowy rekord! ${res.rank}. miejsce`); });
     row('DPS', Math.round(r.damageDealt / Math.max(1, r.elapsedMs / 1000)).toLocaleString('pl-PL'));
     row('Białko z rundy', `${fromRun}${bonus ? ` (${bonus})` : ''}`, go.headerColor);
     row('Białko z monet', `${r.coinProtein}`, go.headerColor);
@@ -150,7 +159,7 @@ export default class GameOverScene extends Phaser.Scene {
     y += go.buttonsGap;
 
     // GameScene.create() calls newRun(), so restarting it gives a clean run.
-    const buttons = [['Menu', 'MenuScene', -u.buttonOffsetX], ['Jeszcze raz', 'GameScene', u.buttonOffsetX]];
+    const buttons = [['Menu', 'MenuScene', -u.buttonOffsetX], [r.daily ? 'Zwykła runda' : 'Jeszcze raz', 'GameScene', u.buttonOffsetX]];
     for (const [label, scene, dx] of buttons) {
       const btn = button(this, cx + dx, y, label, () => (scene === 'GameScene' ? startRun(this) : this.scene.start(scene)), {
         fontSize: u.buttonFontSize, variant: scene === 'MenuScene' ? 'secondary' : 'primary',

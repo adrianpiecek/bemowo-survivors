@@ -19,7 +19,8 @@ export function rollRarity(up, run) {
   return tiers.find((t, i) => (roll -= weight(t, i)) < 0) ?? tiers[0];
 }
 
-const isUnlocked = (def) => !def.unlock || save.unlocks.includes(def.id);
+// In Wyzwanie dnia (run.daily) everything can drop, so every player has the same chances.
+const isUnlocked = (def, run) => !!run.daily || !def.unlock || save.unlocks.includes(def.id);
 
 // "Ewolucja: Broń 3/5 + Pasywka (brak)" under a weapon card and under the card of a passive some weapon evolves with,
 // so the player sees what is still missing; nothing once that weapon has evolved this run.
@@ -67,7 +68,7 @@ function weaponCards(run) {
   }
   if (run.weapons.length >= run.player.weaponSlots) return cards;
   for (const def of weapons) {
-    if (run.weapons.some((w) => w.def === def) || !isUnlocked(def)) continue;
+    if (run.weapons.some((w) => w.def === def) || !isUnlocked(def, run)) continue;
     cards.push({
       id: `weapon_${def.id}`, name: def.name, icon: def.icon, weight: def.weight ?? config.weapons.cardWeight, maxStack: Infinity, levelText: 'NOWA BROŃ', rarity: false,
       hint: evolutionHint(run, def),
@@ -89,7 +90,7 @@ export function passiveCards(run) {
   const cards = run.passives.filter((p) => p.level < p.def.maxLevel).map((p) => card(p.def, p.level + 1, `Poziom ${p.level} → ${p.level + 1}`));
   if (run.passives.length >= run.player.passiveSlots) return cards;
   for (const def of passives) {
-    if (!run.passives.some((p) => p.def === def) && isUnlocked(def)) cards.push(card(def, 1, 'NOWA PASYWKA'));
+    if (!run.passives.some((p) => p.def === def) && isUnlocked(def, run)) cards.push(card(def, 1, 'NOWA PASYWKA'));
   }
   return cards;
 }

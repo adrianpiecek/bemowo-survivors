@@ -8,6 +8,9 @@ rules_version = '2';
 //   scores/{uid}  { nick, score, kills, map, stage, overtimeMs, cleared, difficulty, timeMs, at }
 //                 the player's best run: the leaderboard, readable by everyone
 //   runs/{auto}   one finished run, anonymous: balancing stats, written by the game, read only in the console
+//   daily/{day}_{uid} { uid, nick, day, done, score, kills, map, stage, cleared, timeMs, startedAt, at }
+//                 Wyzwanie dnia: one run a day per player, readable by everyone. Created at the start (done false), finished
+//                 once (done true); the day must be today in Polish time.
 // Everything else is closed.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -63,14 +66,14 @@ service cloud.firestore {
     function validRun(d) {
       return d.keys().hasOnly(['v', 'map', 'difficulty', 'plan', 'won', 'quit', 'cleared', 'stage', 'stagesCleared', 'overtimeMs',
           'timeMs', 'level', 'kills', 'score', 'bosses', 'protein', 'damageTaken', 'pressure', 'weapons', 'passives', 'items',
-          'upgrades', 'runsPlayed', 'touch', 'orientation', 'at'])
+          'upgrades', 'runsPlayed', 'touch', 'orientation', 'daily', 'at'])
         && d.v is int && d.map is string && d.map.size() <= 32 && (d.plan == null || (d.plan is string && d.plan.size() <= 32))
         && d.difficulty is int && d.stage is int && d.level is int && d.kills is int && d.score is int
         && d.timeMs is int && d.timeMs >= 0 && d.timeMs <= 21600000
         && d.won is bool && d.quit is bool && d.cleared is bool && d.touch is bool
         && d.weapons is list && d.weapons.size() <= 20 && d.passives is list && d.passives.size() <= 20
         && d.items is map && d.items.size() <= 60 && d.upgrades is map && d.upgrades.size() <= 60
-        && d.orientation in ['portrait', 'landscape'] && d.at == request.time;
+        && d.orientation in ['portrait', 'landscape'] && (!('daily' in d) || d.daily is bool) && d.at == request.time;
     }
 
     match /runs/{id} {
@@ -85,6 +88,38 @@ service cloud.firestore {
         (validScore(request.resource.data) && request.resource.data.score > resource.data.score)
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nick']) && nickIsMine(request.resource.data.nick)));
       allow delete: if isOwner(uid);
+    }
+
+    // 'YYYY-MM-DD' of a moment; Polish time is UTC+1 in winter and UTC+2 in summer, so today there is one of the two.
+    function dayKey(t) {
+      return string(t.year()) + '-' + (t.month() < 10 ? '0' : '') + string(t.month()) + '-' + (t.day() < 10 ? '0' : '') + string(t.day());
+    }
+    function isToday(day) {
+      return day == dayKey(request.time + duration.value(1, 'h')) || day == dayKey(request.time + duration.value(2, 'h'));
+    }
+
+    match /daily/{id} {
+      allow read: if true;
+      // The start: an empty entry under the player's own id for today, with their nick.
+      allow create: if signedIn() && id == request.resource.data.day + '_' + request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'nick', 'day', 'done', 'score', 'kills', 'map', 'stage', 'cleared', 'timeMs', 'startedAt'])
+        && request.resource.data.keys().hasAll(['uid', 'nick', 'day', 'done', 'score', 'kills', 'map', 'stage', 'cleared', 'timeMs', 'startedAt'])
+        && request.resource.data.uid == request.auth.uid && nickIsMine(request.resource.data.nick) && isToday(request.resource.data.day)
+        && request.resource.data.done == false && request.resource.data.score == 0 && request.resource.data.kills == 0
+        && request.resource.data.startedAt == request.time;
+      // The end, once: numbers that could have happened (as validScore) in the time since the start.
+      allow update: if signedIn() && resource.data.uid == request.auth.uid && resource.data.done == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['done', 'score', 'kills', 'map', 'stage', 'cleared', 'timeMs', 'at'])
+        && request.resource.data.done == true
+        && request.resource.data.score is int && request.resource.data.kills is int && request.resource.data.timeMs is int
+        && request.resource.data.stage is int && request.resource.data.cleared is bool
+        && request.resource.data.score >= 0 && request.resource.data.score <= request.resource.data.kills * 4
+        && request.resource.data.timeMs > 0
+        && request.resource.data.timeMs <= request.time.toMillis() - resource.data.startedAt.toMillis() + 60000
+        && request.resource.data.kills <= request.resource.data.timeMs * 60 / 1000
+        && request.resource.data.map in ['jelonki', 'fortBema'] && request.resource.data.stage >= 1 && request.resource.data.stage <= 3
+        && request.resource.data.at == request.time;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
     }
 
     match /saves/{uid} {

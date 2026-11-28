@@ -7,6 +7,7 @@ import { startRun } from './PlanScene.js';
 import { betsOpen, betSum } from '../data/bets.js';
 import { online, onOnlineChange } from '../systems/online.js';
 import { centerLayout } from '../systems/layout.js';
+import { todayKey } from '../systems/daily.js';
 
 // The main menu between runs (after the title and after every run): the protein, one button per place, and Bartek with a
 // quote. The gym itself (GymScene) only sells upgrades now. Wyzwania, Statystyki, Bestiariusz and Zakłady z Unc open over
@@ -40,7 +41,12 @@ export default class MenuScene extends Phaser.Scene {
       return b;
     };
     big('Na Bemowo!', () => startRun(this), mn.goHeight, mn.goFontSize);
-    const gym = big('Siłownia', () => this.scene.start('GymScene'), mn.height, mn.fontSize, 'secondary');
+    // Siłownia and Wyzwanie dnia side by side; the challenge gets a tick once today's run is started.
+    const half = (mn.width - mn.gap) / 2, rowY = y + mn.height / 2, opts = { width: half, height: mn.height, fontSize: mn.dailyFontSize };
+    const gym = button(this, cx - (half + mn.gap) / 2, rowY, 'Siłownia', () => this.scene.start('GymScene'), { ...opts, variant: 'secondary' });
+    const done = save.daily.day === todayKey() && !config.debug.dailyReplay;
+    button(this, cx + (half + mn.gap) / 2, rowY, `Wyzwanie dnia${done ? ' ✓' : ''}`, overlay('DailyScene'), { ...opts, variant: done ? 'secondary' : 'primary' });
+    y += mn.height + mn.gap;
     // After the very first run the gym pulses, so the player finds where the protein goes.
     if (save.runsPlayed === 1) this.tweens.add({ targets: gym, scale: config.ui.gymPulse.scale, duration: config.ui.gymPulse.ms, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     if (betsOpen()) {

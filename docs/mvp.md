@@ -1434,6 +1434,34 @@ Po przeglądzie zgodności (polityka prywatności, ujawnianie zbierania danych, 
   - wszystkie nowe nazwy w danych, żadnej starej;
   - w konsoli tylko znane błędy 404.
 
+### 76. Wyzwanie dnia (krok 100)
+
+Jedna runda dziennie, te same warunki dla wszystkich, osobna tabela dnia. Dzień liczy się w czasie polskim (`config.daily.timeZone`).
+
+- **Wejście:** w menu „Siłownia” i „Wyzwanie dnia” stoją obok siebie w jednym rzędzie. Przycisk wyzwania jest zielony, dopóki dzisiejsza runda nie jest zaczęta, potem szary z „✓”. Otwiera okno `DailyScene` nad menu (rozmiary jak w Wynikach).
+- **Losowanie dnia** (`src/systems/daily.js`, `dailySetup(dzień)`): generator mulberry32 z ziarnem z daty, więc każde urządzenie losuje to samo. Dzień losuje:
+  - mapę (także zablokowaną) i poziom trudności 1–3 (`daily.maxDifficulty`);
+  - plan treningowy (także zablokowany; plan z losową pasywką dostaje pasywkę dnia);
+  - jeden Zakład z Unc na poziomie `daily.betLevel` (1) zamiast zakładów gracza, z jego premią białka;
+  - broń na start;
+  - kolejność wrogów: czasy pojawienia się późniejszych typów (`appearsAtSec`) są przetasowane, typy od startu zostają;
+  - fale: każda fala to jeden typ chodzącego wroga, w kolejności dnia (klapy nie, bo lecą prosto).
+- **Wszyscy równi:** bez siłowni (`newRun(false)`), bez zakładów gracza, każda broń i pasywka może wypaść (`cards.js`: `run.daily`). Białko jak zwykle. Runda wyzwania nie otwiera kolejnego poziomu trudności i nie idzie do głównej tabeli wyników.
+- **Liczy się tylko pierwsza runda dnia.** „Graj” zapisuje dzień w `save.daily` (także w chmurze), więc zamknięta karta też zużywa wyzwanie. Konto z nickiem dostaje wpis `daily/{dzień}_{uid}` już na starcie (`done: false`, wynik 0), a po rundzie raz jego wynik (`done: true`). Jeśli wpis już jest (inne urządzenie), okno mówi, że runda jest rozegrana. Bez konta, nicku albo połączenia runda gra się normalnie, tylko poza tabelą.
+- **Okno:** data i czas do następnego wyzwania, warunki dnia (mapa, trudność, broń, kolejność wrogów, pierwsze `daily.wavesShown` fale; plan i zakład bez nazw, od razu jako efekty: plus na zielono, minus na czerwono, jak na kartach planów, a premia białka zakładu na zielono), zasady, wynik gracza z dziś, tabela dnia (`ui.daily.count`: 10, w poziomie 5), „Graj” i „Wróć”.
+- **Koniec rundy:** pod planem „Wyzwanie dnia, 28 listopada”, wynik trafia do tabeli dnia („Wyzwanie dnia: N. miejsce”), prawy przycisk to „Zwykła runda”. Anonimowe statystyki rund mają pole `daily`.
+- **Baza** (`firestore.rules`, trzeba wkleić w konsoli Firebase): `daily/{id}` czyta każdy. Utworzyć może tylko właściciel, pod własnym id, na dziś (UTC+1 albo UTC+2), z własnym nickiem i pustym wynikiem. Zmienić raz: wynik możliwy jak w głównej tabeli i czas rundy nie dłuższy niż czas od startu. Usunąć może właściciel. Usunięcie konta kasuje wszystkie jego wpisy dnia. Tabela dnia czyta do `daily.fetchMax` (500) wpisów dnia i sortuje u gracza, więc nie trzeba zakładać indeksu.
+- **Polityka prywatności:** opisana tabela dnia, wpis na starcie rundy i usuwanie z kontem.
+- **Debug:** `debug.dailyDay` (np. `'2026-12-01'`) pokazuje wyzwanie innego dnia; serwer nie przyjmie takiego wpisu, więc runda jest poza tabelą. `debug.dailyReplay` pozwala zacząć wyzwanie ponownie na tym urządzeniu.
+- **Sprawdzone w przeglądarce (bez logowania, bez zapisu, bez statystyk):**
+  - menu w pionie i w poziomie: rząd „Siłownia | Wyzwanie dnia”, po rundzie „Wyzwanie dnia ✓”;
+  - okno pokazuje warunki 28 listopada (Jelonki 3, Trening w parze, Gęstsza horda, Pistolet), w poziomie się mieści;
+  - runda: mapa, plan, trudność, zakład i broń dnia; siłownia pominięta (zapis z Klatą 3: zwykła runda ma większe obrażenia, runda wyzwania nie); zablokowane pasywki w kartach; w 50 s tylko zombie i klapy (kolejność dnia); pierwsza fala to 8 Klaunów;
+  - koniec rundy: linia wyzwania, „Zwykła runda”, `save.daily` z wynikiem; okno potem bez „Graj”, z wynikiem dnia;
+  - tabela dnia: przed wklejeniem nowych reguł „Nie udało się wczytać tabeli dnia” (odczyt odrzucony);
+  - w konsoli tylko znane błędy 404.
+- **Nie sprawdzone:** zapis do tabeli dnia z prawdziwym kontem (potrzebne nowe reguły i logowanie).
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

@@ -2,7 +2,7 @@ export const config = {
   // portrait (the default); landscape sizes are in `layouts`. Portrait on a phone taller than 9:16 grows up to maxHeight
   // instead of black bars (systems/layout.js gameHeight); resizeMs: how long the window stays still before it applies.
   game: { width: 720, height: 1280, maxHeight: 1600, resizeMs: 300, background: '#000000' },
-  version: 99, // the step number, shown in the menu's corner as v0.<version>; every step raises it
+  version: 100, // the step number, shown in the menu's corner as v0.<version>; every step raises it
   // critChance: share of hits that crit, critMult: a crit's damage multiplier (passives Goggins and Limp Bizkit add to them).
   // maxHp: 100 until step 72; lower so Gainer, Dokładka and the gym's HP matter more.
   player: { speed: 200, maxHp: 80, invulnMs: 500, blinkMs: 80, blinkAlpha: 0.3, critChance: 0.05, critMult: 1.5 },
@@ -362,6 +362,11 @@ export const config = {
   run: { durationSec: 600 }, // one stage (config.stages)
   // Konto (systems/online.js): the Firebase SDK from `sdk` (one pinned version), loaded startDelayMs after the game starts;
   // the progress goes to the cloud uploadDelayMs after the last save write. A nick: nickMin-nickMax letters, digits or _.
+  // Wyzwanie dnia (systems/daily.js, DailyScene): one run a day, the same for everyone; the day goes by Polish time
+  // (timeZone). The day draws the map (locked ones too), a difficulty level up to maxDifficulty, a plan, one Zakład z Unc
+  // at betLevel, the starting weapon, the order the enemy types arrive in and each wave's type. No gym, no player's bets,
+  // every weapon and passive can drop. Only the first run of the day counts. fetchMax: the most entries a day's table reads.
+  daily: { timeZone: 'Europe/Warsaw', maxDifficulty: 3, betLevel: 1, fetchMax: 500, wavesShown: 4 },
   online: { sdk: 'https://www.gstatic.com/firebasejs/12.6.0', startDelayMs: 1500, uploadDelayMs: 3000, nickMin: 3, nickMax: 16 },
   // Etapy: a map is `count` stages of run.durationSec each, all the boss slots in every one. Once the last slot's boss (and
   // every other boss) is dead, a portal stands portal.dist px from Bartek for portal.sec. Walking in starts the next stage
@@ -409,6 +414,8 @@ export const config = {
     drawCharges: null, // a number: every run starts with this many Odśwież, Pomiń and Wywal (gym included)
     unlockMaps: false, // true: every map and every difficulty level is open in the map list (MapScene)
     forcePlan: null, // a plan id (e.g. 'lazy'): every run but the very first starts with it, no plan screen; unlocked in the save
+    dailyDay: null, // a day 'YYYY-MM-DD': Wyzwanie dnia is that day's (its draw only: the server keeps such a run off the table)
+    dailyReplay: false, // true: Wyzwanie dnia can be started again on this device the same day
     evolveKey: false, // true: E puts every carried weapon at its max level and gives its evolution passive; the next chest (P with pickupKey) evolves
     eliteKey: false, // true: the L key spawns an elite next to Bartek, each press with the next trait
     eventKey: false, // true: V, then a digit 1-9 (0 the tenth), starts that run event (data/events.js order)
@@ -683,7 +690,7 @@ export const config = {
     menu: { titleY: 120, titleFontSize: 60, proteinGap: 18, top: 360, columnX: 0.5, width: 600, gap: 18, goHeight: 120, goFontSize: 46,
       height: 96, fontSize: 34, betsFontSize: 28, smallHeight: 88, smallFontSize: 28, iconSize: 44, iconPad: 18, hintFontSize: 16,
       quoteSide: false, quoteLeft: 0, quoteGap: 40, bartekHeight: 0, bottom: 40, versionFontSize: 15, versionMargin: 10, versionColor: '#757575',
-      privacyFontSize: 22 }, // "Prywatność" in the bottom left corner, versionMargin from the edges
+      dailyFontSize: 28, privacyFontSize: 22 }, // Siłownia and Wyzwanie dnia side by side at dailyFontSize; "Prywatność" in the bottom left corner, versionMargin from the edges
     // Gym: a row per upgrade (icon on the left; name, description, then level pips and the cost on a line under them; the buy
     // button on the right), Bartek with a speech bubble under the rows, the start button at the bottom.
     // x positions are from the row's left edge. popScale/popMs: the newly bought pip pops; floatPx/floatMs: the "-cost" rising.
@@ -709,6 +716,8 @@ export const config = {
     leaderboard: { width: 700, count: 15, padding: 22, inner: 10, gap: 12, titleFontSize: 48, rowHeight: 50, fontSize: 26,
       detailFontSize: 22, textFontSize: 22, nickX: 0.1, mapX: 0.44, stripeAlpha: 0.06, mineColor: 0xffc400, mineAlpha: 0.18,
       dimColor: '#b0bec5', errorColor: '#ff8a80', backWidth: 300, backHeight: 84, backFontSize: 32},
+    // Wyzwanie dnia (DailyScene): the leaderboard's sizes, the day's table `count` rows long; `soonColor`: the time left.
+    daily: { count: 10, soonColor: '#9ccc65' },
     stats: { width: 700, columns: 1, columnGap: 0, padding: 24, inner: 12, gap: 14, titleFontSize: 48, rowHeight: 52, fontSize: 26,
       stripeAlpha: 0.06, labelColor: '#b0bec5', backWidth: 300, backHeight: 84, backFontSize: 32},
     // Wyzwania (ChallengesScene, the cup next to the gear in the gym): one row per unlock condition in `columns` columns,
@@ -756,6 +765,7 @@ export const config = {
         bestiary: { width: 1220, columns: 2, columnGap: 14, padding: 14, gap: 8, titleFontSize: 34, textFontSize: 16,
           rowHeight: 58, rowGap: 5, iconSize: 44, nameFontSize: 17, descFontSize: 16, backHeight: 50,
           pagerHeight: 50, pagerButton: 70, pagerFontSize: 22, backWidth: 240, backFontSize: 26 },
+        daily: { count: 5 },
         leaderboard: { width: 900, count: 10, padding: 14, gap: 6, titleFontSize: 34, rowHeight: 34, fontSize: 18, detailFontSize: 16, textFontSize: 16,
           backHeight: 50, backFontSize: 22,
           backWidth: 280 },
@@ -767,7 +777,7 @@ export const config = {
         account: { width: 620, gap: 14, titleFontSize: 42, textFontSize: 21, smallFontSize: 18, buttonHeight: 56, buttonFontSize: 22, inputWidth: 380, inputHeight: 52, inputFontSize: 24 },
         menu: { titleY: 24, titleFontSize: 52, top: 190, columnX: 0.72, width: 440, gap: 12, goHeight: 80, goFontSize: 36, height: 60,
           smallHeight: 54, quoteSide: true, quoteLeft: 60, bartekHeight: 150,
-          fontSize: 28, betsFontSize: 22, smallFontSize: 22, iconSize: 32, iconPad: 14 },
+          fontSize: 28, betsFontSize: 22, dailyFontSize: 22, smallFontSize: 22, iconSize: 32, iconPad: 14 },
         gymScreen: { titleY: 22, columns: 2, columnGap: 16, goRight: true, rowWidth: 600, sectionGap: 20,
           bottom: 16, goWidth: 260, goHeight: 64, goFontSize: 30, top: 96, rowHeight: 126, rowGap: 8, bartekHeight: 90,
           descFontSize: 17, shortFontSize: 16, quoteFontSize: 20, definitionFontSize: 18,

@@ -46,6 +46,7 @@ src/data/maps.js         mapy jako dane (od kroku 79)
 src/systems/             wspólne mechaniki: efekty czasowe, orbita, efekty wizualne rysowane w kodzie (vfx.js) itp.
 src/systems/ui.js        wspólny wygląd UI: font, panele, paski, przyciski
 src/systems/online.js    (od kroku 85) Firebase: logowanie Google, nick, zapis w chmurze
+src/systems/daily.js     (od kroku 100) Wyzwanie dnia: losowanie dnia z ziarna daty
 src/firebaseConfig.js    (od kroku 85) publiczna konfiguracja projektu Firebase
 src/scenes/BootScene.js
 src/scenes/GameScene.js
@@ -65,6 +66,7 @@ src/scenes/StatsScene.js (od kroku 49, statystyki gracza w siłowni)
 src/scenes/BestiaryScene.js (od kroku 51, bestiariusz w siłowni)
 src/scenes/AccountScene.js (od kroku 85, okno Konto z menu)
 src/scenes/LeaderboardScene.js (od kroku 88, tabela wyników z menu)
+src/scenes/DailyScene.js (od kroku 100, Wyzwanie dnia z menu)
 src/scenes/MapScene.js   (od kroku 79, wybór mapy przed planem)
 src/scenes/PlanScene.js  (od kroku 33, wybór planu przed rundą)
 src/scenes/TitleScene.js (od kroku 19)

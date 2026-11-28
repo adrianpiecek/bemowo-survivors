@@ -12,6 +12,9 @@ import { save, onSaveWrite, progressOf, replaceProgress } from '../state.js';
 //   scores/{uid}  { nick, score, kills, map, stage, overtimeMs, cleared, difficulty, timeMs, at }
 //                 the player's best run for the leaderboard (Wyniki), readable by everyone
 //   runs/{auto}   one finished run, anonymous (no uid, no nick): balancing data, only written by the game
+//   daily/{day}_{uid} { uid, nick, day, done, score, kills, map, stage, cleared, timeMs, startedAt, at }
+//                 Wyzwanie dnia: the player's one run of the day, readable by everyone. Written at the start (done false,
+//                 score 0), so a closed tab still uses the day up, and once more at the end (done true, the numbers)
 // online.state: 'off' | 'loading' | 'ready' | 'error'; online.sync: 'none' | 'syncing' | 'synced' | 'conflict' | 'error'.
 // online.revision goes up when a save from the cloud replaced the progress here (MenuScene redraws).
 export const online = { state: 'off', user: null, nick: null, sync: 'none', conflict: null, error: '', revision: 0, best: 0 };
@@ -250,6 +253,8 @@ export async function deleteAccount(password) {
   }
   try {
     const batch = F.writeBatch(db);
+    const daily = await F.getDocs(F.query(F.collection(db, 'daily'), F.where('uid', '==', user.uid))); // every day played
+    daily.forEach((d) => batch.delete(d.ref));
     batch.delete(F.doc(db, 'saves', user.uid));
     batch.delete(F.doc(db, 'scores', user.uid));
     if (online.nick) batch.delete(F.doc(db, 'nicks', online.nick.toLowerCase()));
@@ -282,6 +287,46 @@ export async function submitScore(run) {
   }
 }
 
+// Wyzwanie dnia, before the run: the day's entry for a player with a nick. 'ranked': the run goes to the table;
+// 'played': this account already started today's (another device); 'unranked': no account, nick or connection.
+export async function startDaily(day) {
+  if (online.state !== 'ready' || !online.user || !online.nick) return 'unranked';
+  const ref = F.doc(db, 'daily', `${day}_${online.user.uid}`);
+  try {
+    if ((await F.getDoc(ref)).exists()) return 'played';
+    await F.setDoc(ref, { uid: online.user.uid, nick: online.nick, day, done: false, score: 0, kills: 0, map: '', stage: 1,
+      cleared: false, timeMs: 0, startedAt: F.serverTimestamp() });
+    return 'ranked';
+  } catch {
+    return 'unranked'; // e.g. the rules refuse a day that is not today (config.debug.dailyDay)
+  }
+}
+
+// Wyzwanie dnia, after the run: its numbers into the day's entry (once); the place in the day's table, or null.
+export async function submitDaily(run) {
+  const d = run.daily;
+  if (!d?.ranked || online.state !== 'ready' || !online.user) return null;
+  try {
+    await F.updateDoc(F.doc(db, 'daily', `${d.day}_${online.user.uid}`), {
+      done: true, score: Math.round(run.score), kills: run.kills, map: run.map, stage: run.stage, cleared: run.mapCleared,
+      timeMs: Math.round(run.elapsedMs), at: F.serverTimestamp(),
+    });
+    return (await fetchDaily(d.day)).mine;
+  } catch {
+    return null;
+  }
+}
+
+// The day's table: the finished runs, best first, and this player's place (null without one). Throws without a connection.
+// shortcut: reads up to config.daily.fetchMax entries and sorts here (no index to set up); a busier day needs orderBy + an index.
+export async function fetchDaily(day) {
+  if (online.state !== 'ready') throw new Error('offline');
+  const snap = await F.getDocs(F.query(F.collection(db, 'daily'), F.where('day', '==', day), F.limit(config.daily.fetchMax)));
+  const rows = snap.docs.map((d) => d.data()).filter((r) => r.done).sort((a, b) => b.score - a.score);
+  const i = online.user ? rows.findIndex((r) => r.uid === online.user.uid) : -1;
+  return { rows, mine: i < 0 ? null : i + 1 };
+}
+
 // Place of a score: 1 + how many players scored more (a count on the server, not a download of the table).
 async function rankOf(score) {
   const q = F.query(F.collection(db, 'scores'), F.where('score', '>', score));
@@ -310,7 +355,7 @@ export function sendRunStats(run, won, quit, protein) {
     protein, damageTaken: whole(run.damageTaken), pressure: whole((run.pressureMsSum / Math.max(1, run.elapsedMs)) * 100),
     weapons: run.weapons.map((w) => ({ id: w.def.id, level: w.level, evolved: !!w.evolved, damage: whole(run.weaponDamage[w.def.id]) })),
     passives: run.passives.map((p) => ({ id: p.def.id, level: p.level })),
-    items: run.items, upgrades: run.upgrades, runsPlayed: save.runsPlayed,
+    items: run.items, upgrades: run.upgrades, runsPlayed: save.runsPlayed, daily: !!run.daily,
     touch: matchMedia('(pointer: coarse)').matches, orientation: save.orientation, at: F.serverTimestamp(),
   };
   // Lost stats are not worth bothering the player; the reason stays in the console's verbose level.
