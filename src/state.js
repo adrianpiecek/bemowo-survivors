@@ -181,7 +181,7 @@ function freshSave() {
   return { version: SAVE_VERSION, protein: 0, gym: {}, unlocks: [], muted: false, musicVolume: 1, sfxVolume: 1, uiScale: 1, menuScale: 1, cameraZoom: 1, orientation: 'portrait', orientationSet: false, shareStats: true, evolutions: [], runsPlayed: 0, stats: freshStats(),
     bets: {}, // bets: Zakłady z Unc, bet id -> level picked (data/bets.js)
     difficulty: {}, // map id -> { max, picked }: difficulty levels open and picked (data/maps.js)
-    bestiary: {}, // enemy type id -> kills over all runs (BestiaryScene)
+    bestiary: {}, // enemy type id ('zombie@fortBema' for a map's own look, data/maps.js bestiaryKey) -> kills over all runs (BestiaryScene)
     daily: { day: '', score: null } }; // Wyzwanie dnia on this save: the day started (one run a day) and its score (null: unfinished)
 }
 

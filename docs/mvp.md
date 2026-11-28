@@ -1521,6 +1521,20 @@ Na telefonie „Prywatność” i numer wersji w rogach menu były za nisko: zao
 - **Sprawdzone głośności:** power up 0.245, level up 0.49, zbieranie 0.28, uderzenie w tytule 0.56 (przy suwaku 100%, pod `masterVolume` 0.4).
 - **Nie sprawdzone:** na prawdziwym telefonie i na słuch.
 
+### 80. Bestiariusz: każdy typ osobno (krok 104)
+
+Zamiast par z kroku 102 („Zombie / Binion” w jednym wierszu) każdy wygląd ma własny wpis i własny licznik.
+
+- **Wpisy:** najpierw wszystkie zwykłe typy i bossowie (jak przed krokiem 102), potem te same typy w wersji z mapy, która je przebiera (`looks`): Binion, Purple Buy, Klockowy Bartek, Kapitan Bemowo, Gnom, Bartcraft, Binion na rolkach i ich wielcy bossowie. Razem 27 wpisów: w pionie 3 strony, w poziomie 2 (druga to cały Fort Bema). Każdy wiersz ma jeden obrazek i jedną nazwę; opis wpisu z mapy zaczyna się od jej nazwy („Fort Bema. …”), a boss z mapy ma jej podpis mocy („Rzuca beczkami pełnymi gnomów”).
+- **Liczniki osobno:** `bestiaryKey(typ, mapa)` z `src/data/maps.js` daje klucz `save.bestiary`: `zombie` albo `zombie@fortBema`, gdy mapa przebiera ten typ. Koniec rundy (`GameOverScene`) dodaje zabicia pod klucz mapy rundy. Klapa wygląda wszędzie tak samo, więc ma jeden wpis. Odblokowania broni i wyzwania dalej liczą typ (`run.killsByType`), bez zmian.
+- **Stare zapisy:** zabicia na Forcie Bema sprzed tego kroku są policzone przy zwykłych typach; wpisy z Fortu Bema zaczynają od zera.
+- **Nazwa:** Rolkarz na Forcie Bema to „Binion na rolkach” (`names.skater`).
+- **Wycofane z kroku 102:** dwa obrazki w wierszu (`ui.bestiary.icons`), para nazw i „Drugi obrazek: Fort Bema.” we wstępie. Wpis „Co nowego” z 102 mówi teraz o własnych wpisach.
+- **Sprawdzone w przeglądarce (bez zapisu, bez statystyk):**
+  - udawana runda na Forcie Bema (3 zombie, 2 rolkarzy, Wielki Goblin, 4 klapy): w zapisie `zombie@fortBema` 3, `skater@fortBema` 2, `bigGoblin@fortBema` 1, `klapa` 4;
+  - bestiariusz w pionie (3 strony) i w poziomie (2 strony): osobne wpisy, „Fort Bema.” w opisach, Wielki Gnom z podpisem o gnomach;
+  - w konsoli tylko znane błędy 404.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

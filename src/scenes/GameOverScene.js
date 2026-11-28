@@ -4,7 +4,8 @@ import { stopMusic } from '../systems/audio.js';
 import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
-import { maps, mapById, openNextLevel } from '../data/maps.js';
+import { maps, mapById, openNextLevel, bestiaryKey } from '../data/maps.js';
+import { enemies } from '../data/enemies.js';
 import { startRun } from './PlanScene.js';
 import { unlockedByBets } from '../data/bets.js';
 import { button, font, drawPanel, drawBar } from '../systems/ui.js';
@@ -39,7 +40,10 @@ export default class GameOverScene extends Phaser.Scene {
     st.protein += this.earned;
     st.bestMs = Math.max(st.bestMs, r.elapsedMs);
     st.bestKills = Math.max(st.bestKills, r.kills);
-    for (const [id, n] of Object.entries(r.killsByType)) save.bestiary[id] = (save.bestiary[id] ?? 0) + n;
+    for (const [id, n] of Object.entries(r.killsByType)) {
+      const def = enemies.find((d) => d.id === id), key = def ? bestiaryKey(def, r.map) : id; // Fort Bema's Bartkowie apart
+      save.bestiary[key] = (save.bestiary[key] ?? 0) + n;
+    }
     // One at a time, in list order, so the shield (last weapon) already sees the others unlocked by this same run.
     this.newUnlocks = [];
     for (const def of [...weapons, ...passives, ...plans, ...maps]) {
