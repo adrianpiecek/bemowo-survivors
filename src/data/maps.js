@@ -5,6 +5,7 @@ import { save, writeSave } from '../state.js';
 //   kinds    the block kinds with draw weights (their textures are drawn in createMapTextures)
 //   streets  true: roads with traffic lights and parked cars between the blocks; false: park alleys
 //   looks    optional: enemy texture -> this map's Bartek in its place (same type, stats and bestiary entry)
+//   names    optional: boss id -> its name on this map (banners and the boss bar; the bestiary keeps the base name)
 //   unlock   null: open from the start; else { text, check(run, won) } at the end of a run, kept in save.unlocks
 const m = config.map;
 
@@ -16,6 +17,10 @@ export const maps = [
   {
     id: 'fortBema', name: 'Fort Bema', kinds: m.fortBema.kinds, streets: false,
     looks: { zombie: 'binion', uncanny: 'purpleBuy', joker: 'klockowyB', homelander: 'kapitanBemowo', goblin: 'gnom', sportakus: 'bartcraft' },
+    names: {
+      bigZombie: 'Wielki Binion', bigUncanny: 'Wielki Purple Buy', bigGoblin: 'Wielki Gnom',
+      bigSportakus: 'Wielki Bartcraft', bigJoker: 'Wielki Klockowy B', bigHomelander: 'Wielki Kapitan Bemowo',
+    },
     description: 'Park przy forcie: alejki, drzewa i fosa, przez którą przejdziesz tylko mostem.',
     unlock: { text: 'Wygraj rundę na Jelonkach', check: (run, won) => won && run.map === 'jelonki' },
   },
@@ -23,6 +28,7 @@ export const maps = [
 
 export const mapUnlocked = (map) => !map.unlock || config.debug.unlockMaps || save.unlocks.includes(map.id);
 export const mapById = (id) => maps.find((d) => d.id === id) ?? maps[0];
+export const enemyName = (def, mapId) => mapById(mapId).names?.[def.id] ?? def.name;
 
 // Difficulty levels (config.difficulty) per map in save.difficulty: { max, picked }, clamped here so a hand-edited save
 // cannot break a run.

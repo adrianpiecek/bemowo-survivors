@@ -8,6 +8,7 @@ import { openSettings } from './SettingsScene.js';
 import { evolutionReady } from '../systems/cards.js';
 import { pressureBonus } from '../state.js';
 import { items } from '../data/items.js';
+import { enemyName } from '../data/maps.js';
 
 // HUD on its own layer above GameScene. It reads `run` every frame, so GameScene never has to notify it.
 // Static panels are drawn once into this.panels; bars and anything that changes are redrawn into this.bars every frame.
@@ -130,6 +131,7 @@ export default class UIScene extends Phaser.Scene {
     this.bannerBg = this.add.graphics();
     this.bannerTitle = this.add.text(0, 0, '', font(bn.fontSize, {
       fontStyle: 'bold', color: '#ffffff', stroke: '#000000', strokeThickness: bn.strokeThickness, align: 'center',
+      wordWrap: { width: width - 2 * (m + bn.padX) }, // two bosses' names (Fort Bema's are long) wrap too
     })).setOrigin(0.5, 0);
     this.bannerSub = this.add.text(0, 0, '', font(bn.subFontSize, {
       color: '#ffe082', stroke: '#000000', strokeThickness: bn.subStrokeThickness, align: 'center',
@@ -202,7 +204,7 @@ export default class UIScene extends Phaser.Scene {
     const bossOn = !!boss?.active && boss.stats.isBoss; // pooled: the same sprite may be a zombie later
     this.bossText.setVisible(bossOn);
     if (bossOn) {
-      this.bossText.setText(boss.stats.name.toUpperCase());
+      this.bossText.setText(enemyName(boss.stats, this.run.map).toUpperCase());
       drawBar(this.bars, (this.vw - bb.width) / 2, bb.y, bb.width, bb.height, boss.hp / boss.stats.hp, bb.color);
     }
     this.tankButton.setVisible(full && r.tankMs <= 0);

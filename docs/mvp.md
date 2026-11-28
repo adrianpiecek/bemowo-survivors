@@ -1381,6 +1381,22 @@ Poziom zostaje bez zmian: zmienione klucze mają w `layouts.landscape` swoje sta
   - w konsoli tylko znane błędy 404.
 
 
+### 74. Bossowie Fortu Bema (krok 98)
+
+- **Nazwy bossów zależą od mapy.** Wpis mapy w `src/data/maps.js` ma opcjonalne `names`: id bossa → jego nazwa na tej mapie. `enemyName(def, mapId)` z tego pliku zwraca nazwę z mapy albo zwykłą. Na Forcie Bema:
+  - Wielki Zombie → Wielki Binion;
+  - Wielki Uncanny → Wielki Purple Buy;
+  - Wielki Goblin → Wielki Gnom;
+  - Wielki Sportakus → Wielki Bartcraft;
+  - Wielki Joker → Wielki Klockowy B;
+  - Wielki Homelander → Wielki Kapitan Bemowo.
+- **Gdzie widać:** baner „UWAGA: …” (też z partnerem z planu Trening w parze), baner „… pokonany” i podpis nad paskiem HP bossa. Bestiariusz, wyzwania i opisy odblokowań broni zostają przy zwykłych nazwach, bo dotyczą typu bossa, nie mapy. Podpisy mocy (np. „Rzuca beczkami pełnymi goblinów”) są bez zmian.
+- **Długi baner się zawija.** Tytuł banera ma `wordWrap` jak podpis, więc dwa długie imiona bossów nie wychodzą poza ekran.
+- **Sprawdzone w przeglądarce:**
+  - na Forcie Bema baner, „pokonany” i pasek bossa mają nowe nazwy, a para „Wielki Kapitan Bemowo i Wielki Klockowy B” zawija się w dwie linie;
+  - na Jelonkach jest „Wielki Homelander”;
+  - w konsoli tylko znane błędy 404.
+
 Te decyzje pozwolą dodać wersję 2 bez przebudowy kodu.
 
 - **Sceny:** `BootScene` (ładowanie), `GameScene` (gra), `UIScene` (HUD jako osobna warstwa), `LevelUpScene` (karty), `GameOverScene`.

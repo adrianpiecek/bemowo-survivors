@@ -7,7 +7,7 @@ import { weapons } from '../data/weapons.js';
 import { passives } from '../data/passives.js';
 import { plans } from '../data/plans.js';
 import { elites } from '../data/elites.js';
-import { applyDifficulty, mapById } from '../data/maps.js';
+import { applyDifficulty, mapById, enemyName } from '../data/maps.js';
 import { events } from '../data/events.js';
 import { font } from '../systems/ui.js';
 import { evolutionReady } from '../systems/cards.js';
@@ -412,7 +412,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   announceBoss(def) {
-    const name = def.partner ? `${def.name} i ${def.partner.name}` : def.name;
+    const m = this.run.map, name = def.partner ? `${enemyName(def, m)} i ${enemyName(def.partner, m)}` : enemyName(def, m);
     this.scene.get('UIScene').showBanner(`UWAGA: ${name.toUpperCase()}`, bossPowers[def.id]?.hint ?? '', config.boss.bannerSec * 1000);
     playSfx(this, 'boss');
     playMusic(this, 'boss');
@@ -439,7 +439,7 @@ export default class GameScene extends Phaser.Scene {
     }
     this.dropChest(boss.x, boss.y, def.chest);
     playVfx(this, 'bossBoom', boss.x, boss.y);
-    this.scene.get('UIScene').showBanner(`${def.name} pokonany`);
+    this.scene.get('UIScene').showBanner(`${enemyName(def, this.run.map)} pokonany`);
     // A boss not killed before the next one's minute may still be on the map.
     this.boss = this.enemies.getChildren().find((z) => z.active && z.stats.isBoss) ?? null;
     if (!this.boss) playMusic(this, 'gameplay');
